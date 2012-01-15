@@ -110,7 +110,14 @@ def usage():
 
 if __name__ == '__main__':
 
-    xdir = os.environ['XAPERS_DIR']
+    try:
+        xdir = os.environ['XAPERS_DIR']
+    except:
+        print >>sys.stderr, "XAPERS_DIR environment variable not specified."
+        sys.exit(1)
+    if not os.path.isdir(xdir):
+        print >>sys.stderr, "XAPERS_DIR '%s' does not exist." % (xdir)
+        sys.exit(2)
     if 'XAPERS_DB' in os.environ:
         xdb = os.environ['XAPERS_DB']
     else:
@@ -120,11 +127,16 @@ if __name__ == '__main__':
 
     ########################################
     if cmd == 'new':
+        try:
+            os.makedirs(xdb)
+        except:
+            pass
         omindex = [
             '~/src/xapian/xapian/xapian-applications/omega/omindex',
 	    '--verbose',
 	    '--follow',
 	    '--db', xdb,
+            '--url', '/',
             ]
         for arg in sys.argv[2:]:
             omindex.append(arg)
