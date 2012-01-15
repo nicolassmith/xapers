@@ -65,7 +65,7 @@ class Xapers():
         # FIXME: is this the best way to form query?
         query_string = str.join(' ', terms)
 
-        if query_string == "*":
+        if query_string == "*" or not query_string:
             query = xapian.Query.MatchAll
         else:
             # parse the query string to produce a Xapian::Query object.
@@ -111,6 +111,7 @@ def usage():
   new                                         update database
   search <search-term>...                     search the database
   tag +tag|-tab [...] [--] <search-term>...   add/remove tags
+  dump [<search-terms>...]                    dump tags to stdout
   help                                        this help
 """
 
@@ -208,6 +209,19 @@ if __name__ == '__main__':
                 except:
                     pass
             xapers.xapian_db.replace_document(m.docid, m.document)
+
+    ########################################
+    elif cmd == 'dump':
+        searchterms = sys.argv[2:]
+
+        xapers = Xapers(xdir, writable=False)
+
+        matches = xapers.search(searchterms)
+
+        for m in matches:
+            docid = doc_get_docid(m.document)
+            tags = doc_get_terms(m.document, find_prefix('tag'))
+            print "%s %s" % (docid, ' '.join(tags))
 
     ########################################
     elif cmd == 'help':
