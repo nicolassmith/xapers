@@ -809,7 +809,7 @@ non-authors is found, assume that all of the authors match."
 		      (if (/= (match-beginning 1) line)
 			  (insert (concat "Error: Unexpected output from xapers search:\n" (substring string line (match-beginning 1)) "\n")))
 		      (let ((beg (point)))
-			(xapers-search-show-result percent file tags summary)
+			(xapers-search-show-result percent docid tags summary)
 			;(xapers-search-color-line beg (point) tag-list)
  			(put-text-property beg (point) 'xapers-search-docid docid)
  			(put-text-property beg (point) 'xapers-search-file file)
