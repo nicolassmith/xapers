@@ -6,25 +6,31 @@ import xapian
 
 ########################################################################
 
+# these should match what is defined in omindex
+boolean_prefix = {
+    # FIXME: this should map to something better, somehow
+    'id': 'U',
+    'tag': 'K',
+    'day': 'D',
+    'month': 'M',
+    'year': 'Y',
+    'url': 'U',
+    'file': 'U',
+    }
+probabilistic_prefix = {
+    'title': 'S',
+    'author': 'A',
+    'type': 'T',
+    'dir': 'P',
+    }
+
+def find_prefix(name):
+    if name in boolean_prefix:
+        return boolean_prefix[name]
+    if name in probabilistic_prefix:
+        return probabilistic_prefix[name]
+
 class Xapers():
-    # these should match what is defined in omindex
-    boolean_prefix = {
-        # FIXME: this should map to something better, somehow
-        'id': 'U',
-        'tag': 'K',
-        'day': 'D',
-        'month': 'M',
-        'year': 'Y',
-        'url': 'U',
-        'file': 'U',
-        }
-    probabilistic_prefix = {
-        'title': 'S',
-        'author': 'A',
-        'type': 'T',
-        'dir': 'P',
-        }
-    
     def __init__(self, path, writable=False):
         self.xapers_path = os.path.join(path, '.xapers')
 
@@ -44,17 +50,11 @@ class Xapers():
         self.query_parser.set_stemmer(stemmer)
         self.query_parser.set_stemming_strategy(xapian.QueryParser.STEM_SOME)
 
-        for name, prefix in self.boolean_prefix.iteritems():
+        for name, prefix in boolean_prefix.iteritems():
             self.query_parser.add_boolean_prefix(name, prefix)
 
-        for name, prefix in self.probabilistic_prefix.iteritems():
+        for name, prefix in probabilistic_prefix.iteritems():
             self.query_parser.add_prefix(name, prefix)
-
-    def find_prefix(self, name):
-        if name in self.boolean_prefix:
-            return self.boolean_prefix[name]
-        if name in self.probabilistic_prefix:
-            return self.probabilistic_prefix[name]
 
     def search(self, terms, count=0):
         # start an enquire session.
@@ -84,6 +84,12 @@ class Xapers():
 
 
 ########################################################################
+
+# FIXME: we output the relative path as an ad-hoc doc id.
+# this should really just be the actual docid, and we need
+# a way to access docs by docid directly (via "id:")
+def doc_get_docid(doc):
+    return doc_get_terms(doc, find_prefix('file'))[0]
 
 # return a list of terms for prefix
 def doc_get_terms(doc, prefix):
@@ -155,15 +161,12 @@ if __name__ == '__main__':
         matches = xapers.search(searchterms)
 
         for m in matches:
-            tags = doc_get_terms(m.document, xapers.find_prefix('tag'))
-            path = doc_get_terms(m.document, xapers.find_prefix('file'))[0]
+            tags = doc_get_terms(m.document, find_prefix('tag'))
+            path = doc_get_terms(m.document, find_prefix('file'))[0]
             data = parse_omega_data(m.document.get_data())
             filepath = os.path.abspath(xdir+path)
 
-            # FIXME: we output the relative path as an ad-hoc doc id.
-            # this should really just be the actual docid, and we need
-            # a way to access docs by docid ("docid:")
-            docid = 'id:'+path
+            docid = doc_get_docid(m.document)
 
             #print "%i: %i%% docid=%i" % (m.rank + 1, m.percent, m.docid)
             print "%s %i %s (%s) \"%s\"" % (docid, m.percent, filepath, ' '.join(tags), data)
@@ -191,7 +194,7 @@ if __name__ == '__main__':
 
         matches = xapers.search(searchterms)
 
-        prefix = xapers.find_prefix('tag')
+        prefix = find_prefix('tag')
 
         for m in matches:
             for tag in add_tags:
