@@ -119,6 +119,7 @@ def usage():
   search [--format=] <search-term>...         search the database
     format = [full|simple|file]
   tag +tag|-tab [...] [--] <search-term>...   add/remove tags
+  see <search-term>...                        display first result
   count <search-term>...                      count matches
   dump [<search-terms>...]                    dump tags to stdout
   help                                        this help
@@ -232,6 +233,20 @@ if __name__ == '__main__':
                 except:
                     pass
             xapers.xapian_db.replace_document(m.docid, m.document)
+
+    ########################################
+    elif cmd == 'see':
+        searchterms = sys.argv[2:]
+
+        xapers = Xapers(xdir, writable=False)
+
+        matches = xapers.search(searchterms)
+
+        from subprocess import call
+        for m in matches:
+            path = doc_get_full_path(m.document, xdir)[0]
+            sts = call(' '.join(["see", path]), shell=True)
+            sys.exit()
 
     ########################################
     elif cmd == 'count':
