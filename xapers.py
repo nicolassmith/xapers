@@ -65,7 +65,7 @@ class Xapers():
         # FIXME: is this the best way to form query?
         query_string = str.join(' ', terms)
 
-        if query_string == "*" or not query_string:
+        if query_string == "*":
             query = xapian.Query.MatchAll
         else:
             # parse the query string to produce a Xapian::Query object.
@@ -109,8 +109,10 @@ def usage():
     print "Usage:", prog, "<command> [args...]"
     print """
   new                                         update database
-  search <search-term>...                     search the database
+  search [--format=] <search-term>...         search the database
+    format = [full|simple|file]
   tag +tag|-tab [...] [--] <search-term>...   add/remove tags
+  count <search-term>...                      count matches
   dump [<search-terms>...]                    dump tags to stdout
   help                                        this help
 """
@@ -155,22 +157,38 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd == 'search':
-        searchterms = sys.argv[2:]
+        argc = 2
+        oformat = 'full'
+        if '--format=' in sys.argv[argc]:
+            oformat = sys.argv[argc].split('=')[1]
+            argc += 1
+        searchterms = sys.argv[argc:]
 
         xapers = Xapers(xdir, writable=False)
 
         matches = xapers.search(searchterms)
 
         for m in matches:
-            tags = doc_get_terms(m.document, find_prefix('tag'))
-            path = doc_get_terms(m.document, find_prefix('file'))[0]
-            data = parse_omega_data(m.document.get_data())
-            filepath = os.path.abspath(xdir+path)
-
             docid = doc_get_docid(m.document)
 
-            #print "%i: %i%% docid=%i" % (m.rank + 1, m.percent, m.docid)
-            print "%s %i %s (%s) \"%s\"" % (docid, m.percent, filepath, ' '.join(tags), data)
+            if oformat == 'file':
+                for path in doc_get_terms(m.document, find_prefix('file')):
+                    filepath = os.path.abspath(xdir+path)
+                    print "%s" % (filepath)
+                    continue
+
+            tags = doc_get_terms(m.document, find_prefix('tag'))
+
+            if oformat == 'simple':
+                print "%s %i (%s)" % (docid, m.percent, ' '.join(tags))
+                continue
+
+            if oformat == 'full':
+                path = doc_get_terms(m.document, find_prefix('file'))[0]
+                filepath = os.path.abspath(xdir+path)
+                data = parse_omega_data(m.document.get_data())
+                print "%s %i %s (%s) \"%s\"" % (docid, m.percent, filepath, ' '.join(tags), data)
+                continue
 
     ########################################
     elif cmd == 'tag':
@@ -209,6 +227,19 @@ if __name__ == '__main__':
                 except:
                     pass
             xapers.xapian_db.replace_document(m.docid, m.document)
+
+    ########################################
+    elif cmd == 'count':
+        searchterms = sys.argv[2:]
+
+        xapers = Xapers(xdir, writable=False)
+
+        # count = 0 to retrieve all entries
+        matches = xapers.search(searchterms, count=0)
+
+	count = matches.get_matches_estimated();
+
+        print count
 
     ########################################
     elif cmd == 'dump':
