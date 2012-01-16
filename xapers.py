@@ -85,12 +85,6 @@ class Xapers():
 
 ########################################################################
 
-# FIXME: we output the relative path as an ad-hoc doc id.
-# this should really just be the actual docid, and we need
-# a way to access docs by docid directly (via "id:")
-def doc_get_docid(doc):
-    return doc_get_terms(doc, find_prefix('file'))[0]
-
 # return a list of terms for prefix
 def doc_get_terms(doc, prefix):
     list = []
@@ -98,6 +92,19 @@ def doc_get_terms(doc, prefix):
         if term.term[0] == prefix:
             list.append(term.term.lstrip(prefix))
     return list
+
+# FIXME: we output the relative path as an ad-hoc doc id.
+# this should really just be the actual docid, and we need
+# a way to access docs by docid directly (via "id:")
+def doc_get_docid(doc):
+    return doc_get_terms(doc, find_prefix('file'))[0]
+
+def doc_get_tags(doc):
+    return doc_get_terms(m.document, find_prefix('tag'))
+
+def doc_get_full_path(doc, xdir):
+    paths = doc_get_terms(m.document, find_prefix('file'))
+    return [os.path.abspath(xdir+f) for f in paths]
 
 def parse_omega_data(data):
     return data
@@ -171,23 +178,21 @@ if __name__ == '__main__':
         for m in matches:
             docid = doc_get_docid(m.document)
 
-            if oformat == 'file':
-                for path in doc_get_terms(m.document, find_prefix('file')):
-                    filepath = os.path.abspath(xdir+path)
-                    print "%s" % (filepath)
+            if oformat in ['file','files']:
+                for fullpath in doc_get_full_path(m.document, xdir):
+                    print "%s" % (fullpath)
                     continue
 
-            tags = doc_get_terms(m.document, find_prefix('tag'))
+            tags = doc_get_tags(m.document)
 
             if oformat == 'simple':
                 print "%s %i (%s)" % (docid, m.percent, ' '.join(tags))
                 continue
 
             if oformat == 'full':
-                path = doc_get_terms(m.document, find_prefix('file'))[0]
-                filepath = os.path.abspath(xdir+path)
+                fullpath = doc_get_full_path(m.document, xdir)
                 data = parse_omega_data(m.document.get_data())
-                print "%s %i %s (%s) \"%s\"" % (docid, m.percent, filepath, ' '.join(tags), data)
+                print "%s %i %s (%s) \"%s\"" % (docid, m.percent, fullpath, ' '.join(tags), data)
                 continue
 
     ########################################
