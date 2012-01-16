@@ -115,7 +115,7 @@ def usage():
     prog = os.path.basename(sys.argv[0])
     print "Usage:", prog, "<command> [args...]"
     print """
-  new                                         update database
+  new [--verbose]                             update database
   search [--format=] <search-term>...         search the database
     format = [full|simple|file]
   tag +tag|-tab [...] [--] <search-term>...   add/remove tags
@@ -153,7 +153,6 @@ if __name__ == '__main__':
             pass
         omindex = [
             '~/src/xapian/xapian/xapian-applications/omega/omindex',
-	    '--verbose',
 	    '--follow',
 	    '--db', xdb,
             '--url', '/',

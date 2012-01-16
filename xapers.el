@@ -390,7 +390,7 @@ Complete list of currently available key bindings:
   (xapers-search-properties-in-region 'xapers-search-subject beg end))
 
 (defun xapers-search-open ()
-  "Open file in pdf viewer."
+  "View/see file."
   (interactive)
   (let ((file (xapers-search-find-file)))
     (start-process file nil "see" file)))
