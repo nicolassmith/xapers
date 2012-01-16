@@ -194,7 +194,7 @@ if __name__ == '__main__':
                 continue
 
             if oformat == 'full':
-                fullpath = doc_get_full_path(m.document, xdir)
+                fullpath = doc_get_full_path(m.document, xdir)[0]
                 data = parse_omega_data(m.document.get_data())
                 print "%s %i %s (%s) \"%s\"" % (docid, m.percent, fullpath, ' '.join(tags), data)
                 continue
