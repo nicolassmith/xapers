@@ -140,7 +140,10 @@ if __name__ == '__main__':
     else:
         xdb = os.path.join(xdir,'.xapers','xapian')
 
-    cmd = sys.argv[1]
+    if len(sys.argv) > 1:
+        cmd = sys.argv[1]
+    else:
+        cmd = []
 
     ########################################
     if cmd == 'new':
