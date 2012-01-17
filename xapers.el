@@ -392,8 +392,12 @@ Complete list of currently available key bindings:
 (defun xapers-search-open ()
   "View/see file."
   (interactive)
-  (let ((file (xapers-search-find-file)))
-    (start-process file nil "see" file)))
+  (let* ((file (xapers-search-find-file))
+	 (name (concat "*see-" file "*")))
+    ;(start-process name nil "see" file "& disown")
+    ;(set-process-query-on-exit-flag (get-process name) nil)
+    (shell-command (concat "see " file " & disown"))
+    ))
 
 (defun xapers-call-xapers-process (&rest args)
   "Synchronously invoke \"xapers\" with the given list of arguments.
@@ -986,26 +990,9 @@ current search results AND that are tagged with the given tag."
 (defun xapers ()
   "Run xapers and display saved searches, known tags, etc."
   (interactive)
-  (xapers-hello))
+  (xapers-search))
 
 ;;;###autoload
-(defun xapers-jump-to-recent-buffer ()
-  "Jump to the most recent xapers buffer (search, show or hello).
-
-If no recent buffer is found, run `xapers'."
-  (interactive)
-  (let ((last
-	 (loop for buffer in (buffer-list)
-	       if (with-current-buffer buffer
-		    (memq major-mode '(xapers-show-mode
-				       xapers-search-mode
-				       xapers-hello-mode)))
-	       return buffer)))
-    (if last
-	(switch-to-buffer last)
-      (xapers))))
-
-(setq mail-user-agent 'xapers-user-agent)
 
 (define-key xapers-search-mode-map "1"
   (lambda ()
