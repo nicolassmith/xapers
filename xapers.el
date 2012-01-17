@@ -258,17 +258,17 @@ For a mouse binding, return nil."
   (goto-char (point-min)))
 
 (defface xapers-search-percent
-  '((t :inherit default :foreground "yellow"))
+  '((t :inherit default))
   "Face used in search mode for match percent."
   :group 'xapers)
 
 (defface xapers-search-file
-  '((t :inherit default :foreground "blue"))
+  '((t :inherit default))
   "Face used in search mode for file."
   :group 'xapers)
 
 (defface xapers-search-summary
-  '((t :inherit default :foreground "green"))
+  '((t :inherit default))
   "Face used in search mode for file."
   :group 'xapers)
 
