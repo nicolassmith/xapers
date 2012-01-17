@@ -116,8 +116,8 @@ def usage():
     print "Usage:", prog, "<command> [args...]"
     print """
   new [--verbose]                             update database
-  search [--format=] <search-term>...         search the database
-    format = [full|simple|file]
+  search [--output=] <search-term>...         search the database
+    output = [full|simple|file]
   tag +tag|-tab [...] [--] <search-term>...   add/remove tags
   see <search-term>...                        display first result
   count <search-term>...                      count matches
@@ -169,7 +169,7 @@ if __name__ == '__main__':
     elif cmd == 'search':
         argc = 2
         oformat = 'full'
-        if '--format=' in sys.argv[argc]:
+        if '--output=' in sys.argv[argc]:
             oformat = sys.argv[argc].split('=')[1]
             argc += 1
         searchterms = sys.argv[argc:]
