@@ -5,6 +5,24 @@ import sys
 import xapian
 
 ########################################################################
+# TODO:
+
+# proper docid
+#   how to search by docid?
+
+# doc class
+
+# index here, instead of relying on omindex
+
+# store bibtex in data
+#   - want add_bibtex function, that parses the bibtex to add terms:
+#     - author
+#     - title
+#     - pub date
+#   - add ability to modify data for document
+#   - dump file --> dump directories, in git!
+
+########################################################################
 
 # these should match what is defined in omindex
 boolean_prefix = {
@@ -97,7 +115,7 @@ def doc_get_terms(doc, prefix):
 # this should really just be the actual docid, and we need
 # a way to access docs by docid directly (via "id:")
 def doc_get_docid(doc):
-    return doc_get_terms(doc, find_prefix('file'))[0]
+    return "id:"+doc_get_terms(doc, find_prefix('file'))[0]
 
 def doc_get_tags(doc):
     return doc_get_terms(m.document, find_prefix('tag'))
