@@ -297,6 +297,26 @@ if __name__ == '__main__':
             print "%s (%s)" % (docid, ' '.join(tags))
 
     ########################################
+    elif cmd == 'restore':
+        xapers = Xapers(xdir, writable=True)
+
+        import re
+        regex = re.compile("^([^ ]+) \\(([^)]*)\\)$")
+        for line in sys.stdin:
+            m = regex.match(line)
+            if not m:
+                continue
+            docid = m.group(1)
+            tags = m.group(2)
+
+            print m.groups()
+            continue
+
+            doc = xapers.get_doc(docid)
+            doc.set_terms(tags)
+            xapers.xapian_db.replace_document(docid, doc)
+
+    ########################################
     elif cmd == 'help':
         usage()
         sys.exit(0)
