@@ -115,7 +115,7 @@ def doc_get_terms(doc, prefix):
 # this should really just be the actual docid, and we need
 # a way to access docs by docid directly (via "id:")
 def doc_get_docid(doc):
-    return "id:"+doc_get_terms(doc, find_prefix('file'))[0]
+    return doc_get_terms(doc, find_prefix('file'))[0]
 
 def doc_get_tags(doc):
     return doc_get_terms(m.document, find_prefix('tag'))
@@ -207,13 +207,13 @@ if __name__ == '__main__':
             tags = doc_get_tags(m.document)
 
             if oformat == 'simple':
-                print "%s %i (%s)" % (docid, m.percent, ' '.join(tags))
+                print "id:%s %i (%s)" % (docid, m.percent, ' '.join(tags))
                 continue
 
             if oformat == 'full':
                 fullpath = doc_get_full_path(m.document, xdir)[0]
                 data = parse_omega_data(m.document.get_data())
-                print "%s %i %s (%s) \"%s\"" % (docid, m.percent, fullpath, ' '.join(tags), data)
+                print "id:%s %i %s (%s) \"%s\"" % (docid, m.percent, fullpath, ' '.join(tags), data)
                 continue
 
     ########################################
@@ -284,6 +284,8 @@ if __name__ == '__main__':
     ########################################
     elif cmd == 'dump':
         searchterms = sys.argv[2:]
+        if not searchterms:
+            searchterms = '*'
 
         xapers = Xapers(xdir, writable=False)
 
@@ -292,7 +294,7 @@ if __name__ == '__main__':
         for m in matches:
             docid = doc_get_docid(m.document)
             tags = doc_get_terms(m.document, find_prefix('tag'))
-            print "%s %s" % (docid, ' '.join(tags))
+            print "%s (%s)" % (docid, ' '.join(tags))
 
     ########################################
     elif cmd == 'help':
