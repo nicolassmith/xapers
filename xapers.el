@@ -173,7 +173,7 @@ For a mouse binding, return nil."
     (define-key map "-" 'xapers-search-remove-tag)
     (define-key map "+" 'xapers-search-add-tag)
     (define-key map "a" 'xapers-search-archive)
-    (define-key map (kbd "RET") 'xapers-search-open)
+    (define-key map (kbd "RET") 'xapers-search-view)
     map)
   "Keymap for \"xapers search\" buffers.")
 (fset 'xapers-search-mode-map xapers-search-mode-map)
@@ -389,14 +389,17 @@ Complete list of currently available key bindings:
   "Return a list of authors for the current region"
   (xapers-search-properties-in-region 'xapers-search-subject beg end))
 
-(defun xapers-search-open ()
-  "View/see file."
+(defun xapers-search-view ()
+  "View document."
   (interactive)
-  (let* ((file (xapers-search-find-file))
-	 (name (concat "*see-" file "*")))
+  (let* ((docid (xapers-search-find-docid))
+	 (name (concat "*view-" docid "*")))
     ;(start-process name nil "see" file "& disown")
     ;(set-process-query-on-exit-flag (get-process name) nil)
-    (shell-command (concat "see " file " & disown"))
+    ;(shell-command (concat xapers-command
+    (apply 'xapers-call-xapers-process
+	 (append (list "view") (list docid)))
+
     ))
 
 (defun xapers-call-xapers-process (&rest args)
