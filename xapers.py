@@ -7,12 +7,13 @@ import xapers
 ########################################################################
 # TODO:
 
-# proper docid
-#   how to search by docid?
+# source fetch modules
+#  - url parser
+#  - bibtex fetch
 
-# doc class
+# doc parser modules
 
-# index here, instead of relying on omindex
+# better atomic opening of database
 
 # store bibtex in data
 #   - want add_bibtex function, that parses the bibtex to add terms:
@@ -24,74 +25,10 @@ import xapers
 
 ########################################################################
 
-# readline completion class
-class Completer:
-    def __init__(self, words):
-        self.words = words
-    def terms(self, prefix, index):
-        matching_words = [
-            w for w in self.words if w.startswith(prefix)
-            ]
-        try:
-            return matching_words[index]
-        except IndexError:
-            return None
-
-# query user for document metadata
-def query_metadata(db):
-    import readline
-
-    url = None
-    source = None
-    sid = None
-    tags = None
-
-    while True:
-        if url:
-            readline.set_startup_hook(lambda: readline.insert_text(url))
-        url = raw_input('url: ')
-        
-        readline.parse_and_bind("tab: complete")
-        if source:
-            readline.set_startup_hook(lambda: readline.insert_text(source))
-        completer = Completer(db.get_all_sources())
-        readline.set_completer(completer.terms)
-        source = raw_input('source: ')
-
-        if sid:
-            readline.set_startup_hook(lambda: readline.insert_text(sid))
-        readline.set_completer()
-        # FIXME: we don't want to tab complete here
-        readline.parse_and_bind('')
-        sid = raw_input('sid: ')
-
-        # FIXME: remove 'new' from list
-        readline.set_startup_hook()
-        completer = Completer(db.get_all_tags())
-        readline.set_completer(completer.terms)
-        tags = []
-        while True:
-            tag = raw_input('tag: ')
-            if tag:
-                tags.append(tag.strip())
-            else:
-                break
-
-        print
-        print "Is this data correct?:"
-        print """
-   url: %s
-source: %s
-   sid: %s
-  tags: %s
-""" % (url, source, sid, ' '.join(tags))
-        ret = raw_input("'r' to reenter, return to accept, C-c to cancel: ")
-        if ret is not 'r':
-            break
-
-    sources = {source: sid}
-    return url, sources, tags
-
+# Combine a list of terms with spaces between, so that simple queries
+# don't have to be quoted at the shell level.
+def make_query_string(terms):
+    return str.join(' ', terms)
 
 ########################################################################
 
@@ -99,16 +36,20 @@ def usage():
     prog = os.path.basename(sys.argv[0])
     print "Usage:", prog, "<command> [args...]"
     print """
+  import file                                 interactively add file to database
   add [options] file                          add file to database
+    --url
     --sources=source:sid[,...]
     --tags=tag[,...]
   search [options] <search-term>...           search the database
-    --output=[full|simple|file]
+    --output=[simple|full|files|sources|tags]
   tag +tag|-tab [...] [--] <search-term>...   add/remove tags
-  view <search-term>...                       display first result
+  set <attribute> <value> <docid>             set a document attribute with value
+  show <search-term>...                       display first result
   count <search-term>...                      count matches
   dump [<search-terms>...]                    dump tags to stdout
   restore                                     restore dump file on stdin
+  version
   help                                        this help
 """
 
@@ -132,11 +73,11 @@ if __name__ == '__main__':
     else:
         cmd = []
 
-    ui = xapers.UI(xdir)
+    cli = xapers.cli.UI(xdir)
 
     ########################################
     if cmd == 'import':
-        ui.import_file(sys.argv[2])
+        cli.import_document(sys.argv[2])
         
     ########################################
     elif cmd == 'add':
@@ -162,7 +103,12 @@ if __name__ == '__main__':
             argc += 1
         infile = sys.argv[argc]
 
-        ui.add(infile, url=url, sources=sources, tags=tags)
+        if infile == '-':
+            for line in sys.stdin:
+                path = line.strip('\n').lstrip('./')
+                cli.add(path, url=url, sources=sources, tags=tags)
+        else:
+            cli.add(infile, url=url, sources=sources, tags=tags)
 
     ########################################
     elif cmd == 'new':
@@ -193,13 +139,26 @@ if __name__ == '__main__':
             print >>sys.stderr, "Must specify a search term."
             sys.exit()
         argc = 2
-        oformat = 'full'
+        oformat = 'simple'
         if '--output=' in sys.argv[argc]:
             oformat = sys.argv[argc].split('=')[1]
             argc += 1
-        searchterms = sys.argv[argc:]
+        query = make_query_string(sys.argv[argc:])
 
-        ui.search(searchterms, oformat=oformat)
+        cli.search(query, oformat=oformat)
+
+    ########################################
+    elif cmd == 'select':
+        query = make_query_string(sys.argv[2:])
+        if not query or query == '':
+            query = '*'
+        xapers.selector.UI(xdir, query_string=query)
+
+    ########################################
+    elif cmd in ['view','show']:
+        query = make_query_string(sys.argv[2:])
+
+        cli.view(query)
 
     ########################################
     elif cmd == 'tag':
@@ -217,77 +176,45 @@ if __name__ == '__main__':
             else:
                 break
             argc += 1
+        query = make_query_string(sys.argv[argc:])
 
-        searchterms = sys.argv[argc:]
-
-        ui.tag(searchterms, add_tags, remove_tags)
+        cli.tag(query, add_tags, remove_tags)
 
     ########################################
-    elif cmd == 'view':
-        searchterms = sys.argv[2:]
+    elif cmd == 'set':
+        attribute = sys.argv[2]
+        value = sys.argv[3]
+        query = make_query_string(sys.argv[4:])
 
-        ui.view(searchterms)
+        cli.set(query, attribute, value)
+
+    ########################################
+    elif cmd == 'dumpterms':
+        query = make_query_string(sys.argv[2:])
+
+        cli.dumpterms(query)
 
     ########################################
     elif cmd == 'count':
-        searchterms = sys.argv[2:]
+        query = make_query_string(sys.argv[2:])
 
-        ui.count(searchterms)
-
-    ########################################
-    elif cmd == 'sync':
-        # searchterms = sys.argv[2:]
-        # if not searchterms:
-        #     searchterms = '*'
-        
-        # xapers = Xapers(xdir, writable=False)
-
-        # matches = xapers.search(searchterms)
-
-        # for m in matches:
-        #     docid = doc_get_docid(m.document)
-        #     tags = doc_get_terms(m.document, find_prefix('tag'))
-        #     docdir = os.path.join(xdir,docname)
-        #     f = open(sys.argv[3], 'rb')
-        #     print "%s (%s)" % (docid, ' '.join(tags))
-        print >>sys.stderr, "not implemented."
+        cli.count(query)
 
     ########################################
     elif cmd == 'dump':
-        # searchterms = sys.argv[2:]
-        # if not searchterms:
-        #     searchterms = '*'
+        query = make_query_string(sys.argv[2:])
+        if not query or query == '':
+            query = '*'
 
-        # xapers = Xapers(xdir, writable=False)
-
-        # matches = xapers.search(searchterms)
-
-        # for m in matches:
-        #     docid = doc_get_docid(m.document)
-        #     tags = doc_get_terms(m.document, find_prefix('tag'))
-        #     print "%s (%s)" % (docid, ' '.join(tags))
-        print >>sys.stderr, "not implemented."
+        cli.dump(query)
 
     ########################################
     elif cmd == 'restore':
-        # xapers = Xapers(xdir, writable=True)
+        cli.restore()
 
-        # import re
-        # regex = re.compile("^([^ ]+) \\(([^)]*)\\)$")
-        # for line in sys.stdin:
-        #     m = regex.match(line)
-        #     if not m:
-        #         continue
-        #     docid = m.group(1)
-        #     tags = m.group(2)
-
-        #     print m.groups()
-        #     continue
-
-        #     doc = xapers.get_doc(docid)
-        #     doc.set_terms(tags)
-        #     xapers.xapian_db.replace_document(docid, doc)
-        print >>sys.stderr, "not implemented."
+    ########################################
+    elif cmd == 'version':
+        print "Ha!"
 
     ########################################
     elif cmd == 'help':

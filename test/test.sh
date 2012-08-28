@@ -31,10 +31,24 @@ xapers search --output=simple '*'
 
 echo
 echo '##########'
-echo '# search all tags'
+echo '# search all output tags'
 echo
 
 xapers search --output=tags '*'
+
+echo
+echo '##########'
+echo '# search all output sources'
+echo
+
+xapers search --output=sources '*'
+
+echo
+echo '##########'
+echo '# search sources'
+echo
+
+xapers search source:ads
 
 echo
 echo '##########'
@@ -48,7 +62,7 @@ echo '##########'
 echo '# search by id (2)'
 echo
 
-xapers search id:2
+xapers search --output=full id:2
 
 echo
 echo '##########'
@@ -63,7 +77,7 @@ echo '# add tag (qux)'
 echo
 
 xapers tag +qux id:3
-xapers search --output=simple id:3
+xapers search id:3
 
 echo
 echo '##########'
@@ -71,4 +85,4 @@ echo '# remove tag (qux)'
 echo
 
 xapers tag -qux id:3 
-xapers search --output=simple id:3
+xapers search id:3

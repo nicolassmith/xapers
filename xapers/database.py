@@ -4,6 +4,8 @@ import xapian
 
 from .documents import Document
 
+# FIXME: add db schema documentation
+
 class Database():
     """Represents a Xapers database"""
 
@@ -21,17 +23,18 @@ class Database():
 
         # user defined
         'tag': 'K',
-        'source':'XSOURCE:',
-        #'source':'X',
+        'source': 'XSOURCE:',
+        'fulltitle': 'XTITLE:',
+        'fullauthors': 'XAUTHORS:',
 
-        # FIXME: use these:
-        #'day': 'D',
-        #'month': 'M',
         'year': 'Y',
+        #'added': ?
+        #'viewed': ?
         }
 
     PROBABILISTIC_PREFIX = {
         'title': 'S',
+        'subject': 'S',
         'author': 'A',
         }
 
@@ -42,7 +45,7 @@ class Database():
             return self.BOOLEAN_PREFIX_EXTERNAL[name]
         if name in self.PROBABILISTIC_PREFIX:
             return self.PROBABILISTIC_PREFIX[name]
-        # FIXME: raise internal error
+        # FIXME: raise internal error for unknown name
 
     def _make_source_prefix(self, source):
         return 'X%s:' % (source.upper())
@@ -50,10 +53,13 @@ class Database():
     def __init__(self, root, create=False, writable=False):
         # xapers root
         self.root = root
+
         # xapers db directory
         self.xapers_path = os.path.join(self.root, '.xapers')
         if create and not os.path.exists(self.xapers_path):
             os.makedirs(self.xapers_path)
+
+        # FIXME: need a try/except here to catch db open errors
 
         # the Xapian db
         xapian_db = os.path.join(self.xapers_path, 'xapian')
@@ -84,28 +90,26 @@ class Database():
             self.query_parser.add_prefix(name, prefix)
 
         # last docid in the database
-        self.last_doc_id = self.xapian_db.get_lastdocid()
+        self.last_docid = self.xapian_db.get_lastdocid()
 
     # generate a new doc id, based on the last availabe doc id
-    def _generate_doc_id(self):
-        self.last_doc_id += 1
-        return self.last_doc_id
+    def _generate_docid(self):
+        self.last_docid += 1
+        return self.last_docid
 
     # return a list of terms for prefix
     # FIXME: is this the fastest way to do this?
     def _get_terms(self, prefix):
         list = []
         for term in self.xapian_db:
-            if term.term.startswith(prefix):
-                list.append(term.term.lstrip(prefix))
+            if term.term.find(prefix) == 0:
+                index = len(prefix)
+                list.append(term.term[index:])
         return list
 
-    def get_all_sources(self):
-        prefix = self._find_prefix('source')
-        return self._get_terms(prefix)
-
-    def get_all_tags(self):
-        prefix = self._find_prefix('tag')
+    def get_terms(self, name):
+        """Get terms associate with name."""
+        prefix = self._find_prefix(name)
         return self._get_terms(prefix)
 
     def add_document(self,
@@ -126,19 +130,22 @@ class Database():
             the filename, and will not copy the entire contents of the
             file.
 
+        :param url: a url associated with the file.
+
         :param sources: a dictionary of source:id values.
 
         :param tags: initial tags to apply to document.
         """
 
-        print >>sys.stderr, "adding document:", filename
+        print >>sys.stderr, "adding '%s'..." % (filename),
 
         # FIXME: check it path has already been indexed
         # search for an existing document given the path
         # if none exists do something
         doc = self._find_doc_for_file(filename)
         if doc:
-            print >>sys.stderr, "document already indexed"
+            print doc
+            print >>sys.stderr, " already indexed (id:%s)" % (doc.get_id())
             return
 
         doc = Document(self)
@@ -154,8 +161,7 @@ class Database():
         # add sources
         if sources:
             for source,sid in sources.items():
-                doc._add_source(source)
-                doc._add_source_id(source, sid)
+                doc._add_source(source, sid)
 
         # add initial tags
         if tags:
@@ -165,6 +171,8 @@ class Database():
         # FIXME: should these operations all sync themselves?  what is
         # the cost of that?
         doc._sync()
+
+        print >>sys.stderr, " id:%s" % (doc.get_docid())
 
 
     def _find_doc_for_file(self, filename):
@@ -178,18 +186,8 @@ class Database():
             return None
 
 
-    def make_query_string(self, terms):
-        # combine with spaces between, so that simple queries don't
-        # have to be quoted at the shell level.  FIXME: is this the
-        # best way to form query?
-        return str.join(' ', terms)
-
     def _search(self, query_string, count=0):
-        # start an enquire session.
         enquire = xapian.Enquire(self.xapian_db)
-
-        #query_string = str.join(' ', terms)
-        #query_string = self.make_query_string(terms)
 
         if query_string == "*":
             query = xapian.Query.MatchAll
@@ -208,13 +206,13 @@ class Database():
 
         return matches
 
-    def search(self, terms, count=0):
-        """Search for documents in the database"""
+    def search(self, query_string, count=0):
+        """Search for documents in the database."""
 
         # FIXME: this should return an iterator over Documents
         #return Documents(self, self._search(terms, count))
-        return self._search(terms, count)
+        return self._search(query_string, count)
 
-    def count(self, terms):
-        """Count documents in the database"""
-        return self._search(terms, count=0).get_matches_estimated()
+    def count(self, query_string):
+        """Count documents matching search terms."""
+        return self._search(query_string, count=0).get_matches_estimated()
