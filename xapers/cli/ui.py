@@ -245,7 +245,7 @@ source: %s
 
         if attribute == 'title':
             doc.set_title(value)
-        if attribute == 'authors':
+        if attribute in ['author', 'authors']:
             doc.set_authors(value)
 
     def dumpterms(self, query_string):
@@ -270,6 +270,7 @@ source: %s
             path = doc.get_fullpaths()[0]
             call(' '.join(["okular", path]) + ' &', shell=True, stderr=open('/dev/null','w'))
             #os.system(' '.join(["okular", path]) + ' &')
+            #os.execlp('okular', path)
             break
 
     def dump(self, query_string):

@@ -293,7 +293,11 @@ class Document():
 
     def get_title(self):
         """Return title of document."""
-        return self._get_terms(self.xapers._find_prefix('fulltitle'))
+        title = self._get_terms(self.xapers._find_prefix('fulltitle'))
+        if title:
+            return title[0]
+        else:
+            return ''
 
     def set_authors(self, authors):
         """Set authors of document."""
@@ -306,9 +310,14 @@ class Document():
             self._remove_term('ZA', term)
         for term in self._get_terms(pf):
             self._remove_term(pf, term)
-        self._gen_terms(pa, title)
-        self._add_term(pf, title)
+        self._gen_terms(pa, authors)
+        self._add_term(pf, authors)
+        self._sync()
 
     def get_authors(self):
         """Return authors of document."""
-        return self._get_terms(self.xapers._find_prefix('fullauthors'))
+        authors = self._get_terms(self.xapers._find_prefix('fullauthors'))
+        if authors:
+            return authors[0]
+        else:
+            return ''
