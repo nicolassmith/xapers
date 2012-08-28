@@ -1,8 +1,4 @@
 #!/bin/bash
-
-searchterms="$@"
-
 x-terminal-emulator \
-    -title "xapers-select" \
-    -e bash -c "
-xapers select \"$@\""
+    -title "xapers select" \
+    -e xapers select "$@"

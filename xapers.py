@@ -160,6 +160,7 @@ if __name__ == '__main__':
 
         cli.view(query)
 
+
     ########################################
     elif cmd == 'tag':
         add_tags = []

@@ -182,5 +182,5 @@ class UI():
             query = 'id:%s' % docid
             message = 'opening doc id:%s...' % docid
             self.set_status(message)
-            subprocess.call(' '.join(["okular", path]) + ' &', shell=True, stderr=open('/dev/null','w'))
+            subprocess.call(' '.join(["nohup", "okular", path]) + ' &', shell=True, stderr=open('/dev/null','w'))
 
