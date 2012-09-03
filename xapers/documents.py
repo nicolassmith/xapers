@@ -62,6 +62,9 @@ class Document():
             self._add_term(self.xapers._find_prefix('id'), self.docid)
         # FIXME: what other metadata should the document have?
 
+    ########################################
+    # internal stuff
+
     # FIXME: should we add equivalent of
     # _notmuch_message_ensure_metadata, that would extract fields from
     # the xapian document?
@@ -164,7 +167,8 @@ class Document():
         # doc.add_term('XTITLE', title) # title
         pass
 
-    ##########
+    ########################################
+    # external stuff
 
     # FIXME: we output the relative path as an ad-hoc doc id.
     # this should really just be the actual docid, and we need
@@ -228,7 +232,11 @@ class Document():
         """Return source id for specified document source."""
         # FIXME: this should produce a single term
         prefix = self.xapers._make_source_prefix(source)
-        return self._get_terms(prefix)[0]
+        sid = self._get_terms(prefix)
+        if sid:
+            return sid[0]
+        else:
+            return None
 
     def get_sources(self):
         """Return a source:sid dictionary associated with document."""
@@ -241,34 +249,21 @@ class Document():
         return sources
 
     def remove_source(self, source):
-        pass
+        """Remove source from document."""
+        prefix = self.xapers._make_source_prefix(source)
+        for sid in self._get_terms(prefix):
+            self._remove_term(prefix, sid)
+        self._remove_term(self.xapers._find_prefix('source'), source)
 
     def _add_tag(self, tag):
         prefix = self.xapers._find_prefix('tag')
         self._add_term(prefix, tag)
 
-    def _remove_tag(self, tag):
-        prefix = self.xapers._find_prefix('tag')
-        self._remove_term(prefix, tag)
-
-    def add_tags(self, tags):
-        """Add tags to a document."""
-        # FIXME: this should take a list of tags
-        print tags
-        for tag in tags:
-            self._add_tag(tag)
-        self._sync()
-
     def add_tags(self, tags):
         """Add tags to a document."""
         for tag in tags:
             self._add_tag(tag)
-        self._sync()
-
-    def remove_tags(self, tags):
-        """Remove tags from a document."""
-        for tag in tags:
-            self._remove_tag(tag)
+            # FIXME: index tags so they're searchable
         self._sync()
 
     def get_tags(self):
@@ -276,7 +271,17 @@ class Document():
         prefix = self.xapers._find_prefix('tag')
         return self._get_terms(prefix)
 
-    def set_title(self, title):
+    def _remove_tag(self, tag):
+        prefix = self.xapers._find_prefix('tag')
+        self._remove_term(prefix, tag)
+
+    def remove_tags(self, tags):
+        """Remove tags from a document."""
+        for tag in tags:
+            self._remove_tag(tag)
+        self._sync()
+
+    def _set_title(self, title):
         """Set title of document."""
         pt = self.xapers._find_prefix('title')
         pf = self.xapers._find_prefix('fulltitle')
@@ -289,6 +294,9 @@ class Document():
             self._remove_term(pf, term)
         self._gen_terms(pt, title)
         self._add_term(pf, title)
+
+    def set_title(self, title):
+        self._set_title(title)
         self._sync()
 
     def get_title(self):
@@ -299,7 +307,7 @@ class Document():
         else:
             return ''
 
-    def set_authors(self, authors):
+    def _set_authors(self, authors):
         """Set authors of document."""
         pa = self.xapers._find_prefix('author')
         pf = self.xapers._find_prefix('fullauthors')
@@ -311,7 +319,13 @@ class Document():
         for term in self._get_terms(pf):
             self._remove_term(pf, term)
         self._gen_terms(pa, authors)
+        # FIXME: can't handle long author lists.  character limit.
+        # need to check limit and split up, and maybe store each
+        # author individually?
         self._add_term(pf, authors)
+
+    def set_authors(self, authors):
+        self._set_authors(authors)
         self._sync()
 
     def get_authors(self):
