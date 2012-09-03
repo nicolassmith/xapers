@@ -81,8 +81,8 @@ class UI():
             # get data from source
             if smod:
                 source = smod.name
-                sdata = smod.get_data(sid, lfile='test/sources/doi.bib')
-                #sdata = smod.get_data(sid)
+                #sdata = smod.get_data(sid, lfile='test/sources/doi.bib')
+                sdata = smod.get_data(sid)
                 if sdata:
                     title = sdata['title'].encode('utf-8')
                     authors = sdata['authors'].encode('utf-8')
