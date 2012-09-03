@@ -11,13 +11,13 @@ def parse(bib):
     bibfile = cStringIO.StringIO()
     bibfile.write(bib)
     parser = bibtex.Parser()
-    bibdata = parser.parse_file('test/sources/doi.bib')
+    #bibdata = parser.parse_file('test/sources/doi.bib')
     #bibdata = parser.parse_file('/home/jrollins/ligo/src/papers/multiColorMetrology/GWreferences.bib')
-    # try:
-    #     bib_data = parser.parse_stream(bib)
-    # except:
-    #     print >>sys.stderr, "Unable to parse bibtex."
-    #     return None
+    try:
+        bibdata = parser.parse_stream(bib)
+    except:
+        print >>sys.stderr, "Unable to parse bibtex."
+        return None
 
     bibentry = bibdata.entries.values()[0].fields
     # for key in bibdata.entries.keys():
