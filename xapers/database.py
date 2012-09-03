@@ -116,6 +116,8 @@ class Database():
                      filename,
                      url=None,
                      sources=None,
+                     title=None,
+                     authors=None,
                      tags=None):
         """Add a document to the database
 
@@ -162,6 +164,14 @@ class Database():
         if sources:
             for source,sid in sources.items():
                 doc._add_source(source, sid)
+
+        # set title
+        if title:
+            doc._set_title(title)
+
+        # set authors
+        if authors:
+            doc._set_authors(authors)
 
         # add initial tags
         if tags:
