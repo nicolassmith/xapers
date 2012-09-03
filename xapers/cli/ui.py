@@ -54,8 +54,9 @@ class UI():
         isources = None
         itags = None
 
-        source = None
+        smod = None
         sid = None
+        source = None
         title = None
         authors = None
         year = None
@@ -76,17 +77,23 @@ class UI():
 
             # parse the url for source and sid
             # returns a source module and sid
-            smod, sid = xapers.source.source_from_url(url)
+            try:
+                smod, sid = xapers.source.source_from_url(url)
+            except:
+                print >>sys.stderr, "Failed to parse url."
 
             # get data from source
             if smod:
-                source = smod.name
-                #sdata = smod.get_data(sid, lfile='test/sources/doi.bib')
-                sdata = smod.get_data(sid)
-                if sdata:
-                    title = sdata['title'].encode('utf-8')
-                    authors = sdata['authors'].encode('utf-8')
-                    year = sdata['year'].encode('utf-8')
+                try:
+                    source = smod.name
+                    sdata = smod.get_data(sid, lfile='test/sources/doi.bib')
+                    # sdata = smod.get_data(sid)
+                    if sdata:
+                        title = sdata['title'].encode('utf-8')
+                        authors = sdata['authors'].encode('utf-8')
+                        year = sdata['year'].encode('utf-8')
+                except:
+                    print >>sys.stderr, "Could not retrieve data from source."
 
             # get source
             if source:
