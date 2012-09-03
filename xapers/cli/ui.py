@@ -47,39 +47,97 @@ class UI():
         self.xdb = os.path.join(self.xdir, '.xapers')
 
     # prompt user for document metadata
-    def prompt_for_metadata(self, db):
+    def prompt_for_metadata(self, url):
         import readline
+        import xapers.source
 
-        url = None
+        isources = None
+        itags = None
+
         source = None
         sid = None
+        title = None
+        authors = None
+        year = None
         tags = None
 
-        sources = db.get_terms('source')
-        tags = db.get_terms('tag')
+        # db = Database(self.xdir, writable=False)
+        # isources = db.get_terms('source')
+        # itags = db.get_terms('tag')
 
+        first = True
         while True:
-            if url:
-                readline.set_startup_hook(lambda: readline.insert_text(url))
-            url = raw_input('url: ')
-        
-            readline.parse_and_bind("tab: complete")
+            # get url
+            readline.parse_and_bind('')
+            if not url or (url and not first):
+                if url:
+                    readline.set_startup_hook(lambda: readline.insert_text(url))
+                url = raw_input('url: ')
+
+            # parse the url for source and sid
+            # returns a source module and sid
+            smod, sid = xapers.source.source_from_url(url)
+
+            # get data from source
+            if smod:
+                source = smod.name
+                sdata = smod.get_data(sid, lfile='test/sources/doi.bib')
+                #sdata = smod.get_data(sid)
+                if sdata:
+                    title = sdata['title'].encode('utf-8')
+                    authors = sdata['authors'].encode('utf-8')
+                    year = sdata['year'].encode('utf-8')
+
+            # get source
             if source:
                 readline.set_startup_hook(lambda: readline.insert_text(source))
-            completer = Completer(sources)
+            else:
+                readline.set_startup_hook()
+            readline.parse_and_bind("tab: complete")
+            completer = Completer(isources)
             readline.set_completer(completer.terms)
             source = raw_input('source: ')
 
+            # get source id
             if sid:
                 readline.set_startup_hook(lambda: readline.insert_text(sid))
-            readline.set_completer()
-            # FIXME: we don't want to tab complete here
+            else:
+                readline.set_startup_hook()
             readline.parse_and_bind('')
+            readline.set_completer()
             sid = raw_input('sid: ')
 
-            # FIXME: remove 'new' from list
+            # get title
+            if title:
+                readline.set_startup_hook(lambda: readline.insert_text(title))
+            else:
+                readline.set_startup_hook()
+            readline.parse_and_bind('')
+            readline.set_completer()
+            title = raw_input('title: ')
+
+            # get authors
+            if authors:
+                readline.set_startup_hook(lambda: readline.insert_text(authors))
+            else:
+                readline.set_startup_hook()
+            readline.parse_and_bind('')
+            readline.set_completer()
+            authors = raw_input('authors: ')
+
+            # get year
+            if year:
+                readline.set_startup_hook(lambda: readline.insert_text(year))
+            else:
+                readline.set_startup_hook()
+            readline.parse_and_bind('')
+            readline.set_completer()
+            authors = raw_input('year: ')
+
+            # get tags
             readline.set_startup_hook()
-            completer = Completer(tags)
+            readline.parse_and_bind("tab: complete")
+            completer = Completer(itags)
             readline.set_completer(completer.terms)
             tags = []
             while True:
@@ -92,34 +150,48 @@ class UI():
             print
             print "Is this data correct?:"
             print """
-   url: %s
-source: %s
-   sid: %s
-  tags: %s
-""" % (url, source, sid, ' '.join(tags))
+    url: %s
+ source: %s
+    sid: %s
+  title: %s
+authors: %s
+   year: %s
+   tags: %s
+""" % (url, source, sid, title, authors, year, ' '.join(tags))
             ret = raw_input("Enter to accept, 'r' to reenter, C-c to cancel: ")
             if ret is not 'r':
                 break
+            first = False
 
         sources = {source: sid}
-        return url, sources, tags
+        data['url'] = url
+        data['sources'] = sources
+        data['title'] = title
+        data['authors'] = authors
+        data['year'] = year
+        data['tags'] = tags
+        return data
 
 
     def import_document(self, infile):
-        # FIXME: don't open the database for writing, just get the
-        # sources and tags and close it.
-        db = Database(self.xdir, create=True, writable=True)
+        if infile.find('http') == 0:
+            url = infile
+        else:
+            url = None
 
         try:
-            url,sources,tags = self.prompt_for_metadata(db)
+            data = self.prompt_for_metadata(url)
         except KeyboardInterrupt:
             print >>sys.stderr, "\nAborting.  Nothing imported."
             sys.exit()
 
+        db = Database(self.xdir, create=True, writable=True)
         db.add_document(infile,
-                        url=url,
-                        sources=sources,
-                        tags=tags)
+                        url=data['url'],
+                        sources=data['sources'],
+                        title=data['title'],
+                        authors=data['authors'],
+                        tags=data['tags'])
 
 
     def add(self, infile, url=None, sources=None, tags=None):
