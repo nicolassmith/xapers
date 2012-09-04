@@ -139,7 +139,7 @@ class UI():
                 readline.set_startup_hook()
             readline.parse_and_bind('')
             readline.set_completer()
-            authors = raw_input('year: ')
+            year = raw_input('year: ')
 
             # get tags
             readline.set_startup_hook()
@@ -171,12 +171,15 @@ authors: %s
             first = False
 
         sources = {source: sid}
+
+        data = {}
         data['url'] = url
         data['sources'] = sources
         data['title'] = title
         data['authors'] = authors
         data['year'] = year
         data['tags'] = tags
+
         return data
 
 
