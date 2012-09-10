@@ -325,6 +325,7 @@ class Document():
         self._add_term(pf, authors)
 
     def set_authors(self, authors):
+        """Set authors of document."""
         self._set_authors(authors)
         self._sync()
 
@@ -333,5 +334,25 @@ class Document():
         authors = self._get_terms(self.xapers._find_prefix('fullauthors'))
         if authors:
             return authors[0]
+        else:
+            return ''
+
+    def _set_year(self, year):
+        prefix = self.xapers._find_prefix('year')
+        for term in self._get_terms(prefix):
+            self._remove_term(prefix, term)
+        self._add_term(prefix, year)
+
+    def set_year(self, year):
+        """Set publication year of document."""
+        self._set_year(year)
+        self._sync()
+
+    def get_year(self):
+        """Return publication year of document."""
+        prefix = self.xapers._find_prefix('year')
+        year =  self._get_terms(prefix)
+        if year:
+            return year[0]
         else:
             return ''
