@@ -155,14 +155,17 @@ class UI():
         self.listbox = urwid.ListBox(self.listwalker)
         self.view = urwid.Frame(urwid.AttrWrap(self.listbox, 'body'))
         self.set_status('')
-        self.mainloop = urwid.MainLoop(self.view, self.palette, unhandled_input=self.keystroke)
+        self.mainloop = urwid.MainLoop(
+            self.view,
+            self.palette,
+            unhandled_input=self.keypress)
         self.mainloop.run()
 
     def set_status(self, text):
         message = 'Xapers %s' % (text)
         self.view.set_footer(urwid.AttrWrap(urwid.Text(message), 'footer'))
 
-    def keystroke(self, input):
+    def keypress(self, input):
         if input is 'n':
             #listbox.set_focus(listbox.get_next())
             pos = self.listbox.get_focus()[1]
