@@ -174,6 +174,22 @@ class Database():
         print >>sys.stderr, " id:%s" % (doc.get_docid())
 
 
+    def delete_document(self, query_string):
+        enquire = xapian.Enquire(self.xapian_db)
+        query = self.query_parser.parse_query(query_string)
+        enquire.set_query(query)
+        matches = enquire.get_mset(0, self.xapian_db.get_doccount())
+        if matches:
+            resp = raw_input('Are you sure you want to delete %d documents?: ' % len(matches))
+            if resp != 'Y':
+                print "Aborting."
+                sys.exit()
+            for m in matches:
+                self.xapian_db.delete_document(m.document.get_docid())
+        else:
+            print "No matching documents."
+
+
     def _find_doc_for_file(self, filename):
         query_string = self._find_prefix('file') + filename
         enquire = xapian.Enquire(self.xapian_db)
