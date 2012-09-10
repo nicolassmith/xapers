@@ -321,14 +321,19 @@ authors: %s
 
         if len(matches) > 1:
             print >>sys.stderr, "Query matches more than one document.  Aborting."
-            sys.exit()
+            sys.exit(1)
 
         doc = Document(db, doc=matches[0].document)
 
         if attribute == 'title':
             doc.set_title(value)
-        if attribute in ['author', 'authors']:
+        elif attribute in ['author', 'authors']:
             doc.set_authors(value)
+        elif attribute in ['year']:
+            doc.set_year(value)
+        else:
+            print >>sys.stderr, "Unknown attribute '%s'." % (attribute)
+            sys.exit(1)
 
     def dumpterms(self, query_string):
         db = Database(self.xdir, create=True, writable=True)
