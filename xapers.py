@@ -36,9 +36,8 @@ def usage():
     prog = os.path.basename(sys.argv[0])
     print "Usage:", prog, "<command> [args...]"
     print """
-  import file                                 interactively add file to database
   add [options] file                          add file to database
-    --url
+    --prompt
     --sources=source:sid[,...]
     --tags=tag[,...]
   search [options] <search-term>...           search the database
@@ -76,39 +75,31 @@ if __name__ == '__main__':
     cli = xapers.cli.UI(xdir)
 
     ########################################
-    if cmd == 'import':
-        cli.import_document(sys.argv[2])
-        
-    ########################################
-    elif cmd == 'add':
+    if cmd == 'add':
         if len(sys.argv) < 3:
             print >>sys.stderr, "Must specify a file to add."
             sys.exit()
         argc = 2
-        sources = None
+
+        prompt = False
+        if '--prompt' in sys.argv[argc]:
+            prompt = True
+            argc += 1
+
+        data = {}
         if '--sources=' in sys.argv[argc]:
             sss = sys.argv[argc].split('=',1)[1].split(',')
-            sources = {}
+            data['sources'] = {}
             for ss in sss:
                 s,i = ss.split(':')
-                sources[s] = i
+                data['sources'][s] = i
             argc += 1
-        tags = None
         if '--tags=' in sys.argv[argc]:
-            tags = sys.argv[argc].split('=',1)[1].split(',')
-            argc += 1
-        url = None
-        if '--url=' in sys.argv[argc]:
-            url = sys.argv[argc].split('=',1)[1]
+            data['tags'] = sys.argv[argc].split('=',1)[1].split(',')
             argc += 1
         infile = sys.argv[argc]
 
-        if infile == '-':
-            for line in sys.stdin:
-                path = line.strip('\n').lstrip('./')
-                cli.add(path, url=url, sources=sources, tags=tags)
-        else:
-            cli.add(infile, url=url, sources=sources, tags=tags)
+        cli.add(infile, data, prompt=prompt)
 
     ########################################
     elif cmd == 'new':

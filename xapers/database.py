@@ -113,15 +113,11 @@ class Database():
         return self._get_terms(prefix)
 
     def add_document(self,
-                     filename,
-                     url=None,
-                     sources=None,
-                     title=None,
-                     authors=None,
-                     tags=None):
+                     path,
+                     data=None):
         """Add a document to the database
 
-        :param filename: should be a path relative to the path of the
+        :param path: should be a path relative to the path of the
             open database (see :meth:`get_path`), or else should be an
             absolute filename with initial components that match the
             path of the database.
@@ -139,43 +135,36 @@ class Database():
         :param tags: initial tags to apply to document.
         """
 
-        print >>sys.stderr, "adding '%s'..." % (filename),
+        print >>sys.stderr, "adding '%s'..." % (path),
 
         # FIXME: check it path has already been indexed
         # search for an existing document given the path
         # if none exists do something
-        doc = self._find_doc_for_file(filename)
+        # FIXME: THIS ISN"T WORKING!!!!
+        doc = self._find_doc_for_file(path)
         if doc:
-            print doc
             print >>sys.stderr, " already indexed (id:%s)" % (doc.get_id())
             return
 
         doc = Document(self)
 
-        doc._index_file(filename)
+        doc._index_file(path)
 
-        # FIXME: need function to set metadata from bibtex
+        if 'url' in data:
+            doc._add_url(data['url'])
 
-        # add url
-        if url:
-            doc._add_url(url)
-
-        # add sources
-        if sources:
-            for source,sid in sources.items():
+        if 'sources' in data:
+            for source,sid in data['sources'].items():
                 doc._add_source(source, sid)
 
-        # set title
-        if title:
-            doc._set_title(title)
+        if 'title' in data:
+            doc._set_title(data['title'])
 
-        # set authors
-        if authors:
-            doc._set_authors(authors)
+        if 'authors' in data:
+            doc._set_authors(data['authors'])
 
-        # add initial tags
-        if tags:
-            for tag in tags:
+        if 'tags' in data:
+            for tag in data['tags']:
                 doc._add_tag(tag)
 
         # FIXME: should these operations all sync themselves?  what is

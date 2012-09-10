@@ -183,34 +183,30 @@ authors: %s
         return data
 
 
-    def import_document(self, infile):
+    def add(self, infile, data, prompt=False):
         if infile.find('http') == 0:
             url = infile
         else:
             url = None
 
-        try:
-            data = self.prompt_for_metadata(url)
-        except KeyboardInterrupt:
-            print >>sys.stderr, "\nAborting.  Nothing imported."
-            sys.exit()
+        # resolve relative path
+        fpath = os.path.abspath(infile)
+        if fpath.find(self.xdir) == 0:
+            index = len(self.xdir)
+            rpath = fpath[index:].lstrip('/')
+
+        # FIXME: if file not in xdir, move it there (w/ prompt)
+
+        if prompt:
+            try:
+                data = self.prompt_for_metadata(url)
+            except KeyboardInterrupt:
+                print >>sys.stderr, "\nAborting.  Nothing imported."
+                sys.exit(-1)
 
         db = Database(self.xdir, create=True, writable=True)
-        db.add_document(infile,
-                        url=data['url'],
-                        sources=data['sources'],
-                        title=data['title'],
-                        authors=data['authors'],
-                        tags=data['tags'])
+        db.add_document(rpath, data)
 
-
-    def add(self, infile, url=None, sources=None, tags=None):
-        db = Database(self.xdir, create=True, writable=True)
-
-        db.add_document(infile,
-                        url=url,
-                        sources=sources,
-                        tags=tags)
 
 
     def search(self, query_string, oformat='simple'):
