@@ -173,12 +173,19 @@ authors: %s
         sources = {source: sid}
 
         data = {}
-        data['url'] = url
-        data['sources'] = sources
-        data['title'] = title
-        data['authors'] = authors
-        data['year'] = year
-        data['tags'] = tags
+        #for field in ['url', 'sources', 'title', 'authors', 'year', 'tags']:
+        if url:
+            data['url'] = url
+        if sources:
+            data['sources'] = sources
+        if title:
+            data['title'] = title
+        if authors:
+            data['authors'] = authors
+        if year:
+            data['year'] = year
+        if tags:
+            data['tags'] = tags
 
         return data
 
