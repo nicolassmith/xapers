@@ -102,6 +102,10 @@ if __name__ == '__main__':
         cli.add(infile, data, prompt=prompt)
 
     ########################################
+    elif cmd == 'delete':
+        cli.delete(make_query_string(sys.argv[2:]))
+
+    ########################################
     elif cmd == 'new':
         # try:
         #     os.makedirs(xdb)
@@ -150,7 +154,6 @@ if __name__ == '__main__':
         query = make_query_string(sys.argv[2:])
 
         cli.view(query)
-
 
     ########################################
     elif cmd == 'tag':

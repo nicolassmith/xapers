@@ -208,6 +208,10 @@ authors: %s
         db.add_document(rpath, data)
 
 
+    def delete(self, query_string):
+        db = Database(self.xdir, writable=True)
+        db.delete_document(query_string)
+
 
     def search(self, query_string, oformat='simple'):
         db = Database(self.xdir, writable=False)
