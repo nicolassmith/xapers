@@ -17,6 +17,7 @@ class ItemWidget (urwid.WidgetWrap):
         self.title = self.doc.get_title()
         self.authors = self.doc.get_authors()
         if not self.authors: self.authors = ''
+        self.year = self.doc.get_year()
         self.data = self.doc.get_data()
 
         self.tag_string = '(%s)' % (' '.join(self.tags))
@@ -80,6 +81,18 @@ class ItemWidget (urwid.WidgetWrap):
                  'focus')
              ]
             )
+        self.rowYear = urwid.Columns(
+            [('fixed', c1width,
+              urwid.AttrWrap(
+                  urwid.Text('year:'),
+                  'title_bold',
+                  'focus')),
+             urwid.AttrWrap(
+                 urwid.Text('%s' % (self.year)),
+                 'title',
+                 'focus')
+             ]
+            )
         self.rowBody = urwid.Columns(
             [('fixed', c1width,
               urwid.AttrWrap(
@@ -100,6 +113,7 @@ class ItemWidget (urwid.WidgetWrap):
                 self.rowHeader,
                 self.rowTitle,
                 self.rowAuthor,
+                self.rowYear,
                 self.rowBody]
             ,
             focus_item=1)
