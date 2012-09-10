@@ -121,29 +121,30 @@ class Document():
     def _sync(self):
         self.xapers.xapian_db.replace_document(self.docid, self.doc)
 
-    # this should only we set when we index a new file
-    # FIXME: are we doing full or partial??
-    def _set_path(self, filename):
+    # this should only be used when we index a new file
+    def _set_path(self, path):
         prefix = self.xapers._find_prefix('file')
-        self._add_term(prefix, os.path.abspath(filename))
+        self._add_term(prefix, path)
 
     # index/add a new file for the document
     # file should be relative to xapian.root
     # FIXME: codify this more
-    def _index_file(self, filename):
+    def _index_file(self, path):
+        # extract any leading slashes
+        path = path.lstrip('/')
+
         # extract text from pdf
         import cStringIO
         pdf = cStringIO.StringIO()
-        fi = open(os.path.join(self.xapers.root,filename), 'rb')
-        #fi = open(filename, 'rb')
+        fi = open(os.path.join(self.xapers.root, path), 'rb')
+        #fi = open(path, 'rb')
         pdf.write(fi.read())
         fi.close()
         text = self._pdf2text(pdf)
 
-        # index document text
         self._gen_terms(None, text)
 
-        self._set_path(filename)
+        self._set_path(path)
 
         # set data to be text sample
         # FIXME: what should really be in here?  what if we have
@@ -308,7 +309,6 @@ class Document():
             return ''
 
     def _set_authors(self, authors):
-        """Set authors of document."""
         pa = self.xapers._find_prefix('author')
         pf = self.xapers._find_prefix('fullauthors')
         for term in self._get_terms(pa):
