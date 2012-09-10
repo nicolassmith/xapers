@@ -253,7 +253,7 @@ authors: %s
             matchp = m.percent
 
             docid = doc.get_docid()
-            # FIXME: this could be multiple paths?
+            # FIXME: could this be multiple paths?
             fullpath = doc.get_fullpaths()[0]
 
             if oformat in ['file','files']:
@@ -271,37 +271,43 @@ authors: %s
                 continue
 
             urls = doc.get_urls()
-            data = doc.get_data()
             title = doc.get_title()
+            authors = doc.get_authors()
+            year = doc.get_year()
+            data = doc.get_data()
 
             # FIXME: need to deal with encoding issues
 
             if oformat == 'full':
-                print "id:%s match:%i path:%s" % (docid, matchp, fullpath)
+                print "id:%s" % (docid)
+                print "match: %s" % (matchp)
+                print "fullpath: %s" % (fullpath)
                 print "url: %s" % (' '.join(urls))
                 print "sources: %s" % (' '.join(sources))
                 for source,sid in sources.items():
                     print " %s:%s" % (source, sid)
                 print "tags: %s" % (' '.join(tags))
-                if title:
-                    print "title: %s" % (title)
+                print "title: %s" % (title)
+                print "authors: %s" % (authors)
+                print "year: %s" % (year)
                 print "data: %s\n" % (data)
                 continue
 
             if oformat == 'json':
                 import json
-                print json.dumps([{
+                print json.dumps({
                     'docid': docid,
                     'percent': matchp,
-                    #'fullpath': fullpath,
-                    #'urls': urls,
-                    'year': 2010,
+                    'fullpath': fullpath,
+                    'urls': urls,
+                    'sources': sources,
                     'tags': tags,
-                    'title': 'foo',
-                    #'sources': sources,
+                    'title': title,
+                    'authors': authors,
+                    'year': year,
                     #'data': data
-                    }],
-                                 ),
+                    },
+                                 )
 
         if oformat == 'json':
             pass
