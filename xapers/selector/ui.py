@@ -112,7 +112,7 @@ class UI():
         # FIXME: how do we deal with atomic read/write operations?
         self.db = Database(xdir, writable=False)
 
-        matches = self.db.search(query_string, count=20)
+        matches = self.db.search(query_string, limit=20)
 
         items = []
         for m in matches:
