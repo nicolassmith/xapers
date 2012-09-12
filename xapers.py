@@ -146,7 +146,10 @@ if __name__ == '__main__':
 
         query = make_query_string(sys.argv[argc:])
 
-        cli.search(query, limit=limit, oformat=oformat)
+        try:
+            cli.search(query, limit=limit, oformat=oformat)
+        except KeyboardInterrupt:
+            sys.exit()
 
     ########################################
     elif cmd == 'select':
