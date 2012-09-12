@@ -126,7 +126,9 @@ class UI():
         self.mainloop = urwid.MainLoop(
             self.view,
             self.palette,
-            unhandled_input=self.keypress)
+            unhandled_input=self.keypress,
+            handle_mouse=False,
+            )
         self.mainloop.run()
 
     def set_status(self, text):
