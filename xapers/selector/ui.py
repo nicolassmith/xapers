@@ -166,7 +166,7 @@ class UI():
         if input is 'enter':
             docid = self.listbox.get_focus()[0].docid
             path = self.listbox.get_focus()[0].path
-            query = 'id:%s' % docid
+            path = path.replace(' ','\ ')
             message = 'opening doc id:%s...' % docid
             self.set_status(message)
             subprocess.call(' '.join(["nohup", "okular", path]) + ' &',
