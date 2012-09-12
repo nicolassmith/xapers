@@ -5,9 +5,71 @@ from xapers.database import Database
 from xapers.documents import Document
 import xapers.nci as nci
 
-class ItemWidget (urwid.WidgetWrap):
+class Search(urwid.WidgetWrap):
+    def __init__(self, ui, args):
+        self.ui = ui
+        self.db = Database(self.ui.xdir, writable=False)
 
-    def __init__ (self, doc, percent):
+        matches = self.db.search(args, limit=20)
+
+        items = []
+        for m in matches:
+            doc = Document(self.db, doc=m.document)
+            items.append(DocListItem(doc, m.percent))
+
+        self.listwalker = urwid.SimpleListWalker(items)
+        self.listbox = urwid.ListBox(self.listwalker)
+        #w = urwid.Frame(urwid.AttrWrap(self.listbox, 'body'))
+        w = urwid.AttrWrap(self.listbox, 'body')
+        self.__super.__init__(w)
+
+    def nextEntry(self):
+        # listbox.set_focus(listbox.get_next())
+        pos = self.listbox.get_focus()[1]
+        self.listbox.set_focus(pos + 1)
+        # self.listbox.keypress(1, 'down')
+
+    def prevEntry(self):
+        pos = self.listbox.get_focus()[1]
+        if pos == 0: return
+        self.listbox.set_focus(pos - 1)
+
+    def viewEntry(self):
+        docid = self.listbox.get_focus()[0].docid
+        path = self.listbox.get_focus()[0].path
+        path = path.replace(' ','\ ')
+        message = 'opening doc id:%s...' % docid
+        self.ui.set_status(message)
+        subprocess.call(' '.join(["nohup", "okular", path]) + ' &',
+                        shell=True,
+                        stdout=open('/dev/null','w'),
+                        stderr=open('/dev/null','w'))
+
+    def editEntry(self):
+        return
+        doc = self.listbox.get_focus()[0].doc
+
+        self.prompt(prefix='add tag: ')
+
+        wdb = Database(self.xdir, writable=True)
+        wdoc = Document(wdb, doc=doc.doc)
+        wdoc.add_tags(['QUX'])
+
+    def keypress(self, size, key):
+        if key is 'n':
+            self.nextEntry()
+        elif key is 'p':
+            self.prevEntry()
+        elif key is 'e':
+            self.editEntry()
+        elif key is 'enter':
+            self.viewEntry()
+        else:
+            self.ui.keypress(key)
+
+
+class DocListItem(urwid.WidgetWrap):
+    def __init__(self, doc, percent):
         self.doc = doc
         self.percent = percent
         self.docid = self.doc.get_docid()
@@ -93,6 +155,7 @@ class ItemWidget (urwid.WidgetWrap):
     def keypress(self, size, key):
         return key
 
+
 class UI():
 
     palette = [
@@ -108,21 +171,17 @@ class UI():
         ('footer', 'white', 'dark blue'),
         ]
 
-    def __init__(self, xdir, query_string='*'):
-        # FIXME: how do we deal with atomic read/write operations?
-        self.db = Database(xdir, writable=False)
+    def __init__(self, xdir, cmd, args):
+        self.xdir = xdir
 
-        matches = self.db.search(query_string, limit=20)
+        if cmd is 'search':
+            self.cmd = Search(self, args)
+        else:
+            print >>sys.stderr, "Unknown command:", cmd
+            sys.exit()
 
-        items = []
-        for m in matches:
-            doc = Document(self.db, doc=m.document)
-            items.append(ItemWidget(doc, m.percent))
-
-        self.listwalker = urwid.SimpleListWalker(items)
-        self.listbox = urwid.ListBox(self.listwalker)
-        self.view = urwid.Frame(urwid.AttrWrap(self.listbox, 'body'))
-        self.set_status('')
+        self.view = urwid.Frame(self.cmd)
+        self.set_status()
         self.mainloop = urwid.MainLoop(
             self.view,
             self.palette,
@@ -131,45 +190,15 @@ class UI():
             )
         self.mainloop.run()
 
-    def set_status(self, text):
-        message = 'Xapers %s' % (text)
+    def set_status(self, text=None):
+        if not text:
+            message = 'Xapers'
+        else:
+            message = 'Xapers: %s' % (text)
         self.view.set_footer(urwid.AttrWrap(urwid.Text(message), 'footer'))
 
-    def keypress(self, input):
-        if input is 'n':
-            #listbox.set_focus(listbox.get_next())
-            pos = self.listbox.get_focus()[1]
-            self.listbox.set_focus(pos + 1)
-            #self.listbox.keypress(1, 'down')
-
-        if input is 'p':
-            pos = self.listbox.get_focus()[1]
-            if pos == 0: return
-            self.listbox.set_focus(pos - 1)
-
-        if input is 's':
-            pass
-
-        if input is '+':
-            self.set_status('add tag: ')
-            doc = self.listbox.get_focus()[0].doc
-            doc.add_tags(['QUX'])
-            # FIXME: need to sync db?
-
-        if input is '-':
-            doc = self.listbox.get_focus()[0].doc
-            doc.remove_tags(['QUX'])
-
-        if input in ('q', 'Q'):
+    def keypress(self, key):
+        if key is 's':
+            return
+        if key is 'q':
             raise urwid.ExitMainLoop()
-
-        if input is 'enter':
-            docid = self.listbox.get_focus()[0].docid
-            path = self.listbox.get_focus()[0].path
-            path = path.replace(' ','\ ')
-            message = 'opening doc id:%s...' % docid
-            self.set_status(message)
-            subprocess.call(' '.join(["nohup", "okular", path]) + ' &',
-                            shell=True,
-                            stdout=open('/dev/null','w'),
-                            stderr=open('/dev/null','w'))

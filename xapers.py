@@ -154,7 +154,7 @@ if __name__ == '__main__':
         if not query or query == '':
             query = '*'
 
-        xapers.selector.UI(xdir, query_string=query)
+        xapers.selector.UI(xdir, 'search', query)
 
     ########################################
     elif cmd in ['view','show']:
