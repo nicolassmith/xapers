@@ -141,7 +141,7 @@ class Database():
         # search for an existing document given the path
         # if none exists do something
         # FIXME: THIS ISN"T WORKING!!!!
-        doc = self._find_doc_for_file(path)
+        doc = self._find_doc_for_path(path)
         if doc:
             print >>sys.stderr, " already indexed (id:%s)" % (doc.get_id())
             return
@@ -190,7 +190,7 @@ class Database():
             print >>sys.stderr, "No matching documents."
 
 
-    def _find_doc_for_file(self, filename):
+    def _find_doc_for_path(self, filename):
         query_string = self._find_prefix('file') + filename
         enquire = xapian.Enquire(self.xapian_db)
         query = self.query_parser.parse_query(query_string)
