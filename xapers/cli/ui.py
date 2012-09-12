@@ -369,21 +369,9 @@ authors: %s
             break
 
     def dump(self, query_string):
-        import json
-        db = Database(self.xdir, writable=False)
-        matches = db.search(query_string)
-        for m in matches:
-            doc = Document(db, m.document)
-            #fullpath = os.path.join(self.xdir,doc.get_urls()[0].lstrip('/'))
-            fullpath = doc.get_fullpath()
-            tags = doc.get_tags()
-            sources = doc.get_sources()
-
-            print json.dumps({'fullpath': fullpath,
-                              'tags': tags,
-                              'sources': sources},
-                             sort_keys=True
-                             )
+        self.search('*',
+                    limit=0,
+                    oformat='json')
 
     def restore(self):
         import json
