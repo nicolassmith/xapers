@@ -14,6 +14,7 @@ class ItemWidget (urwid.WidgetWrap):
         self.path = self.doc.get_fullpaths()[0]
         self.tags = self.doc.get_tags()
         self.sources = self.doc.get_sources()
+        self.url = self.doc.get_url()
         self.title = self.doc.get_title()
         self.authors = self.doc.get_authors()
         if not self.authors: self.authors = ''
