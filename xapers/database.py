@@ -173,22 +173,34 @@ class Database():
 
         print >>sys.stderr, " id:%s" % (doc.get_docid())
 
-
-    def delete_document(self, query_string):
+    def get_doc(self, docid):
         enquire = xapian.Enquire(self.xapian_db)
-        query = self.query_parser.parse_query(query_string)
+        query = self.query_parser.parse_query('id:' + str(docid))
         enquire.set_query(query)
         matches = enquire.get_mset(0, self.xapian_db.get_doccount())
-        if matches:
-            resp = raw_input('Are you sure you want to delete %d documents?: ' % len(matches))
-            if resp != 'Y':
-                print >>sys.stderr, "Aborting."
-                sys.exit(1)
-            for m in matches:
-                self.xapian_db.delete_document(m.document.get_docid())
-        else:
-            print >>sys.stderr, "No matching documents."
+        if len(matches) > 1:
+            print >>sys.stderr, "Query does not match a single document."
+            return None
+        return Document(self, matches[0].document)
 
+    def delete_document(self, docid):
+        resp = raw_input('Are you sure you want to delete documents ?: ' % docid)
+        if resp != 'Y':
+            print >>sys.stderr, "Aborting."
+            sys.exit(1)
+        self.xapian_db.delete_document(docid)
+
+    def replace_docfile(self, docid, file):
+        print >>sys.stderr, "not implemented."
+        return
+        doc = enquire = xapian.Enquire(self.xapian_db)
+        query = self.query_parser.parse_query('id:' + str(docid))
+        enquire.set_query(query)
+        matches = enquire.get_mset(0, self.xapian_db.get_doccount())
+        if len(matches) > 1:
+            print >>sys.stderr, "Query does not match a single document.  Aborting."
+            sys.exit(1)
+        self.xapian_db.delete_document(m.document.get_docid())
 
     def _find_doc_for_path(self, filename):
         query_string = self._find_prefix('file') + filename
@@ -199,7 +211,6 @@ class Database():
             return Document(matches[0].document)
         else:
             return None
-
 
     def _search(self, query_string, limit=0):
         enquire = xapian.Enquire(self.xapian_db)
