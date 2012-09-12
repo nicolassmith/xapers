@@ -151,7 +151,7 @@ class Database():
         doc._index_file(path)
 
         if 'url' in data:
-            doc._add_url(data['url'])
+            doc._set_url(data['url'])
 
         if 'sources' in data:
             for source,sid in data['sources'].items():

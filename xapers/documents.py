@@ -202,14 +202,15 @@ class Document():
         """Return data associated with document."""
         return self.doc.get_data()
 
-    def _add_url(self, url):
+    def _set_url(self, url):
         prefix = self.xapers._find_prefix('url')
+        for term in self._get_terms(prefix):
+            self._remove_term(prefix, term)
         self._add_term(prefix, url)
 
-    def add_url(self, url):
+    def set_url(self, url):
         """Add a url to document"""
-        # FIXME: accept multiple urls
-        self._add_url(source)
+        self._set_url(url)
         self._sync()
 
     def get_url(self):
