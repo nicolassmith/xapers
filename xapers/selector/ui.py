@@ -27,10 +27,10 @@ class ItemWidget (urwid.WidgetWrap):
             self.source_string += '%s:%s' % (source, sid)
         self.source_string += ']'
 
-        c1width = 10
+        self.c1width = 10
 
         self.rowHeader = urwid.Columns(
-            [('fixed', c1width,
+            [('fixed', self.c1width,
               urwid.AttrWrap(
                   urwid.Text('id:%s' % (self.docid)),
                   'head_id',
@@ -58,67 +58,34 @@ class ItemWidget (urwid.WidgetWrap):
              ],
             dividechars=1,
             )
-        self.rowTitle = urwid.Columns(
-            [('fixed', c1width,
-              urwid.AttrWrap(
-                  urwid.Text('title:'),
-                  'title_bold',
-                  'focus')),
-             urwid.AttrWrap(
-                 urwid.Text('%s' % (self.title)),
-                 'title',
-                 'focus')
-             ]
-            )
-        self.rowAuthor = urwid.Columns(
-            [('fixed', c1width,
-              urwid.AttrWrap(
-                  urwid.Text('authors:'),
-                  'title_bold',
-                  'focus')),
-             urwid.AttrWrap(
-                 urwid.Text('%s' % (self.authors)),
-                 'title',
-                 'focus')
-             ]
-            )
-        self.rowYear = urwid.Columns(
-            [('fixed', c1width,
-              urwid.AttrWrap(
-                  urwid.Text('year:'),
-                  'title_bold',
-                  'focus')),
-             urwid.AttrWrap(
-                 urwid.Text('%s' % (self.year)),
-                 'title',
-                 'focus')
-             ]
-            )
-        self.rowBody = urwid.Columns(
-            [('fixed', c1width,
-              urwid.AttrWrap(
-                  urwid.Text('data:'),
-                  'data_bold',
-                  'focus')),
-             urwid.AttrWrap(
-                 urwid.Text('%s' % (self.data)),
-                 'body',
-                 'focus')
-             ]
-            )
 
-        #w = urwid.Columns(self.frame)
         w = urwid.Pile(
             [
                 urwid.Divider('-'),
                 self.rowHeader,
-                self.rowTitle,
-                self.rowAuthor,
-                self.rowYear,
-                self.rowBody]
+                self.docfield('url', self.url),
+                self.docfield('title', self.title),
+                self.docfield('author', self.authors),
+                self.docfield('year', self.year),
+                self.docfield('data', self.data),
+                ]
             ,
             focus_item=1)
         self.__super.__init__(w)
+
+    def docfield(self, field, value):
+        return urwid.Columns(
+            [('fixed', self.c1width,
+              urwid.AttrWrap(
+                        urwid.Text(field + ':'),
+                        'data_bold',
+                        'focus')),
+             urwid.AttrWrap(
+                    urwid.Text('%s' % (value)),
+                    'body',
+                    'focus')
+             ]
+            )
 
     def selectable (self):
         return True
