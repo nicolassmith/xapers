@@ -201,7 +201,7 @@ class Database():
             return None
 
 
-    def _search(self, query_string, count=0):
+    def _search(self, query_string, limit=0):
         enquire = xapian.Enquire(self.xapian_db)
 
         if query_string == "*":
@@ -214,19 +214,19 @@ class Database():
 
         enquire.set_query(query)
 
-        if count > 0:
-            matches = enquire.get_mset(0, count)
+        if limit > 0:
+            matches = enquire.get_mset(0, limit)
         else:
             matches = enquire.get_mset(0, self.xapian_db.get_doccount())
 
         return matches
 
-    def search(self, query_string, count=0):
+    def search(self, query_string, limit=0):
         """Search for documents in the database."""
 
         # FIXME: this should return an iterator over Documents
         #return Documents(self, self._search(terms, count))
-        return self._search(query_string, count)
+        return self._search(query_string, limit)
 
     def count(self, query_string):
         """Count documents matching search terms."""

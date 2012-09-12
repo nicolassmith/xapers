@@ -220,7 +220,7 @@ authors: %s
         db.delete_document(query_string)
 
 
-    def search(self, query_string, oformat='simple'):
+    def search(self, query_string, limit=20, oformat='simple'):
         db = Database(self.xdir, writable=False)
 
         # FIXME: writing needs to be in a try to catch IOError
@@ -235,18 +235,13 @@ authors: %s
                 print source
             return
 
-        matches = db.search(query_string)
+        matches = db.search(query_string, limit=limit)
 
         if oformat == 'json':
             pass
             #print '[',
 
-        ii = 0
         for m in matches:
-            ii += 1
-            if ii == 20:
-                break
-
             # FIXME: we shouldn't have to do this.  The iterator
             # should just return a xapers document
             doc = Document(db, doc=m.document)

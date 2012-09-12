@@ -42,6 +42,7 @@ def usage():
     --tags=tag[,...]
   search [options] <search-term>...           search the database
     --output=[simple|full|files|sources|tags]
+    --limit=N
   tag +tag|-tab [...] [--] <search-term>...   add/remove tags
   set <attribute> <value> <docid>             set a document attribute with value
   show <search-term>...                       display first result
@@ -135,18 +136,24 @@ if __name__ == '__main__':
             sys.exit()
         argc = 2
         oformat = 'simple'
+        limit = 20
         if '--output=' in sys.argv[argc]:
             oformat = sys.argv[argc].split('=')[1]
             argc += 1
+        if '--limit=' in sys.argv[argc]:
+            limit = int(sys.argv[argc].split('=')[1])
+            argc += 1
+
         query = make_query_string(sys.argv[argc:])
 
-        cli.search(query, oformat=oformat)
+        cli.search(query, limit=limit, oformat=oformat)
 
     ########################################
     elif cmd == 'select':
         query = make_query_string(sys.argv[2:])
         if not query or query == '':
             query = '*'
+
         xapers.selector.UI(xdir, query_string=query)
 
     ########################################
