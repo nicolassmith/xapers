@@ -182,12 +182,12 @@ class Database():
         if matches:
             resp = raw_input('Are you sure you want to delete %d documents?: ' % len(matches))
             if resp != 'Y':
-                print "Aborting."
-                sys.exit()
+                print >>sys.stderr, "Aborting."
+                sys.exit(1)
             for m in matches:
                 self.xapian_db.delete_document(m.document.get_docid())
         else:
-            print "No matching documents."
+            print >>sys.stderr, "No matching documents."
 
 
     def _find_doc_for_file(self, filename):
