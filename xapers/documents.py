@@ -212,10 +212,14 @@ class Document():
         self._add_url(source)
         self._sync()
 
-    def get_urls(self):
+    def get_url(self):
         """Return url associated with document."""
         prefix = self.xapers._find_prefix('url')
-        return self._get_terms(prefix)
+        url = self._get_terms(prefix)
+        if url:
+            return url[0]
+        else:
+            return ''
 
     def _add_source(self, source, sid):
         prefix = self.xapers._find_prefix('source')

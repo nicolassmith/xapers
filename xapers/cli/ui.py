@@ -265,7 +265,7 @@ authors: %s
                                               ' '.join(tags))
                 continue
 
-            urls = doc.get_urls()
+            url = doc.get_url()
             title = doc.get_title()
             authors = doc.get_authors()
             year = doc.get_year()
@@ -277,7 +277,7 @@ authors: %s
                 print "id:%s" % (docid)
                 print "match: %s" % (matchp)
                 print "fullpath: %s" % (fullpath)
-                print "url: %s" % (' '.join(urls))
+                print "url: %s" % (url)
                 print "sources: %s" % (' '.join(sources))
                 for source,sid in sources.items():
                     print " %s:%s" % (source, sid)
@@ -294,7 +294,7 @@ authors: %s
                     'docid': docid,
                     'percent': matchp,
                     'fullpath': fullpath,
-                    'urls': urls,
+                    'url': url,
                     'sources': sources,
                     'tags': tags,
                     'title': title,
