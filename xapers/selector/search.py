@@ -152,6 +152,15 @@ class Search(urwid.WidgetWrap):
                         stdout=open('/dev/null','w'),
                         stderr=open('/dev/null','w'))
 
+    def viewURL(self):
+        url = self.listbox.get_focus()[0].doc.get_url()
+        message = 'opening url %s...' % url
+        self.ui.set_status(message)
+        subprocess.call(' '.join(["nohup", "jbrowser", url]) + ' &',
+                        shell=True,
+                        stdout=open('/dev/null','w'),
+                        stderr=open('/dev/null','w'))
+
     def tag(self, sign):
         # focus = self.listbox.get_focus()[0]
         # tags = focus.tags
@@ -217,6 +226,8 @@ class Search(urwid.WidgetWrap):
             self.tag('-')
         elif key is 'U':
             self.setField('url')
+        elif key is 'u':
+            self.viewURL()
         elif key is 'T':
             self.setField('title')
         elif key is 'A':
