@@ -121,10 +121,13 @@ class Document():
     def _sync(self):
         self.xapers.xapian_db.replace_document(self.docid, self.doc)
 
-    # this should only be used when we index a new file
     def _set_path(self, path):
         prefix = self.xapers._find_prefix('file')
         self._add_term(prefix, path)
+
+    def set_path(self, path):
+        self._set_path(path)
+        self._sync()
 
     # index/add a new file for the document
     # file should be relative to xapian.root
