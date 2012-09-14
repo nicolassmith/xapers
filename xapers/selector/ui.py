@@ -9,13 +9,12 @@ class UI():
 
     palette = [
         ('head_id', 'dark blue,bold', '', 'standout'),
-        ('head_percent', 'yellow,bold', '', 'standout'),
-        ('head_path', 'dark red,bold', '', 'standout'),
-        ('head_tags', 'dark green,bold', '', 'standout'),
-        ('head_sources', 'light magenta,bold', '', 'standout'),
         ('focus_id', 'white,bold', 'dark blue', 'standout'),
-        ('title', 'dark green', ''),
-        ('body', 'dark cyan', ''),
+        ('search_sources', 'light magenta,bold', '', 'standout'),
+        ('search_title', 'yellow,bold', '', 'standout'),
+        ('search_tags', 'dark green,bold', '', 'standout'),
+        ('search_path', 'dark red', '', 'standout'),
+        ('search_value_default', 'dark cyan', ''),
         ('focus', 'black', 'dark cyan'),
 
         ('header', 'white', 'dark blue'),
@@ -41,7 +40,7 @@ class UI():
         self.view = urwid.Frame(urwid.AttrWrap(self.cmd, 'body'))
 
         self.set_header(self.title)
-        self.set_status('foo')
+        self.set_status("enter to view document, u to view url.")
         self.mainloop = urwid.MainLoop(
             self.view,
             self.palette,

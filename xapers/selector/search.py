@@ -9,7 +9,7 @@ class DocListItem(urwid.WidgetWrap):
         self.doc = doc
         self.percent = percent
         self.docid = self.doc.get_docid()
-        self.path = self.doc.get_fullpaths()[0]
+        self.path = urwid.Text(self.doc.get_fullpaths()[0])
         self.sources = self.doc.get_sources()
         self.tags = urwid.Text(' '.join(self.doc.get_tags()))
         self.url = urwid.Text(self.doc.get_url())
@@ -29,65 +29,48 @@ class DocListItem(urwid.WidgetWrap):
         self.rowHeader = urwid.Columns(
             [('fixed', self.c1width,
               urwid.AttrWrap(
-                  urwid.Text('id:%s' % (self.docid)),
-                  'head_id',
-                  'focus_id')),
-             ('fixed', 4,
+                        urwid.Text('id:%s' % (self.docid)),
+                        'head_id',
+                        'focus_id')),
+             ('fixed', 5,
               urwid.AttrWrap(
-                  urwid.Text('%i%%' % (self.percent)),
-                  'head_percent',
-                  'focus')),
-             ('fixed', len(self.path),
-              urwid.AttrWrap(
-                  urwid.Text('%s' % (self.path)),
-                  'head_path',
-                  'focus')),
-             # ('fixed', len(self.tag_string),
-             #  urwid.AttrWrap(
-             #      urwid.Text('%s' % (self.tag_string)),
-             #      'head_tags',
-             #      'focus')),
+                        urwid.Text('%i%%' % (self.percent)),
+                        'search_value_default',
+                        'focus')),
              ('fixed', len(self.source_string),
               urwid.AttrWrap(
-                  urwid.Text('%s' % (self.source_string)),
-                  'head_sources',
-                  'focus')),
+                        urwid.Text('%s' % (self.source_string)),
+                        'search_value_default',
+                        'focus')),
              ],
-            dividechars=1,
             )
 
         w = urwid.Pile(
             [
                 urwid.Divider('-'),
                 self.rowHeader,
-                self.docfield('tags'),
-                self.docfield('url'),
-                self.docfield('title'),
+                self.docfield('tags', value_palette='search_tags'),
+                self.docfield('title', value_palette='search_title'),
                 self.docfield('authors'),
                 self.docfield('year'),
+                self.docfield('path'),
+                self.docfield('url'),
                 self.docfield('data'),
                 ]
             ,
             focus_item=1)
         self.__super.__init__(w)
 
-    def docfield(self, field):
+    def docfield(self, field, field_palette=None, value_palette='search_value_default'):
         return urwid.Columns(
             [
                 ('fixed', self.c1width,
                  urwid.AttrWrap(
                         urwid.Text(field + ':'),
-                        'data_bold', 'focus')),
-                eval('self.' + field),
-            # ('fixed', self.c1width,
-            #   urwid.AttrWrap(
-            #             urwid.Text(field + ':'),
-            #             'data_bold',
-            #             'focus')),
-            #  urwid.AttrWrap(
-            #         urwid.Text('%s' % (value)),
-            #         'body',
-            #         'focus')
+                        field_palette, 'focus')),
+                urwid.AttrWrap(
+                    eval('self.' + field),
+                    value_palette, 'focus')
                 ]
             )
 
@@ -143,7 +126,7 @@ class Search(urwid.WidgetWrap):
 
     def viewEntry(self):
         docid = self.listbox.get_focus()[0].docid
-        path = self.listbox.get_focus()[0].path
+        path = self.listbox.get_focus()[0].doc.get_fullpaths()[0]
         path = path.replace(' ','\ ')
         message = 'opening doc id:%s...' % docid
         self.ui.set_status(message)
@@ -205,9 +188,12 @@ class Search(urwid.WidgetWrap):
         if new is not None:
             focus = self.listbox.get_focus()[0]
             docid = focus.docid
+            # open the database writable and set the new field
             db = Database(self.ui.xdir, writable=True)
             doc = db.get_doc(docid)
             eval('doc.set_' + field + '("' + new + '")')
+            # FIXME: update the in-place doc
+            # update the display
             element = eval('focus.' + field)
             element.set_text(new)
             msg = "Document id:%s %s updated." % (focus.docid, field)
@@ -224,8 +210,8 @@ class Search(urwid.WidgetWrap):
             self.tag('+')
         elif key is '-':
             self.tag('-')
-        elif key is 'U':
-            self.setField('url')
+        elif key is 'enter':
+            self.viewEntry()
         elif key is 'u':
             self.viewURL()
         elif key is 'T':
@@ -234,7 +220,9 @@ class Search(urwid.WidgetWrap):
             self.setField('authors')
         elif key is 'Y':
             self.setField('year')
-        elif key is 'enter':
-            self.viewEntry()
+        elif key is 'P':
+            self.setField('path')
+        elif key is 'U':
+            self.setField('url')
         else:
             self.ui.keypress(key)
