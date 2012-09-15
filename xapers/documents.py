@@ -106,18 +106,6 @@ class Document():
     def _set_data(self, text):
         self.doc.set_data(text)
 
-    # FIXME: this definitely needs to move to a different parsing
-    # module
-    # oh and it sucks.
-    def _pdf2text(self, pdf):
-        from subprocess import Popen, PIPE
-        cmd = ['pdftotext', '-', '-']
-        p = Popen(' '.join(cmd), stdin=PIPE, stdout=PIPE, shell=True)
-        text = p.communicate(pdf.getvalue())[0]
-        if p.wait() != 0:
-            raise IOerror
-        return text
-
     def _sync(self):
         self.xapers.xapian_db.replace_document(self.docid, self.doc)
 
@@ -137,14 +125,8 @@ class Document():
         # extract any leading slashes
         path = path.lstrip('/')
 
-        # extract text from pdf
-        import cStringIO
-        pdf = cStringIO.StringIO()
-        fi = open(os.path.join(self.xapers.root, path), 'rb')
-        #fi = open(path, 'rb')
-        pdf.write(fi.read())
-        fi.close()
-        text = self._pdf2text(pdf)
+        from .parsers import pdf as parser
+        text = parser.parse_file(os.path.join(self.xapers.root, path))
 
         self._gen_terms(None, text)
 
