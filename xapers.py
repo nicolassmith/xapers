@@ -39,6 +39,7 @@ def usage():
   add [options] file                          add file to database
     --prompt
     --sources=source:sid[,...]
+    --url=url
     --tags=tag[,...]
   search [options] <search-term>...           search the database
     --output=[simple|full|files|sources|tags]
@@ -94,6 +95,8 @@ if __name__ == '__main__':
                 for ss in sss:
                     s,i = ss.split(':')
                     data['sources'][s] = i
+            elif '--url=' in sys.argv[argc]:
+                data['url'] = sys.argv[argc].split('=',1)[1]
             elif '--tags=' in sys.argv[argc]:
                 data['tags'] = sys.argv[argc].split('=',1)[1].split(',')
             else:
