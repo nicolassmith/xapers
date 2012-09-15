@@ -112,9 +112,7 @@ class Database():
         prefix = self._find_prefix(name)
         return self._get_terms(prefix)
 
-    def add_document(self,
-                     path,
-                     data=None):
+    def add_document(self, path, data=None):
         """Add a document to the database
 
         :param path: should be a path relative to the path of the
@@ -135,20 +133,24 @@ class Database():
         :param tags: initial tags to apply to document.
         """
 
-        print >>sys.stderr, "adding '%s'..." % (path),
-
         # FIXME: check it path has already been indexed
         # search for an existing document given the path
         # if none exists do something
         # FIXME: THIS ISN"T WORKING!!!!
         doc = self._find_doc_for_path(path)
         if doc:
-            print >>sys.stderr, " already indexed (id:%s)" % (doc.get_id())
+            print >>sys.stderr, "File '%s' already indexed as id:%s." % (path, doc.get_id())
+            # FIXME: this should raise on exception
             return
 
         doc = Document(self)
 
-        doc._index_file(path)
+        print >>sys.stderr, "Adding new document id:%s..." % (doc.get_docid())
+
+        if path:
+            print >>sys.stderr, "  indexing '%s'..." % (path),
+            doc._index_file(path)
+            print >>sys.stderr, "done."
 
         if 'url' in data:
             doc._set_url(data['url'])
@@ -171,7 +173,6 @@ class Database():
         # the cost of that?
         doc._sync()
 
-        print >>sys.stderr, " id:%s" % (doc.get_docid())
 
     def get_doc(self, docid):
         enquire = xapian.Enquire(self.xapian_db)
