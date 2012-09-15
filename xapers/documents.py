@@ -125,6 +125,7 @@ class Document():
         prefix = self.xapers._find_prefix('file')
         self._add_term(prefix, path)
 
+    # this is really only needed to fix bad entries
     def set_path(self, path):
         self._set_path(path)
         self._sync()
@@ -205,26 +206,9 @@ class Document():
         """Return data associated with document."""
         return self.doc.get_data()
 
-    def _set_url(self, url):
-        prefix = self.xapers._find_prefix('url')
-        for term in self._get_terms(prefix):
-            self._remove_term(prefix, term)
-        self._add_term(prefix, url)
+    # multi value fields
 
-    def set_url(self, url):
-        """Add a url to document"""
-        self._set_url(url)
-        self._sync()
-
-    def get_url(self):
-        """Return url associated with document."""
-        prefix = self.xapers._find_prefix('url')
-        url = self._get_terms(prefix)
-        if url:
-            return url[0]
-        else:
-            return ''
-
+    # SOURCES
     def _add_source(self, source, sid):
         prefix = self.xapers._find_prefix('source')
         self._add_term(prefix, source)
@@ -264,6 +248,7 @@ class Document():
             self._remove_term(prefix, sid)
         self._remove_term(self.xapers._find_prefix('source'), source)
 
+    # TAGS
     def _add_tag(self, tag):
         prefix = self.xapers._find_prefix('tag')
         self._add_term(prefix, tag)
@@ -290,6 +275,31 @@ class Document():
             self._remove_tag(tag)
         self._sync()
 
+
+    # single value fields
+
+    # URL
+    def _set_url(self, url):
+        prefix = self.xapers._find_prefix('url')
+        for term in self._get_terms(prefix):
+            self._remove_term(prefix, term)
+        self._add_term(prefix, url)
+
+    def set_url(self, url):
+        """Add a url to document"""
+        self._set_url(url)
+        self._sync()
+
+    def get_url(self):
+        """Return url associated with document."""
+        prefix = self.xapers._find_prefix('url')
+        url = self._get_terms(prefix)
+        if url:
+            return url[0]
+        else:
+            return ''
+
+    # TITLE
     def _set_title(self, title):
         """Set title of document."""
         pt = self.xapers._find_prefix('title')
@@ -316,6 +326,7 @@ class Document():
         else:
             return ''
 
+    # AUTHOR
     def _set_authors(self, authors):
         pa = self.xapers._find_prefix('author')
         pf = self.xapers._find_prefix('fullauthors')
@@ -345,6 +356,7 @@ class Document():
         else:
             return ''
 
+    # YEAR
     def _set_year(self, year):
         prefix = self.xapers._find_prefix('year')
         for term in self._get_terms(prefix):
