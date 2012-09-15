@@ -220,7 +220,7 @@ authors: %s
         db.delete_document(query_string)
 
 
-    def search(self, query_string, limit=20, oformat='simple'):
+    def search(self, query_string, oformat='simple', limit=20):
         db = Database(self.xdir, writable=False)
 
         # FIXME: writing needs to be in a try to catch IOError

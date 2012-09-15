@@ -80,26 +80,27 @@ if __name__ == '__main__':
         if len(sys.argv) < 3:
             print >>sys.stderr, "Must specify a file to add."
             sys.exit()
-        argc = 2
 
         prompt = False
-        if '--prompt' in sys.argv[argc]:
-            prompt = True
-            argc += 1
-
         data = {}
-        if '--sources=' in sys.argv[argc]:
-            sss = sys.argv[argc].split('=',1)[1].split(',')
-            data['sources'] = {}
-            for ss in sss:
-                s,i = ss.split(':')
-                data['sources'][s] = i
-            argc += 1
-        if '--tags=' in sys.argv[argc]:
-            data['tags'] = sys.argv[argc].split('=',1)[1].split(',')
-            argc += 1
-        infile = sys.argv[argc]
 
+        argc = 2
+        while True:
+            if '--prompt' in sys.argv[argc]:
+                prompt = True
+            elif '--sources=' in sys.argv[argc]:
+                sss = sys.argv[argc].split('=',1)[1].split(',')
+                data['sources'] = {}
+                for ss in sss:
+                    s,i = ss.split(':')
+                    data['sources'][s] = i
+            elif '--tags=' in sys.argv[argc]:
+                data['tags'] = sys.argv[argc].split('=',1)[1].split(',')
+            else:
+                break
+            argc += 1
+
+        infile = sys.argv[argc]
         cli.add(infile, data, prompt=prompt)
 
     ########################################
@@ -108,25 +109,6 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd == 'new':
-        # try:
-        #     os.makedirs(xdb)
-        # except:
-        #     pass
-        # omindex = [
-        #     '~/src/xapian/xapian/xapian-applications/omega/omindex',
-        #     '--verbose',
-	#     '--follow',
-	#     '--db', xdb,
-        #     '--url', '/',
-        #     ]
-        # for arg in sys.argv[2:]:
-        #     omindex.append(arg)
-        # omindex.append(xdir)
-        # from subprocess import Popen, PIPE
-        # print ' '.join(omindex)
-        # p = Popen(' '.join(omindex), shell=True)
-        # if p.wait() != 0:
-        #     print >>sys.stderr, "There were some errors"
         print >>sys.stderr, "not implemented."
 
     ########################################
@@ -134,20 +116,23 @@ if __name__ == '__main__':
         if len(sys.argv) < 3:
             print >>sys.stderr, "Must specify a search term."
             sys.exit()
-        argc = 2
+
         oformat = 'simple'
         limit = 20
-        if '--output=' in sys.argv[argc]:
-            oformat = sys.argv[argc].split('=')[1]
-            argc += 1
-        if '--limit=' in sys.argv[argc]:
-            limit = int(sys.argv[argc].split('=')[1])
+
+        argc = 2
+        while True:
+            if '--output=' in sys.argv[argc]:
+                oformat = sys.argv[argc].split('=')[1]
+            elif '--limit=' in sys.argv[argc]:
+                limit = int(sys.argv[argc].split('=')[1])
+            else:
+                break
             argc += 1
 
         query = make_query_string(sys.argv[argc:])
-
         try:
-            cli.search(query, limit=limit, oformat=oformat)
+            cli.search(query, oformat=oformat, limit=limit)
         except KeyboardInterrupt:
             sys.exit()
 
@@ -156,19 +141,23 @@ if __name__ == '__main__':
         query = make_query_string(sys.argv[2:])
         if not query or query == '':
             query = '*'
-
         xapers.selector.UI(xdir, 'search', query)
+
+    ########################################
+    elif cmd == 'edit':
+        query = make_query_string(sys.argv[2:])
+        xapers.selector.UI(xdir, 'edit', query)
 
     ########################################
     elif cmd in ['view','show']:
         query = make_query_string(sys.argv[2:])
-
         cli.view(query)
 
     ########################################
     elif cmd == 'tag':
         add_tags = []
         remove_tags = []
+
         argc = 2
         for arg in sys.argv[argc:]:
             if arg == '--':
@@ -181,28 +170,26 @@ if __name__ == '__main__':
             else:
                 break
             argc += 1
-        query = make_query_string(sys.argv[argc:])
 
+        query = make_query_string(sys.argv[argc:])
         cli.tag(query, add_tags, remove_tags)
 
     ########################################
     elif cmd == 'set':
         attribute = sys.argv[2]
         value = sys.argv[3]
-        query = make_query_string(sys.argv[4:])
 
+        query = make_query_string(sys.argv[4:])
         cli.set(query, attribute, value)
 
     ########################################
     elif cmd == 'dumpterms':
         query = make_query_string(sys.argv[2:])
-
         cli.dumpterms(query)
 
     ########################################
     elif cmd == 'count':
         query = make_query_string(sys.argv[2:])
-
         cli.count(query)
 
     ########################################
@@ -210,7 +197,6 @@ if __name__ == '__main__':
         query = make_query_string(sys.argv[2:])
         if not query or query == '':
             query = '*'
-
         cli.dump(query)
 
     ########################################
@@ -228,6 +214,6 @@ if __name__ == '__main__':
 
     ########################################
     else:
-        print >>sys.stderr, "unknown sub cmd", cmd
+        print >>sys.stderr, "unknown sub command:", cmd
         usage()
         sys.exit(1)
