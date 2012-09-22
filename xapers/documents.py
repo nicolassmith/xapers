@@ -126,7 +126,7 @@ class Document():
         path = path.lstrip('/')
 
         from .parsers import pdf as parser
-        text = parser.parse_file(os.path.join(self.xapers.root, path))
+        text = parser.parse_file(os.path.join(self.root, path))
 
         self._gen_terms(None, text)
 
@@ -179,7 +179,7 @@ class Document():
         for path in paths:
             path = path.lstrip('/')
             if path.find(root) == 0:
-                index = len(self.root)
+                index = len(root)
                 path = path[index:]
             list.append(os.path.join('/', root, path))
         return list
