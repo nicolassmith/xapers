@@ -6,6 +6,19 @@ from .documents import Documents, Document
 
 # FIXME: add db schema documentation
 
+class DatabaseError(Exception):
+    """Base class for Xapers database exceptions."""
+    pass
+
+class IllegalImportPath(DatabaseError):
+    pass
+
+class ImportPathExists(DatabaseError):
+    def __init__(self, docid):
+        self.docid = docid
+
+##################################################
+
 class Database():
     """Represents a Xapers database"""
 
@@ -98,7 +111,7 @@ class Database():
     def _basename_for_path(self, path):
         if path.find('/') == 0:
             if path.find(self.root) == 0:
-                index = len(self.root)
+                index = len(self.root) + 1
                 return path[index:]
             else:
                 # FIXME: should this be an exception?
@@ -167,7 +180,7 @@ class Database():
             return None
 
     def doc_for_docid(self, docid):
-        """Return document for specified path."""
+        """Return document for specified docid."""
         term = self._find_prefix('id') + docid
         return self._doc_for_term(term)
 
@@ -178,84 +191,31 @@ class Database():
 
     ########################################
 
-    def add_document(self, path, data=None):
+    def add_document(self, path):
         """Add a document to the database
 
         :param path: should be a path relative to the path of the
             open database (see :meth:`get_path`), or else should be an
             absolute filename with initial components that match the
             path of the database.
-
-            The file should be a single mail message (not a
-            multi-message mbox) that is expected to remain at its
-            current location, since the notmuch database will reference
-            the filename, and will not copy the entire contents of the
-            file.
-
-        :param data: initial document metadata.  This should be a
-            dict, and the following fields are recognized:
-              source
-              url
-              title
-              authors
-              year
-              tags
         """
+
+        path = self._basename_for_path(path)
+        if not path:
+            raise IllegalImportPath()
 
         doc = self.doc_for_path(path)
         if doc:
-            print >>sys.stderr, "File '%s' already indexed as id:%s." % (path, doc.get_docid())
-            # FIXME: this should raise on exception
-            sys.exit(1)
+            raise ImportPathExists(doc.get_docid())
 
         doc = Document(self)
-
-        print >>sys.stderr, "Adding new document id:%s..." % (doc.get_docid())
-
-        if path:
-            print >>sys.stderr, "  indexing '%s'..." % (path),
-            doc._index_file(path)
-            print >>sys.stderr, "done."
-
-        if 'url' in data:
-            doc._set_url(data['url'])
-
-        if 'sources' in data:
-            for source,sid in data['sources'].items():
-                doc._add_source(source, sid)
-
-        if 'title' in data:
-            doc._set_title(data['title'])
-
-        if 'authors' in data:
-            doc._set_authors(data['authors'])
-
-        if 'year' in data:
-            doc._set_year(data['year'])
-
-        if 'tags' in data:
-            for tag in data['tags']:
-                doc._add_tag(tag)
-
-        # FIXME: should these operations all sync themselves?  what is
-        # the cost of that?
+        doc._index_file(path)
         doc._sync()
 
+        return doc
+
     def delete_document(self, docid):
-        resp = raw_input('Are you sure you want to delete documents ?: ' % docid)
-        if resp != 'Y':
-            print >>sys.stderr, "Aborting."
-            sys.exit(1)
         self.xapian_db.delete_document(docid)
 
     def replace_docfile(self, docid, file):
-        print >>sys.stderr, "not implemented."
-        return
-        doc = enquire = xapian.Enquire(self.xapian_db)
-        query = self.query_parser.parse_query('id:' + str(docid))
-        enquire.set_query(query)
-        matches = enquire.get_mset(0, self.xapian_db.get_doccount())
-        if len(matches) > 1:
-            print >>sys.stderr, "Query does not match a single document.  Aborting."
-            sys.exit(1)
-        self.xapian_db.delete_document(m.document.get_docid())
+        pass
