@@ -2,7 +2,7 @@ import os
 import sys
 import xapian
 
-from .documents import Document
+from .documents import Documents, Document
 
 # FIXME: add db schema documentation
 
@@ -14,7 +14,7 @@ class Database():
         'url': 'U',
         'file': 'P',
 
-        # FIXME: use this
+        # FIXME: use this for doc mime type
         'type': 'T',
         }
             
@@ -50,9 +50,9 @@ class Database():
     def _make_source_prefix(self, source):
         return 'X%s:' % (source.upper())
 
-    def __init__(self, root, create=False, writable=False):
+    def __init__(self, root, writable=False, create=False):
         # xapers root
-        self.root = root
+        self.root = os.path.abspath(root)
 
         # xapers db directory
         self.xapers_path = os.path.join(self.root, '.xapers')
@@ -89,13 +89,24 @@ class Database():
         for name, prefix in self.PROBABILISTIC_PREFIX.iteritems():
             self.query_parser.add_prefix(name, prefix)
 
-        # last docid in the database
-        self.last_docid = self.xapian_db.get_lastdocid()
-
     # generate a new doc id, based on the last availabe doc id
     def _generate_docid(self):
-        self.last_docid += 1
-        return self.last_docid
+        return self.xapian_db.get_lastdocid() + 1
+
+    # Return the xapers-relative path for a path
+    # If the the specified path is not in the xapers root, return None.
+    def _basename_for_path(self, path):
+        if path.find('/') == 0:
+            if path.find(self.root) == 0:
+                index = len(self.root)
+                return path[index:]
+            else:
+                # FIXME: should this be an exception?
+                return None
+        else:
+            return path
+
+    ########################################
 
     # return a list of terms for prefix
     # FIXME: is this the fastest way to do this?
@@ -112,6 +123,61 @@ class Database():
         prefix = self._find_prefix(name)
         return self._get_terms(prefix)
 
+    ########################################
+
+    # search for documents based on query string
+    def _search(self, query_string, limit=0):
+        enquire = xapian.Enquire(self.xapian_db)
+
+        if query_string == "*":
+            query = xapian.Query.MatchAll
+        else:
+            # parse the query string to produce a Xapian::Query object.
+            query = self.query_parser.parse_query(query_string)
+
+        # FIXME: need to catch Xapian::Error when using enquire
+        enquire.set_query(query)
+
+        # FIXME: can set how the mset is ordered
+        if limit > 0:
+            mset = enquire.get_mset(0, limit)
+        else:
+            mset = enquire.get_mset(0, self.xapian_db.get_doccount())
+
+        return mset
+
+    def search(self, query_string, limit=0):
+        """Search for documents in the database."""
+        mset = self._search(query_string, limit)
+        return Documents(self, mset)
+
+    def count(self, query_string):
+        """Count documents matching search terms."""
+        return self._search(query_string, count=0).get_matches_estimated()
+
+    def _doc_for_term(self, term):
+        enquire = xapian.Enquire(self.xapian_db)
+        query = xapian.Query(term)
+        enquire.set_query(query)
+        mset = enquire.get_mset(0, 2)
+        # FIXME: need to throw an exception if more than one match found
+        if mset:
+            return Document(self, mset[0].document)
+        else:
+            return None
+
+    def doc_for_docid(self, docid):
+        """Return document for specified path."""
+        term = self._find_prefix('id') + docid
+        return self._doc_for_term(term)
+
+    def doc_for_path(self, path):
+        """Return document for specified path."""
+        term = self._find_prefix('file') + path
+        return self._doc_for_term(term)
+
+    ########################################
+
     def add_document(self, path, data=None):
         """Add a document to the database
 
@@ -126,22 +192,21 @@ class Database():
             the filename, and will not copy the entire contents of the
             file.
 
-        :param url: a url associated with the file.
-
-        :param sources: a dictionary of source:id values.
-
-        :param tags: initial tags to apply to document.
+        :param data: initial document metadata.  This should be a
+            dict, and the following fields are recognized:
+              source
+              url
+              title
+              authors
+              year
+              tags
         """
 
-        # FIXME: check it path has already been indexed
-        # search for an existing document given the path
-        # if none exists do something
-        # FIXME: THIS ISN"T WORKING!!!!
-        doc = self._find_doc_for_path(path)
+        doc = self.doc_for_path(path)
         if doc:
-            print >>sys.stderr, "File '%s' already indexed as id:%s." % (path, doc.get_id())
+            print >>sys.stderr, "File '%s' already indexed as id:%s." % (path, doc.get_docid())
             # FIXME: this should raise on exception
-            return
+            sys.exit(1)
 
         doc = Document(self)
 
@@ -165,6 +230,9 @@ class Database():
         if 'authors' in data:
             doc._set_authors(data['authors'])
 
+        if 'year' in data:
+            doc._set_year(data['year'])
+
         if 'tags' in data:
             for tag in data['tags']:
                 doc._add_tag(tag)
@@ -172,17 +240,6 @@ class Database():
         # FIXME: should these operations all sync themselves?  what is
         # the cost of that?
         doc._sync()
-
-
-    def get_doc(self, docid):
-        enquire = xapian.Enquire(self.xapian_db)
-        query = self.query_parser.parse_query('id:' + str(docid))
-        enquire.set_query(query)
-        matches = enquire.get_mset(0, self.xapian_db.get_doccount())
-        if len(matches) > 1:
-            print >>sys.stderr, "Query does not match a single document."
-            return None
-        return Document(self, matches[0].document)
 
     def delete_document(self, docid):
         resp = raw_input('Are you sure you want to delete documents ?: ' % docid)
@@ -202,44 +259,3 @@ class Database():
             print >>sys.stderr, "Query does not match a single document.  Aborting."
             sys.exit(1)
         self.xapian_db.delete_document(m.document.get_docid())
-
-    def _find_doc_for_path(self, filename):
-        query_string = self._find_prefix('file') + filename
-        enquire = xapian.Enquire(self.xapian_db)
-        query = self.query_parser.parse_query(query_string)
-        matches = enquire.get_mset(0, self.xapian_db.get_doccount())
-        if matches:
-            return Document(matches[0].document)
-        else:
-            return None
-
-    def _search(self, query_string, limit=0):
-        enquire = xapian.Enquire(self.xapian_db)
-
-        if query_string == "*":
-            query = xapian.Query.MatchAll
-        else:
-            # parse the query string to produce a Xapian::Query object.
-            query = self.query_parser.parse_query(query_string)
-
-        #print >>sys.stderr, "parsed query: %s" % str(query)
-
-        enquire.set_query(query)
-
-        if limit > 0:
-            matches = enquire.get_mset(0, limit)
-        else:
-            matches = enquire.get_mset(0, self.xapian_db.get_doccount())
-
-        return matches
-
-    def search(self, query_string, limit=0):
-        """Search for documents in the database."""
-
-        # FIXME: this should return an iterator over Documents
-        #return Documents(self, self._search(terms, count))
-        return self._search(query_string, limit)
-
-    def count(self, query_string):
-        """Count documents matching search terms."""
-        return self._search(query_string, count=0).get_matches_estimated()
