@@ -23,44 +23,51 @@ import sys
 import xapian
 
 class Documents():
-    """Represents a set of Xapers documents."""
+    """Represents a set of Xapers documents given a Xapian mset."""
 
     def __init__(self, xapers, mset):
         # Xapers db
         self.xapers = xapers
         self.mset = mset
-        self.index = len(mset)
+        self.index = -1
+        self.max = len(mset)
 
     def __iter__(self):
         return self
 
     def next(self):
-        if self.index == 0:
+        self.index = self.index + 1
+        if self.index == self.max:
             raise StopIteration
-        self.index = self.index - 1
-        item = self.mset[self.index]
-        doc = Document(self.xapers, item.document)
+        m = self.mset[self.index]
+        doc = Document(self.xapers, m.document)
+        doc.matchp = m.percent
         return doc
 
 
 class Document():
-    """Represents a Xapers document."""
+    """Represents a single Xapers document."""
 
     def __init__(self, xapers, doc=None):
         # Xapers db
         self.xapers = xapers
         self.root = self.xapers.root
+
+        # if Xapian doc provided, initiate for that document
         if doc:
-            # Create document from Xapian document
-            # FIXME: check that what we're recieving here is legit
             self.doc = doc
             self.docid = doc.get_docid()
+            self.path = self._get_terms(self.xapers._find_prefix('file'))
+
+        # else, create a new empty document
+        # document won't be added to database until _sync is called
         else:
-            # Create a new document
             self.doc = xapian.Document()
             self.docid = self.xapers._generate_docid()
             self._add_term(self.xapers._find_prefix('id'), self.docid)
-        # FIXME: what other metadata should the document have?
+
+    def _sync(self):
+        self.xapers.xapian_db.replace_document(self.docid, self.doc)
 
     ########################################
     # internal stuff
@@ -106,9 +113,6 @@ class Document():
     def _set_data(self, text):
         self.doc.set_data(text)
 
-    def _sync(self):
-        self.xapers.xapian_db.replace_document(self.docid, self.doc)
-
     def _set_path(self, path):
         prefix = self.xapers._find_prefix('file')
         self._add_term(prefix, path)
@@ -123,7 +127,7 @@ class Document():
     # FIXME: codify this more
     def _index_file(self, path):
         # extract any leading slashes
-        path = path.lstrip('/')
+        self.path = path.lstrip('/')
 
         from .parsers import pdf as parser
         text = parser.parse_file(os.path.join(self.root, path))
