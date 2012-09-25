@@ -292,7 +292,7 @@ authors: %s
                 print "title: %s" % (title)
                 print "authors: %s" % (authors)
                 print "year: %s" % (year)
-                print "data: %s\n" % (data)
+                print "data: \n%s\n" % (data)
                 continue
 
             if oformat == 'json':
