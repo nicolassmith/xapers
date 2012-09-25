@@ -59,6 +59,7 @@ class Documents():
         doc.matchp = m.percent
         return doc
 
+##################################################
 
 class Document():
     """Represents a single Xapers document."""

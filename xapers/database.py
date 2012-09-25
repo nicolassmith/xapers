@@ -29,22 +29,23 @@ class Database():
     BOOLEAN_PREFIX_EXTERNAL = {
         'id': 'Q',
 
-        # user defined
-        'tag': 'K',
         'source': 'XSOURCE:',
+        'tag': 'K',
         'fulltitle': 'XTITLE:',
         'fullauthors': 'XAUTHORS:',
 
         'year': 'Y',
-        #'added': ?
-        #'viewed': ?
         }
 
     PROBABILISTIC_PREFIX = {
         'title': 'S',
-        'subject': 'S',
         'author': 'A',
         }
+
+    # FIXME: need to set the following value fields:
+    # publication date
+    # added date
+    # modified date
 
     def _find_prefix(self, name):
         if name in self.BOOLEAN_PREFIX_INTERNAL:
