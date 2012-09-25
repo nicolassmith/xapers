@@ -191,7 +191,7 @@ class Database():
 
     ########################################
 
-    def add_document(self, path):
+    def add_document(self, path=None):
         """Add a document to the database
 
         :param path: should be a path relative to the path of the
@@ -200,16 +200,18 @@ class Database():
             path of the database.
         """
 
-        path = self._basename_for_path(path)
-        if not path:
-            raise IllegalImportPath()
+        if path:
+            path = self._basename_for_path(path)
+            if not path:
+                raise IllegalImportPath()
 
-        doc = self.doc_for_path(path)
-        if doc:
-            raise ImportPathExists(doc.get_docid())
+            doc = self.doc_for_path(path)
+            if doc:
+                raise ImportPathExists(doc.get_docid())
 
         doc = Document(self)
-        doc._index_file(path)
+        if path:
+            doc._index_file(path)
         doc._sync()
 
         return doc
