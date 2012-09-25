@@ -71,10 +71,12 @@ def get_data(sid, lfile=None):
     data['bibtex'] = abstract
 
     data = {
-        'title':   title,
-        'authors': bdata['authors'],
-        'year':    bdata['year'],
-        'bibtex':  bibtex,
+        'source':   'dcc',
+        'sid':      sid,
+        'title':    title,
+        'authors':  authors,
+        'year':     year,
+        'abstract': abstract,
         }
 
     return data

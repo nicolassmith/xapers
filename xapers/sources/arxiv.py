@@ -91,10 +91,11 @@ def get_data(sid, lfile=None):
     astring = ' and '.join(parser.authors),
 
     data = {
+        'source':  'arxiv',
+        'sid':     sid,
         'title':   parser.title,
         'authors': astring,
         'year':    parser.year,
-        'bibtex':  None,
         }
 
     return data

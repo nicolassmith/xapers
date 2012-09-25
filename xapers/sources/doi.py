@@ -27,6 +27,8 @@ def get_data(sid, lfile=None):
     bdata = xapers.bibtex.parse(bibtex)
 
     data = {
+        'source':  'doi',
+        'sid':     sid,
         'title':   bdata['title'],
         'authors': bdata['authors'],
         'year':    bdata['year'],
