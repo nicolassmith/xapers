@@ -6,16 +6,11 @@ from .documents import Documents, Document
 
 # FIXME: add db schema documentation
 
+##################################################
+
 class DatabaseError(Exception):
     """Base class for Xapers database exceptions."""
     pass
-
-class IllegalImportPath(DatabaseError):
-    pass
-
-class ImportPathExists(DatabaseError):
-    def __init__(self, docid):
-        self.docid = docid
 
 ##################################################
 
@@ -196,31 +191,6 @@ class Database():
         return self._doc_for_term(term)
 
     ########################################
-
-    def add_document(self, path=None):
-        """Add a document to the database
-
-        :param path: should be a path relative to the path of the
-            open database (see :meth:`get_path`), or else should be an
-            absolute filename with initial components that match the
-            path of the database.
-        """
-
-        if path:
-            path = self._basename_for_path(path)
-            if not path:
-                raise IllegalImportPath()
-
-            doc = self.doc_for_path(path)
-            if doc:
-                raise ImportPathExists(doc.get_docid())
-
-        doc = Document(self)
-        if path:
-            doc._index_file(path)
-        doc._sync()
-
-        return doc
 
     def delete_document(self, docid):
         self.xapian_db.delete_document(docid)
