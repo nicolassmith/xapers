@@ -216,8 +216,14 @@ authors: %s
 
 
     def delete(self, query_string):
+
+    def delete(self, docid):
+        resp = raw_input('Are you sure you want to delete documents ?: ' % docid)
+        if resp != 'Y':
+            print >>sys.stderr, "Aborting."
+            sys.exit(1)
         db = Database(self.xdir, writable=True)
-        db.delete_document(query_string)
+        db.delete_document(docid)
 
 
     def search(self, query_string, oformat='simple', limit=20):
