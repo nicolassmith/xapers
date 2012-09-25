@@ -1,19 +1,23 @@
 import sys
-import cStringIO
 import io
-from pybtex.database.input import bibtex
+# import cStringIO
+from pybtex.database.input import bibtex as bibparser
 
-def bibtrans(string):
+def clean_string(string):
     for char in ['{', '}']:
         string = string.replace(char,'')
     return string
 
-def parse(bib):
+def bib2data(bibtex):
+    """Parse a bibtex string for indexable data fields."""
+
+    # io produces a stream object that pybtex can handle
+    bibfile = io.StringIO(unicode(bibtex))
     # bibfile = cStringIO.StringIO()
     # bibfile.write(bib)
-    bibfile = io.StringIO(unicode(bib))
 
-    parser = bibtex.Parser(encoding='UTF-8')
+    parser = bibparser.Parser(encoding='UTF-8')
+
     bibdata = parser.parse_stream(bibfile)
 
     # for key in bibdata.entries.keys():
@@ -24,6 +28,7 @@ def parse(bib):
 
     bibentry = bibdata.entries.values()[0].fields
 
+    # parse crazy authors entries
     authors = []
     for p in bibdata.entries.values()[0].persons['author']:
         authors.append('%s %s' % (p.first()[0], p.last()[0]))
@@ -33,17 +38,20 @@ def parse(bib):
         'title': None,
         'authors': None,
         'year': None,
-        'abstract': None
         }
 
     if 'url' in bibentry:
-        data['url'] = bibtrans(bibentry['url']).encode('utf-8')
+        data['url'] = clean_string(bibentry['url']).encode('utf-8')
+
     if 'title' in bibentry:
-        data['title'] = bibtrans(bibentry['title']).encode('utf-8')
+        data['title'] = clean_string(bibentry['title']).encode('utf-8')
+
     data['authors'] = authors
+
     if 'year' in bibentry:
         data['year'] = bibentry['year'].encode('utf-8')
-    if 'abstract' in bibentry:
-        data['abstract'] = bibtrans(bibentry['abstract']).encode('utf-8')
 
     return data
+
+def data2bib(data):
+    pass
