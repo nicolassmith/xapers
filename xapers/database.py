@@ -216,6 +216,3 @@ class Database():
 
     def delete_document(self, docid):
         self.xapian_db.delete_document(docid)
-
-    def replace_docfile(self, docid, file):
-        pass
