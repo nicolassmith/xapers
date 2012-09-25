@@ -87,12 +87,9 @@ if __name__ == '__main__':
                 break
             elif '--prompt' in sys.argv[argc]:
                 prompt = True
-            elif '--sources=' in sys.argv[argc] or '--source=' in sys.argv[argc]:
-                sss = sys.argv[argc].split('=',1)[1].split(',')
-                data['sources'] = {}
-                for ss in sss:
-                    s,i = ss.split(':')
-                    data['sources'][s] = i
+            elif '--source=' in sys.argv[argc]:
+                s,i = sys.argv[argc].split('=',1)[1].split(':',1)
+                data['source'] = {s: i}
             elif '--url=' in sys.argv[argc]:
                 data['url'] = sys.argv[argc].split('=',1)[1]
             elif '--tags=' in sys.argv[argc]:
