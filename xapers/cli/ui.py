@@ -78,22 +78,15 @@ class UI():
             # parse the url for source and sid
             # returns a source module and sid
             smod, sid = xapers.source.source_from_url(data['url'])
-            # try:
-            #     sdata, sid = xapers.source.source_from_url(data['url'])
-            # except:
-            #     print >>sys.stderr, "Failed to parse url."
 
             # get data from source
             if smod:
-                try:
-                    source = smod.name
-                    sdata = smod.get_data(sid, lfile='test/sources/doi.bib')
-                    if sdata:
-                        data['title'] = sdata['title'].encode('utf-8')
-                        data['authors'] = sdata['authors'].encode('utf-8')
-                        data['year'] = sdata['year'].encode('utf-8')
-                except:
-                    print >>sys.stderr, "Could not retrieve data from source."
+                source = smod.name
+                sdata = smod.get_data(sid)
+                if sdata:
+                    data['title'] = sdata['title']
+                    data['authors'] = sdata['authors']
+                    data['year'] = sdata['year']
 
             # get source
             if source:
@@ -125,7 +118,11 @@ class UI():
 
             # get authors
             if 'authors' in data:
-                readline.set_startup_hook(lambda: readline.insert_text(data['authors']))
+                if isinstance(data['authors'], list):
+                    a = ' and '.join(data['authors'])
+                else:
+                    a = data['authors']
+                readline.set_startup_hook(lambda: readline.insert_text(a))
             else:
                 readline.set_startup_hook()
             readline.parse_and_bind('')
