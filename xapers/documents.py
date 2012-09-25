@@ -145,12 +145,8 @@ class Document():
     ########################################
     # external stuff
 
-    # FIXME: we output the relative path as an ad-hoc doc id.
-    # this should really just be the actual docid, and we need
-    # a way to access docs by docid directly (via "id:")
     def get_docid(self):
         """Return document id of document."""
-        #return self._get_terms(self.xapers._find_prefix('file'))[0]
         return self.docid
 
     def get_paths(self):
