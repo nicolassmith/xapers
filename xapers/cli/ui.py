@@ -22,6 +22,8 @@ import os
 import sys
 
 from xapers.database import Database
+from xapers.database import IllegalImportPath, ImportPathExists
+
 from xapers.documents import Document
 import xapers.nci as nci
 
@@ -174,31 +176,57 @@ authors: %s
 
 
     def add(self, infile, data, prompt=False):
-        if infile.find('http') == 0:
-            url = infile
-        else:
-            url = None
+        if not infile and 'url' not in data and 'sources' not in data:
+            print >>sys.stderr, "Must specify file, url, or source id to add."
+            sys.exit(1)
 
         # resolve relative path
         fpath = os.path.abspath(infile)
-        if fpath.find(self.xdir) == 0:
-            index = len(self.xdir)
-            rpath = fpath[index:].lstrip('/')
+        rpath = fpath
+        # if fpath.find(self.xdir) == 0:
+        #     index = len(self.xdir)
+        #     rpath = fpath[index:].lstrip('/')
+        # else:
+        #     print >>sys.stderr, "File '%s' is not in Xapers document directory." % (fpath)
+        #     print >>sys.stderr, "Aborting."
+        #     sys.exit(1)
 
         # FIXME: if file not in xdir, move it there (w/ prompt)
 
         if prompt:
             try:
-                data = self.prompt_for_metadata(url)
+                data = self.prompt_for_metadata(data)
             except KeyboardInterrupt:
                 print >>sys.stderr, "\nAborting.  Nothing imported."
                 sys.exit(-1)
 
-        db = Database(self.xdir, create=True, writable=True)
-        db.add_document(rpath, data)
+        db = Database(self.xdir, writable=True, create=True)
+        try:
+            print >>sys.stderr, "Indexing '%s'..." % (rpath),
+            doc = db.add_document(rpath)
+            print >>sys.stderr, "done."
+        except IllegalImportPath:
+            print >>sys.stderr, "\nFile path not in Xapers directory."
+            sys.exit(1)
+        except ImportPathExists as e:
+            print >>sys.stderr, "\nFile already indexed as %s." % (e.docid)
+            sys.exit(1)
+        except:
+            print >>sys.stderr, "\n"
+            raise
+        if 'url' in data:
+            doc.set_url(data['url'])
+        if 'sources' in data:
+            doc.add_sources(data['sources'])
+        if 'title' in data:
+            doc.set_title(data['title'])
+        if 'authors' in data:
+            doc.set_authors(data['authors'])
+        if 'year' in data:
+            doc.set_year(data['year'])
+        if 'tags' in data:
+            doc.add_tags(data['tags'])
 
-
-    def delete(self, query_string):
 
     def delete(self, docid):
         resp = raw_input('Are you sure you want to delete documents ?: ' % docid)
