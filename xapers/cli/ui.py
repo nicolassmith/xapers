@@ -47,20 +47,19 @@ class UI():
         self.xdb = os.path.join(self.xdir, '.xapers')
 
     # prompt user for document metadata
-    def prompt_for_metadata(self, url):
+    def prompt_for_metadata(self, data):
         import readline
         import xapers.source
 
         isources = None
         itags = None
 
-        smod = None
-        sid = None
+        sdata = None
         source = None
-        title = None
-        authors = None
-        year = None
-        tags = None
+        sid = None
+
+        if 'source' in data:
+            source, sid = data['source'].split(':')
 
         # db = Database(self.xdir, writable=False)
         # isources = db.get_terms('source')
@@ -70,28 +69,27 @@ class UI():
         while True:
             # get url
             readline.parse_and_bind('')
-            if not url or (url and not first):
-                if url:
-                    readline.set_startup_hook(lambda: readline.insert_text(url))
-                url = raw_input('url: ')
+            if 'url' in data:
+                readline.set_startup_hook(lambda: readline.insert_text(data['url']))
+            data['url'] = raw_input('url: ')
 
             # parse the url for source and sid
             # returns a source module and sid
-            try:
-                smod, sid = xapers.source.source_from_url(url)
-            except:
-                print >>sys.stderr, "Failed to parse url."
+            smod, sid = xapers.source.source_from_url(data['url'])
+            # try:
+            #     sdata, sid = xapers.source.source_from_url(data['url'])
+            # except:
+            #     print >>sys.stderr, "Failed to parse url."
 
             # get data from source
             if smod:
                 try:
                     source = smod.name
                     sdata = smod.get_data(sid, lfile='test/sources/doi.bib')
-                    # sdata = smod.get_data(sid)
                     if sdata:
-                        title = sdata['title'].encode('utf-8')
-                        authors = sdata['authors'].encode('utf-8')
-                        year = sdata['year'].encode('utf-8')
+                        data['title'] = sdata['title'].encode('utf-8')
+                        data['authors'] = sdata['authors'].encode('utf-8')
+                        data['year'] = sdata['year'].encode('utf-8')
                 except:
                     print >>sys.stderr, "Could not retrieve data from source."
 
@@ -115,42 +113,42 @@ class UI():
             sid = raw_input('sid: ')
 
             # get title
-            if title:
-                readline.set_startup_hook(lambda: readline.insert_text(title))
+            if 'title' in data:
+                readline.set_startup_hook(lambda: readline.insert_text(data['title']))
             else:
                 readline.set_startup_hook()
             readline.parse_and_bind('')
             readline.set_completer()
-            title = raw_input('title: ')
+            data['title'] = raw_input('title: ')
 
             # get authors
-            if authors:
-                readline.set_startup_hook(lambda: readline.insert_text(authors))
+            if 'authors' in data:
+                readline.set_startup_hook(lambda: readline.insert_text(data['authors']))
             else:
                 readline.set_startup_hook()
             readline.parse_and_bind('')
             readline.set_completer()
-            authors = raw_input('authors: ')
+            data['authors'] = raw_input('authors: ')
 
             # get year
-            if year:
-                readline.set_startup_hook(lambda: readline.insert_text(year))
+            if 'year' in data:
+                readline.set_startup_hook(lambda: readline.insert_text(data['year']))
             else:
                 readline.set_startup_hook()
             readline.parse_and_bind('')
             readline.set_completer()
-            year = raw_input('year: ')
+            data['year'] = raw_input('year: ')
 
             # get tags
             readline.set_startup_hook()
             readline.parse_and_bind("tab: complete")
             completer = Completer(itags)
             readline.set_completer(completer.terms)
-            tags = []
+            data['tags'] = []
             while True:
                 tag = raw_input('tag: ')
                 if tag:
-                    tags.append(tag.strip())
+                    data['tags'].append(tag.strip())
                 else:
                     break
 
@@ -164,28 +162,13 @@ class UI():
 authors: %s
    year: %s
    tags: %s
-""" % (url, source, sid, title, authors, year, ' '.join(tags))
+""" % (data['url'], source, sid, data['title'], data['authors'], data['year'], ' '.join(data['tags']))
             ret = raw_input("Enter to accept, 'r' to reenter, C-c to cancel: ")
             if ret is not 'r':
                 break
             first = False
 
-        sources = {source: sid}
-
-        data = {}
-        #for field in ['url', 'sources', 'title', 'authors', 'year', 'tags']:
-        if url:
-            data['url'] = url
-        if sources:
-            data['sources'] = sources
-        if title:
-            data['title'] = title
-        if authors:
-            data['authors'] = authors
-        if year:
-            data['year'] = year
-        if tags:
-            data['tags'] = tags
+        data['sources'] = {source: sid}
 
         return data
 
