@@ -159,17 +159,11 @@ class Document():
 
     def get_fullpaths(self):
         """Return fullpaths associated with document."""
-        # FIXME: PATHS!!! full or partial!
-        # FIXME: this is a hack!
-        root = self.root.lstrip('/')
-        paths = self.get_paths()
         list = []
-        for path in paths:
+        for path in self.get_paths():
             path = path.lstrip('/')
-            if path.find(root) == 0:
-                index = len(root)
-                path = path[index:]
-            list.append(os.path.join('/', root, path))
+            path = self.xapers._basename_for_path(path)
+            list.append(os.path.join(self.root, path))
         return list
 
     def get_data(self):
