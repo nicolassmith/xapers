@@ -38,9 +38,11 @@ def usage():
     print """
   add [options] file                          add file to database
     --prompt
-    --sources=source:sid[,...]
-    --url=url
     --tags=tag[,...]
+
+    --url=url
+    --source=source:sid                         sources for initial data
+    --bib=bibfile
   search [options] <search-term>...           search the database
     --output=[simple|full|files|sources|tags]
     --limit=N
@@ -94,6 +96,8 @@ if __name__ == '__main__':
                 data['url'] = sys.argv[argc].split('=',1)[1]
             elif '--tags=' in sys.argv[argc]:
                 data['tags'] = sys.argv[argc].split('=',1)[1].split(',')
+            elif '--bib=' in sys.argv[argc]:
+                data['bibfile'] = sys.argv[argc].split('=',1)[1]
             else:
                 break
             argc += 1
