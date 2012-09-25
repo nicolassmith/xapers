@@ -5,9 +5,9 @@ from xapers.database import Database
 from xapers.documents import Document
 
 class DocListItem(urwid.WidgetWrap):
-    def __init__(self, doc, percent):
+    def __init__(self, doc):
         self.doc = doc
-        self.percent = percent
+        self.percent = doc.matchp
         self.docid = self.doc.get_docid()
         self.path = urwid.Text(self.doc.get_fullpaths()[0])
         self.sources = self.doc.get_sources()
@@ -99,12 +99,9 @@ class Search(urwid.WidgetWrap):
         self.ui = ui
         self.db = Database(self.ui.xdir, writable=False)
 
-        matches = self.db.search(query, limit=20)
-
         items = []
-        for m in matches:
-            doc = Document(self.db, doc=m.document)
-            items.append(DocListItem(doc, m.percent))
+        for doc in self.db.search(query, limit=20):
+            items.append(DocListItem(doc))
 
         self.listwalker = urwid.SimpleListWalker(items)
         self.listbox = urwid.ListBox(self.listwalker)
@@ -162,7 +159,7 @@ class Search(urwid.WidgetWrap):
         focus = self.listbox.get_focus()[0]
         docid = focus.docid
         db = Database(self.ui.xdir, writable=True)
-        doc = db.get_doc(docid)
+        doc = db.doc_for_docid(docid)
         if sign is '+':
             msg = "Added tag '%s'" % (tag)
             doc.add_tags(content)
@@ -190,7 +187,7 @@ class Search(urwid.WidgetWrap):
             docid = focus.docid
             # open the database writable and set the new field
             db = Database(self.ui.xdir, writable=True)
-            doc = db.get_doc(docid)
+            doc = db.doc_for_docid(docid)
             eval('doc.set_' + field + '("' + new + '")')
             # FIXME: update the in-place doc
             # update the display
