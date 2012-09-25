@@ -17,11 +17,14 @@ def parse_file(path):
     # fi.close()
     # text = self._pdf2text(pdf)
 
-    from subprocess import Popen, PIPE
+    from subprocess import Popen, check_output, PIPE, CalledProcessError
     cmd = ['pdftotext', path, '-']
-    p = Popen(' '.join(cmd), stdout=PIPE, shell=True)
-    text = p.communicate()[0]
-    if p.wait() != 0:
-        raise IOerror
+    # FIXME: figure out how to trap errors better
+    text = check_output(' '.join(cmd), shell=True)
+    #p = Popen(' '.join(cmd), stdout=PIPE, shell=True)
+    #text = p.communicate()[0]
+    # FIXME: do something here?
+    # if p.wait() != 0:
+    #     raise IOerror
 
     return text
