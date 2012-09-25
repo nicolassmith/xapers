@@ -20,12 +20,13 @@ Jameson Rollins <jrollins@finestructure.net>
 
 import os
 import sys
+import readline
 
 from xapers.database import Database
 from xapers.documents import Document
 from xapers.documents import IllegalImportPath, ImportPathExists
 import xapers.bibtex as bibparse
-
+import xapers.source
 import xapers.nci as nci
 
 # readline completion class
@@ -51,18 +52,12 @@ class UI():
 
     # prompt user for document metadata
     def prompt_for_metadata(self, data):
-        import readline
-        import xapers.source
-
         isources = None
         itags = None
 
-        sdata = None
-        source = None
-        sid = None
-
         if 'source' in data:
-            source, sid = data['source'].split(':')
+            for source in iter(data['source']):
+                sid = data['source'][source]
 
         # db = Database(self.xdir, writable=False)
         # isources = db.get_terms('source')
@@ -70,28 +65,6 @@ class UI():
 
         first = True
         while True:
-            # get url
-            readline.parse_and_bind('')
-            if 'url' in data:
-                readline.set_startup_hook(lambda: readline.insert_text(data['url']))
-            data['url'] = raw_input('url: ')
-
-            # parse the url for source and sid
-            # returns a source object
-            smod = xapers.source.source_from_url(data['url'])
-
-            # get data from source
-            if smod:
-                source = smod.name
-                sid = smod.sid
-                # this should return bibtex as a string
-                bibtex = smod.get_bibtex()
-                bdata = bibparse.bib2data(bibtex)
-                if bdata:
-                    data['title'] = bdata['title']
-                    data['authors'] = bdata['authors']
-                    data['year'] = bdata['year']
-
             # get source
             if source:
                 readline.set_startup_hook(lambda: readline.insert_text(source))
@@ -122,11 +95,7 @@ class UI():
 
             # get authors
             if 'authors' in data:
-                if isinstance(data['authors'], list):
-                    a = ' and '.join(data['authors'])
-                else:
-                    a = data['authors']
-                readline.set_startup_hook(lambda: readline.insert_text(a))
+                readline.set_startup_hook(lambda: readline.insert_text(data['authors']))
             else:
                 readline.set_startup_hook()
             readline.parse_and_bind('')
@@ -171,17 +140,43 @@ authors: %s
                 break
             first = False
 
-        data['sources'] = {source: sid}
+        data['source'] = {source: sid}
 
         return data
 
 
-    def add(self, infile, data, prompt=False):
+    def add(self, infile, data=None, prompt=False):
         if not infile and 'url' not in data and 'sources' not in data:
             print >>sys.stderr, "Must specify file, url, or source id to add."
             sys.exit(1)
 
         # FIXME: better checks about input file before prompting
+
+        if prompt:
+            readline.parse_and_bind('')
+            if 'url' in data:
+                readline.set_startup_hook(lambda: readline.insert_text(data['url']))
+            data['url'] = raw_input('url: ')
+
+        if 'url' in data:
+            # parse the url for source and sid
+            # returns a source object
+            source = xapers.source.source_from_url(data['url'])
+
+            # get data from source
+            if source:
+                # this should return bibtex as a string
+                bibtex = source.get_bibtex()
+                bdata = bibparse.bib2data(bibtex)
+                if bdata:
+                    data['source'] = {source.name: source.sid}
+                    data['title'] = bdata['title']
+                    if isinstance(bdata['authors'], list):
+                        authors = ' and '.join(bdata['authors'])
+                    else:
+                        authors = bdata['authors']
+                    data['authors'] = authors
+                    data['year'] = bdata['year']
 
         if prompt:
             try:
@@ -190,6 +185,7 @@ authors: %s
                 print >>sys.stderr, "\nAborting.  Nothing imported."
                 sys.exit(-1)
 
+        # now make the document
         db = Database(self.xdir, writable=True, create=True)
 
         doc = Document(db)
@@ -212,8 +208,8 @@ authors: %s
 
         if 'url' in data:
             doc.set_url(data['url'])
-        if 'sources' in data:
-            doc.add_sources(data['sources'])
+        if 'source' in data:
+            doc.add_sources(data['source'])
         if 'title' in data:
             doc.set_title(data['title'])
         if 'authors' in data:
