@@ -126,9 +126,6 @@ class Document():
     # file should be relative to xapian.root
     # FIXME: codify this more
     def _index_file(self, path):
-        # extract any leading slashes
-        self.path = path.lstrip('/')
-
         from .parsers import pdf as parser
         text = parser.parse_file(os.path.join(self.root, path))
 
