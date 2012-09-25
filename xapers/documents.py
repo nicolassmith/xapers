@@ -142,19 +142,6 @@ class Document():
         # FIXME: would it be better for this function to _sync at the
         # end?
 
-    def _parse_bibtex(self, bibtex):
-        # FIXME: extract title/author/? from bibtex
-        # BOOL INT
-        # doc.add_term('A', author) # author
-        # doc.add_term('S', title) # title
-        # doc.add_term('D', date) # modification/creation? date
-        # doc.add_term('T', type) # mimetype
-        # BOOL EXT
-        # PROB
-        # doc.add_term('XAUTHOR', author) # author
-        # doc.add_term('XTITLE', title) # title
-        pass
-
     ########################################
     # external stuff
 
