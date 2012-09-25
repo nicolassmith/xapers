@@ -22,6 +22,21 @@ import os
 import sys
 import xapian
 
+##################################################
+
+class DocumentError(Exception):
+    """Base class for Xapers document exceptions."""
+    pass
+
+class IllegalImportPath(DocumentError):
+    pass
+
+class ImportPathExists(DocumentError):
+    def __init__(self, docid):
+        self.docid = docid
+
+##################################################
+
 class Documents():
     """Represents a set of Xapers documents given a Xapian mset."""
 
@@ -136,17 +151,29 @@ class Document():
 
         self._add_path(path)
 
-        # set data to be text sample
-        # FIXME: what should really be in here?  what if we have
-        # multiple files for the document?  what about bibtex?  what
-        # if there is multiple bibtex entries?
-        self._set_data(text[0:997].translate(None,'\n') + '...')
+        summary = text[0:997].translate(None,'\n') + '...'
 
-        # FIXME: would it be better for this function to _sync at the
-        # end?
+        return summary
 
     ########################################
     # external stuff
+
+    def add_file(self, path):
+        base, full = self.xapers._basename_for_path(path)
+        if not base:
+            raise IllegalImportPath()
+
+        # FIXME: do we really need to do this check?
+        doc = self.xapers.doc_for_path(base)
+        if doc:
+            raise ImportPathExists(doc.get_docid())
+
+        summary = self._index_file(full)
+        # set data to be text sample
+        # FIXME: what should really be in here?  what if we have
+        # multiple files for the document?  what about bibtex?
+        self._set_data(summary)
+        self.sync()
 
     def get_docid(self):
         """Return document id of document."""
