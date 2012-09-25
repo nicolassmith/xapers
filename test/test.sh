@@ -1,25 +1,66 @@
 #!/bin/bash -e
-dir=$(dirname $0)
-export XAPERS_DIR=$dir/docs
+dir=$(cd $(dirname $0) && pwd)
+
+export XAPERS_DIR="$dir"/docs
 
 xapers() {
-    ./xapers.py "$@"
+    "$dir"/../xapers.py "$@"
 }
 
 # purge previous database
 rm -rf $XAPERS_DIR/.xapers
 
+trap 'echo; echo FAILED! a test' EXIT
 
 echo '##########'
 echo '# add documents'
 echo
 
-# for file in $(ls -1 "$XAPERS_DIR"/*.pdf); do
-# done
-xapers add --sources=ads:2007NJPh....9...17L --tags=new,foo 2007NJPh....9...17L.pdf
-xapers add --sources=ads:2009RPPh...72g6901A --tags=new,bar 2009RPPh...72g6901A.pdf
-xapers add --sources=physrevd:1234jlkj       --tags=new,foo PhysRevD.82.044025.pdf
-xapers add --sources=arxiv:sdf2323           --tags=new,baz --url=http://asdf j.1743-6109.2010.01935.x.pdf
+xapers add --source=ads:2009RPPh...72g6901A --tags=new,bar $XAPERS_DIR/2009RPPh...72g6901A.pdf
+xapers add --source=physrevd:1234jlkj       --tags=new,foo $XAPERS_DIR/PhysRevD.82.044025.pdf
+xapers add --source=arxiv:sdf2323           --tags=new,baz --url=http://asdf $XAPERS_DIR/j.1743-6109.2010.01935.x.pdf
+
+echo
+echo '##########'
+echo '# add illegal path'
+echo
+
+# this needs to fail, since the file is already in db
+(! xapers add 2009RPPh...72g6901A.pdf)
+
+echo
+echo '##########'
+echo '# add non-existant'
+echo
+
+# this needs to fail, since the file is already in db
+(! xapers add $XAPERS_DIR/2009.pdf)
+
+echo
+echo '##########'
+echo '# add existing'
+echo
+
+# this needs to fail, since the file is already in db
+(! xapers add $XAPERS_DIR/2009RPPh...72g6901A.pdf)
+
+echo
+echo '##########'
+echo '# add interactive'
+echo
+
+echo 'test/sources/arxiv.html
+arXiv
+1208.5777
+The Progenitors of Short Gamma-Ray Bursts
+authors
+2007
+foo
+
+' | xapers add --prompt $XAPERS_DIR/2007NJPh....9...17L.pdf
+echo
+echo
+xapers search --output=full id:2
 
 echo
 echo '##########'
@@ -27,7 +68,6 @@ echo '# search all'
 echo
 
 xapers search --output=simple '*'
-#xapers search '*'
 
 echo
 echo '##########'
@@ -59,10 +99,17 @@ xapers search pubic hair
 
 echo
 echo '##########'
-echo '# search by id (2)'
+echo '# search by id (2), full'
 echo
 
 xapers search --output=full id:2
+
+echo
+echo '##########'
+echo '# search by id (2), json'
+echo
+
+xapers search --output=json id:2
 
 echo
 echo '##########'
@@ -86,3 +133,5 @@ echo
 
 xapers tag -qux id:3 
 xapers search id:3
+
+trap EXIT
