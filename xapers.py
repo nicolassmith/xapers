@@ -78,10 +78,6 @@ if __name__ == '__main__':
 
     ########################################
     if cmd == 'add':
-        if len(sys.argv) < 3:
-            print >>sys.stderr, "Must specify a file to add."
-            sys.exit()
-
         prompt = False
         data = {}
 
@@ -89,7 +85,7 @@ if __name__ == '__main__':
         while True:
             if '--prompt' in sys.argv[argc]:
                 prompt = True
-            elif '--sources=' in sys.argv[argc]:
+            elif '--sources=' in sys.argv[argc] or '--source=' in sys.argv[argc]:
                 sss = sys.argv[argc].split('=',1)[1].split(',')
                 data['sources'] = {}
                 for ss in sss:
