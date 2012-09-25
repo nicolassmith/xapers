@@ -235,18 +235,11 @@ authors: %s
                 print source
             return
 
-        matches = db.search(query_string, limit=limit)
-
         if oformat == 'json':
             pass
             #print '[',
 
-        for m in matches:
-            # FIXME: we shouldn't have to do this.  The iterator
-            # should just return a xapers document
-            doc = Document(db, doc=m.document)
-            matchp = m.percent
-
+        for doc in db.search(query_string, limit=limit):
             docid = doc.get_docid()
             # FIXME: could this be multiple paths?
             fullpath = doc.get_fullpaths()[0]
@@ -275,7 +268,7 @@ authors: %s
 
             if oformat == 'full':
                 print "id:%s" % (docid)
-                print "match: %s" % (matchp)
+                print "match: %s" % (doc.matchp)
                 print "fullpath: %s" % (fullpath)
                 print "url: %s" % (url)
                 print "sources: %s" % (' '.join(sources))
@@ -292,7 +285,7 @@ authors: %s
                 import json
                 print json.dumps({
                     'docid': docid,
-                    'percent': matchp,
+                    'percent': doc.matchp,
                     'fullpath': fullpath,
                     'url': url,
                     'sources': sources,
@@ -315,23 +308,19 @@ authors: %s
 
     def tag(self, query_string, add_tags, remove_tags):
         db = Database(self.xdir, writable=True)
-        matches = db.search(query_string)
-        for m in matches:
-            # FIXME: we shouldn't have to do this.  The iterator
-            # should just return a xapers document
-            doc = Document(db, doc=m.document)
+        for doc in db.search(query_string):
             doc.add_tags(add_tags)
             doc.remove_tags(remove_tags)
 
     def set(self, query_string, attribute, value):
         db = Database(self.xdir, writable=True)
-        matches = db.search(query_string)
+        docs = db.search(query_string)
 
-        if len(matches) > 1:
+        if len(docs) > 1:
             print >>sys.stderr, "Query matches more than one document.  Aborting."
             sys.exit(1)
 
-        doc = Document(db, doc=matches[0].document)
+        doc = docs[0]
 
         if attribute == 'title':
             doc.set_title(value)
@@ -344,24 +333,20 @@ authors: %s
             sys.exit(1)
 
     def dumpterms(self, query_string):
-        db = Database(self.xdir, create=True, writable=True)
-        matches = db.search(query_string)
-        for m in matches:
-            doc = Document(db, m.document)
+        db = Database(self.xdir)
+        for doc in db.search(query_string):
             for term in doc.doc:
                 print term.term
 
     def count(self, query_string):
-        db = Database(self.xdir, writable=False)
+        db = Database(self.xdir)
         count = db.count(query_string)
         print count
 
     def view(self, query_string):
-        db = Database(self.xdir, writable=False)
-        matches = db.search(query_string)
         from subprocess import call
-        for m in matches:
-            doc = Document(db, m.document)
+        db = Database(self.xdir)
+        for doc in db.search(query_string):
             path = doc.get_fullpaths()[0]
             call(' '.join(["okular", path]) + ' &', shell=True, stderr=open('/dev/null','w'))
             #os.system(' '.join(["okular", path]) + ' &')
