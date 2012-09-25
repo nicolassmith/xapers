@@ -136,7 +136,7 @@ class Document():
     # this is really only needed to fix bad entries
     def set_path(self, path):
         self._add_path(path)
-        self.sync()
+        self._sync()
 
     # index/add a new file for the document
     # file should be relative to xapian.root
@@ -173,7 +173,7 @@ class Document():
         # FIXME: what should really be in here?  what if we have
         # multiple files for the document?  what about bibtex?
         self._set_data(summary)
-        self.sync()
+        self._sync()
 
     def get_docid(self):
         """Return document id of document."""
