@@ -180,18 +180,7 @@ authors: %s
             print >>sys.stderr, "Must specify file, url, or source id to add."
             sys.exit(1)
 
-        # resolve relative path
-        fpath = os.path.abspath(infile)
-        rpath = fpath
-        # if fpath.find(self.xdir) == 0:
-        #     index = len(self.xdir)
-        #     rpath = fpath[index:].lstrip('/')
-        # else:
-        #     print >>sys.stderr, "File '%s' is not in Xapers document directory." % (fpath)
-        #     print >>sys.stderr, "Aborting."
-        #     sys.exit(1)
-
-        # FIXME: if file not in xdir, move it there (w/ prompt)
+        # FIXME: better checks about input file before prompting
 
         if prompt:
             try:
@@ -201,19 +190,24 @@ authors: %s
                 sys.exit(-1)
 
         db = Database(self.xdir, writable=True, create=True)
-        try:
-            print >>sys.stderr, "Indexing '%s'..." % (rpath),
-            doc = db.add_document(rpath)
-            print >>sys.stderr, "done."
-        except IllegalImportPath:
-            print >>sys.stderr, "\nFile path not in Xapers directory."
-            sys.exit(1)
-        except ImportPathExists as e:
-            print >>sys.stderr, "\nFile already indexed as %s." % (e.docid)
-            sys.exit(1)
-        except:
-            print >>sys.stderr, "\n"
-            raise
+        if infile:
+            fpath = os.path.abspath(infile)
+            rpath = fpath
+            try:
+                print >>sys.stderr, "Indexing '%s'..." % (rpath),
+                doc = db.add_document(rpath)
+                print >>sys.stderr, "done."
+            except IllegalImportPath:
+                print >>sys.stderr, "\nFile path not in Xapers directory."
+                sys.exit(1)
+            except ImportPathExists as e:
+                print >>sys.stderr, "\nFile already indexed as %s." % (e.docid)
+                sys.exit(1)
+            except:
+                print >>sys.stderr, "\n"
+                raise
+        else:
+            doc = Document(db)
         if 'url' in data:
             doc.set_url(data['url'])
         if 'sources' in data:

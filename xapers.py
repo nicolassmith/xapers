@@ -83,7 +83,9 @@ if __name__ == '__main__':
 
         argc = 2
         while True:
-            if '--prompt' in sys.argv[argc]:
+            if argc >= len(sys.argv):
+                break
+            elif '--prompt' in sys.argv[argc]:
                 prompt = True
             elif '--sources=' in sys.argv[argc] or '--source=' in sys.argv[argc]:
                 sss = sys.argv[argc].split('=',1)[1].split(',')
@@ -99,7 +101,10 @@ if __name__ == '__main__':
                 break
             argc += 1
 
-        infile = sys.argv[argc]
+        if argc >= len(sys.argv):
+            infile = None
+        else:
+            infile = sys.argv[argc]
         cli.add(infile, data, prompt=prompt)
 
     ########################################
