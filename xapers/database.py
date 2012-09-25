@@ -112,12 +112,18 @@ class Database():
         if path.find('/') == 0:
             if path.find(self.root) == 0:
                 index = len(self.root) + 1
-                return path[index:]
+                base = path[index:]
             else:
                 # FIXME: should this be an exception?
-                return None
+                base = None
         else:
-            return path
+            base = path
+
+        full = None
+        if base:
+            full = os.path.join(self.root, base)
+
+        return base, full
 
     ########################################
 

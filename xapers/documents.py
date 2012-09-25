@@ -113,25 +113,28 @@ class Document():
     def _set_data(self, text):
         self.doc.set_data(text)
 
-    def _set_path(self, path):
+    def _add_path(self, path):
+        base, full = self.xapers._basename_for_path(path)
         prefix = self.xapers._find_prefix('file')
-        self._add_term(prefix, path)
+        self._add_term(prefix, base)
 
     # this is really only needed to fix bad entries
     def set_path(self, path):
-        self._set_path(path)
-        self._sync()
+        self._add_path(path)
+        self.sync()
 
     # index/add a new file for the document
     # file should be relative to xapian.root
     # FIXME: codify this more
     def _index_file(self, path):
+        base, full = self.xapers._basename_for_path(path)
+
         from .parsers import pdf as parser
-        text = parser.parse_file(os.path.join(self.root, path))
+        text = parser.parse_file(full)
 
         self._gen_terms(None, text)
 
-        self._set_path(path)
+        self._add_path(path)
 
         # set data to be text sample
         # FIXME: what should really be in here?  what if we have
@@ -158,8 +161,8 @@ class Document():
         list = []
         for path in self.get_paths():
             path = path.lstrip('/')
-            path = self.xapers._basename_for_path(path)
-            list.append(os.path.join(self.root, path))
+            base, full = self.xapers._basename_for_path(path)
+            list.append(full)
         return list
 
     def get_data(self):
