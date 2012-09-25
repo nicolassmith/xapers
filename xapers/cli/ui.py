@@ -254,8 +254,13 @@ authors: %s
 
         for doc in db.search(query_string, limit=limit):
             docid = doc.get_docid()
+
             # FIXME: could this be multiple paths?
-            fullpath = doc.get_fullpaths()[0]
+            fullpaths = doc.get_fullpaths()
+            if fullpaths:
+                fullpath = doc.get_fullpaths()[0]
+            else:
+                fullpath = None
 
             if oformat in ['file','files']:
                 print "%s" % (fullpath)
