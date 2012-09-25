@@ -24,8 +24,8 @@ import sys
 from xapers.database import Database
 from xapers.documents import Document
 from xapers.documents import IllegalImportPath, ImportPathExists
+import xapers.bibtex as bibparse
 
-from xapers.documents import Document
 import xapers.nci as nci
 
 # readline completion class
@@ -77,17 +77,20 @@ class UI():
             data['url'] = raw_input('url: ')
 
             # parse the url for source and sid
-            # returns a source module and sid
-            smod, sid = xapers.source.source_from_url(data['url'])
+            # returns a source object
+            smod = xapers.source.source_from_url(data['url'])
 
             # get data from source
             if smod:
                 source = smod.name
-                sdata = smod.get_data(sid)
-                if sdata:
-                    data['title'] = sdata['title']
-                    data['authors'] = sdata['authors']
-                    data['year'] = sdata['year']
+                sid = smod.sid
+                # this should return bibtex as a string
+                bibtex = smod.get_bibtex()
+                bdata = bibparse.bib2data(bibtex)
+                if bdata:
+                    data['title'] = bdata['title']
+                    data['authors'] = bdata['authors']
+                    data['year'] = bdata['year']
 
             # get source
             if source:
