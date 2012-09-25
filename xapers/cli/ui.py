@@ -22,7 +22,8 @@ import os
 import sys
 
 from xapers.database import Database
-from xapers.database import IllegalImportPath, ImportPathExists
+from xapers.documents import Document
+from xapers.documents import IllegalImportPath, ImportPathExists
 
 from xapers.documents import Document
 import xapers.nci as nci
@@ -187,12 +188,14 @@ authors: %s
                 sys.exit(-1)
 
         db = Database(self.xdir, writable=True, create=True)
+
+        doc = Document(db)
+
         if infile:
-            fpath = os.path.abspath(infile)
-            rpath = fpath
+            path = os.path.abspath(infile)
             try:
-                print >>sys.stderr, "Indexing '%s'..." % (rpath),
-                doc = db.add_document(rpath)
+                print >>sys.stderr, "Indexing '%s'..." % (path),
+                doc.add_file(path)
                 print >>sys.stderr, "done."
             except IllegalImportPath:
                 print >>sys.stderr, "\nFile path not in Xapers directory."
@@ -203,8 +206,7 @@ authors: %s
             except:
                 print >>sys.stderr, "\n"
                 raise
-        else:
-            doc = Document(db)
+
         if 'url' in data:
             doc.set_url(data['url'])
         if 'sources' in data:
