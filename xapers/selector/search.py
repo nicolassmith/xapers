@@ -166,6 +166,7 @@ class Search(urwid.WidgetWrap):
         elif sign is '-':
             msg = "Removed tag '%s'" % (tag)
             doc.remove_tags(tag)
+        doc.sync()
         tags = doc.get_tags()
         focus.tags.set_text(' '.join(tags))
         self.ui.set_status(msg)
@@ -189,6 +190,7 @@ class Search(urwid.WidgetWrap):
             db = Database(self.ui.xdir, writable=True)
             doc = db.doc_for_docid(docid)
             eval('doc.set_' + field + '("' + new + '")')
+            doc.sync()
             # FIXME: update the in-place doc
             # update the display
             element = eval('focus.' + field)

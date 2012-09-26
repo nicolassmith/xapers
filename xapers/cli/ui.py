@@ -220,6 +220,15 @@ authors: %s
             doc.add_tags(data['tags'])
 
 
+        try:
+            print >>sys.stderr, "Syncing document...",
+            doc.sync()
+            print >>sys.stderr, "done."
+        except:
+            print >>sys.stderr, "faild!"
+            raise
+
+
     def delete(self, docid):
         resp = raw_input('Are you sure you want to delete documents ?: ' % docid)
         if resp != 'Y':
@@ -325,6 +334,7 @@ authors: %s
         for doc in db.search(query_string):
             doc.add_tags(add_tags)
             doc.remove_tags(remove_tags)
+        doc.sync()
 
     def set(self, query_string, attribute, value):
         db = Database(self.xdir, writable=True)
@@ -345,6 +355,8 @@ authors: %s
         else:
             print >>sys.stderr, "Unknown attribute '%s'." % (attribute)
             sys.exit(1)
+
+        doc.sync()
 
     def dumpterms(self, query_string):
         db = Database(self.xdir)

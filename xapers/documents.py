@@ -76,13 +76,13 @@ class Document():
             self.path = self._get_terms(self.xapers._find_prefix('file'))
 
         # else, create a new empty document
-        # document won't be added to database until _sync is called
+        # document won't be added to database until sync is called
         else:
             self.doc = xapian.Document()
             self.docid = self.xapers._generate_docid()
             self._add_term(self.xapers._find_prefix('id'), self.docid)
 
-    def _sync(self):
+    def sync(self):
         self.xapers.xapian_db.replace_document(self.docid, self.doc)
 
     ########################################
@@ -126,18 +126,13 @@ class Document():
         return list
 
     # set the data object for the document
-    def _set_data(self, text):
+    def set_data(self, text):
         self.doc.set_data(text)
 
-    def _add_path(self, path):
+    def add_path(self, path):
         base, full = self.xapers._basename_for_path(path)
         prefix = self.xapers._find_prefix('file')
         self._add_term(prefix, base)
-
-    # this is really only needed to fix bad entries
-    def set_path(self, path):
-        self._add_path(path)
-        self._sync()
 
     # index/add a new file for the document
     # file should be relative to xapian.root
@@ -149,8 +144,6 @@ class Document():
         text = parser.parse_file(full)
 
         self._gen_terms(None, text)
-
-        self._add_path(path)
 
         summary = text[0:997].translate(None,'\n') + '...'
 
@@ -170,11 +163,13 @@ class Document():
             raise ImportPathExists(doc.get_docid())
 
         summary = self._index_file(full)
+
+        self.add_path(path)
+
         # set data to be text sample
         # FIXME: what should really be in here?  what if we have
         # multiple files for the document?  what about bibtex?
-        self._set_data(summary)
-        self._sync()
+        self.set_data(summary)
 
     def get_docid(self):
         """Return document id of document."""
@@ -210,7 +205,6 @@ class Document():
         """Add sources, in form of a source:sid dictionary, to document."""
         for source,sid in sources.items():
             self._add_source(source,sid)
-        self._sync()
 
     def get_source_id(self, source):
         """Return source id for specified document source."""
@@ -249,7 +243,6 @@ class Document():
         for tag in tags:
             self._add_tag(tag)
             # FIXME: index tags so they're searchable
-        self._sync()
 
     def get_tags(self):
         """Return document tags."""
@@ -264,22 +257,17 @@ class Document():
         """Remove tags from a document."""
         for tag in tags:
             self._remove_tag(tag)
-        self._sync()
 
 
     # single value fields
 
     # URL
-    def _set_url(self, url):
+    def set_url(self, url):
+        """Add a url to document"""
         prefix = self.xapers._find_prefix('url')
         for term in self._get_terms(prefix):
             self._remove_term(prefix, term)
         self._add_term(prefix, url)
-
-    def set_url(self, url):
-        """Add a url to document"""
-        self._set_url(url)
-        self._sync()
 
     def get_url(self):
         """Return url associated with document."""
@@ -291,7 +279,7 @@ class Document():
             return ''
 
     # TITLE
-    def _set_title(self, title):
+    def set_title(self, title):
         """Set title of document."""
         pt = self.xapers._find_prefix('title')
         pf = self.xapers._find_prefix('fulltitle')
@@ -305,10 +293,6 @@ class Document():
         self._gen_terms(pt, title)
         self._add_term(pf, title)
 
-    def set_title(self, title):
-        self._set_title(title)
-        self._sync()
-
     def get_title(self):
         """Return title of document."""
         title = self._get_terms(self.xapers._find_prefix('fulltitle'))
@@ -318,7 +302,8 @@ class Document():
             return ''
 
     # AUTHOR
-    def _set_authors(self, authors):
+    def set_authors(self, authors):
+        """Set authors of document."""
         pa = self.xapers._find_prefix('author')
         pf = self.xapers._find_prefix('fullauthors')
         for term in self._get_terms(pa):
@@ -334,11 +319,6 @@ class Document():
         # author individually?
         self._add_term(pf, authors)
 
-    def set_authors(self, authors):
-        """Set authors of document."""
-        self._set_authors(authors)
-        self._sync()
-
     def get_authors(self):
         """Return authors of document."""
         authors = self._get_terms(self.xapers._find_prefix('fullauthors'))
@@ -348,16 +328,12 @@ class Document():
             return ''
 
     # YEAR
-    def _set_year(self, year):
+    def set_year(self, year):
+        """Set publication year of document."""
         prefix = self.xapers._find_prefix('year')
         for term in self._get_terms(prefix):
             self._remove_term(prefix, term)
         self._add_term(prefix, year)
-
-    def set_year(self, year):
-        """Set publication year of document."""
-        self._set_year(year)
-        self._sync()
 
     def get_year(self):
         """Return publication year of document."""
@@ -367,3 +343,12 @@ class Document():
             return year[0]
         else:
             return ''
+
+    ########################################
+    # writing out bibtex from data
+    def write_bibtex():
+        base, ext = os.path.splitext(path)
+        bibfile = os.path.join(base, '.bib')
+        f = open(bibfile, 'w')
+        f.write(bibtex)
+        f.close()
