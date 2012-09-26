@@ -55,6 +55,8 @@ class UI():
         isources = None
         itags = None
 
+        source = None
+        sid = None
         if 'source' in data:
             for source in iter(data['source']):
                 sid = data['source'][source]
@@ -146,8 +148,8 @@ authors: %s
 
 
     def add(self, infile, data=None, prompt=False):
-        if not infile and 'url' not in data and 'sources' not in data:
-            print >>sys.stderr, "Must specify file, url, or source id to add."
+        if not infile and 'url' not in data and 'source' not in data:
+            print >>sys.stderr, "Must specify file, url, or source:id to add."
             sys.exit(1)
 
         # FIXME: better checks about input file before prompting
@@ -158,25 +160,46 @@ authors: %s
                 readline.set_startup_hook(lambda: readline.insert_text(data['url']))
             data['url'] = raw_input('url: ')
 
-        if 'url' in data:
+        source = None
+
+        # returns a source object from specified source or parsed url
+        if 'source' in data:
+            for ss in iter(data['source']):
+                ii = data['source'][ss]
+            print >>sys.stderr, "loading source: %s:%s" % (ss,ii)
+            source = xapers.source.get_source(ss,ii)
+        elif 'url' in data:
             # parse the url for source and sid
-            # returns a source object
+            print >>sys.stderr, "parsing url: %s" % data['url']
             source = xapers.source.source_from_url(data['url'])
 
-            # get data from source
-            if source:
-                # this should return bibtex as a string
+        if ('source' in data or 'url' in data) and not source:
+            print >>sys.stderr, 'No matching source module found.'
+
+        bibtex = None
+        bdata = None
+
+        # get data from source
+        if source:
+            # this should return bibtex as a string
+            try:
+                print >>sys.stderr, "retrieving bibtex...",
                 bibtex = source.get_bibtex()
                 bdata = bibparse.bib2data(bibtex)
-                if bdata:
-                    data['source'] = {source.name: source.sid}
-                    data['title'] = bdata['title']
-                    if isinstance(bdata['authors'], list):
-                        authors = ' and '.join(bdata['authors'])
-                    else:
-                        authors = bdata['authors']
-                    data['authors'] = authors
-                    data['year'] = bdata['year']
+                print >>sys.stderr, "done."
+            except:
+                print >>sys.stderr, ""
+                raise
+
+        if bdata:
+            data['source'] = {source.name: source.sid}
+            data['title'] = bdata['title']
+            if isinstance(bdata['authors'], list):
+                authors = ' and '.join(bdata['authors'])
+            else:
+                authors = bdata['authors']
+            data['authors'] = authors
+            data['year'] = bdata['year']
 
         if prompt:
             try:
@@ -205,6 +228,10 @@ authors: %s
             except:
                 print >>sys.stderr, "\n"
                 raise
+
+        if bibtex:
+            # if we have bibtex, use this as the data
+            doc.set_data(bibtex)
 
         if 'url' in data:
             doc.set_url(data['url'])
