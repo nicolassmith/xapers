@@ -40,9 +40,9 @@ class ImportPathExists(DocumentError):
 class Documents():
     """Represents a set of Xapers documents given a Xapian mset."""
 
-    def __init__(self, xapers, mset):
+    def __init__(self, db, mset):
         # Xapers db
-        self.xapers = xapers
+        self.db = db
         self.mset = mset
         self.index = -1
         self.max = len(mset)
@@ -55,7 +55,7 @@ class Documents():
         if self.index == self.max:
             raise StopIteration
         m = self.mset[self.index]
-        doc = Document(self.xapers, m.document)
+        doc = Document(self.db, m.document)
         doc.matchp = m.percent
         return doc
 
@@ -64,26 +64,26 @@ class Documents():
 class Document():
     """Represents a single Xapers document."""
 
-    def __init__(self, xapers, doc=None):
+    def __init__(self, db, doc=None):
         # Xapers db
-        self.xapers = xapers
-        self.root = self.xapers.root
+        self.db = db
+        self.root = self.db.root
 
         # if Xapian doc provided, initiate for that document
         if doc:
             self.doc = doc
             self.docid = doc.get_docid()
-            self.path = self._get_terms(self.xapers._find_prefix('file'))
+            self.path = self._get_terms(self.db._find_prefix('file'))
 
         # else, create a new empty document
         # document won't be added to database until sync is called
         else:
             self.doc = xapian.Document()
-            self.docid = self.xapers._generate_docid()
-            self._add_term(self.xapers._find_prefix('id'), self.docid)
+            self.docid = self.db._generate_docid()
+            self._add_term(self.db._find_prefix('id'), self.docid)
 
     def sync(self):
-        self.xapers.xapian_db.replace_document(self.docid, self.doc)
+        self.db.xapian_db.replace_document(self.docid, self.doc)
 
     ########################################
     # internal stuff
@@ -109,7 +109,7 @@ class Document():
     # http://xapian.org/docs/quickstart.html
     # http://www.flax.co.uk/blog/2009/04/02/xapian-search-architecture/
     def _gen_terms(self, prefix, text):
-        term_gen = self.xapers.term_gen
+        term_gen = self.db.term_gen
         term_gen.set_document(self.doc)
         if prefix:
             term_gen.index_text(text, 1, prefix)
@@ -130,15 +130,15 @@ class Document():
         self.doc.set_data(text)
 
     def add_path(self, path):
-        base, full = self.xapers._basename_for_path(path)
-        prefix = self.xapers._find_prefix('file')
+        base, full = self.db._basename_for_path(path)
+        prefix = self.db._find_prefix('file')
         self._add_term(prefix, base)
 
     # index/add a new file for the document
     # file should be relative to xapian.root
     # FIXME: codify this more
     def _index_file(self, path):
-        base, full = self.xapers._basename_for_path(path)
+        base, full = self.db._basename_for_path(path)
 
         from .parsers import pdf as parser
         text = parser.parse_file(full)
@@ -153,12 +153,12 @@ class Document():
     # external stuff
 
     def add_file(self, path):
-        base, full = self.xapers._basename_for_path(path)
+        base, full = self.db._basename_for_path(path)
         if not base:
             raise IllegalImportPath()
 
         # FIXME: do we really need to do this check?
-        doc = self.xapers.doc_for_path(base)
+        doc = self.db.doc_for_path(base)
         if doc:
             raise ImportPathExists(doc.get_docid())
 
@@ -177,14 +177,14 @@ class Document():
 
     def get_paths(self):
         """Return all paths associated with document."""
-        return self._get_terms(self.xapers._find_prefix('file'))
+        return self._get_terms(self.db._find_prefix('file'))
 
     def get_fullpaths(self):
         """Return fullpaths associated with document."""
         list = []
         for path in self.get_paths():
             path = path.lstrip('/')
-            base, full = self.xapers._basename_for_path(path)
+            base, full = self.db._basename_for_path(path)
             list.append(full)
         return list
 
@@ -196,9 +196,9 @@ class Document():
 
     # SOURCES
     def _add_source(self, source, sid):
-        prefix = self.xapers._find_prefix('source')
+        prefix = self.db._find_prefix('source')
         self._add_term(prefix, source)
-        prefix = self.xapers._make_source_prefix(source)
+        prefix = self.db._make_source_prefix(source)
         self._add_term(prefix, sid)
 
     def add_sources(self, sources):
@@ -209,7 +209,7 @@ class Document():
     def get_source_id(self, source):
         """Return source id for specified document source."""
         # FIXME: this should produce a single term
-        prefix = self.xapers._make_source_prefix(source)
+        prefix = self.db._make_source_prefix(source)
         sid = self._get_terms(prefix)
         if sid:
             return sid[0]
@@ -218,7 +218,7 @@ class Document():
 
     def get_sources(self):
         """Return a source:sid dictionary associated with document."""
-        prefix = self.xapers._find_prefix('source')
+        prefix = self.db._find_prefix('source')
         sources = {}
         for source in self._get_terms(prefix):
             if not source:
@@ -228,14 +228,14 @@ class Document():
 
     def remove_source(self, source):
         """Remove source from document."""
-        prefix = self.xapers._make_source_prefix(source)
+        prefix = self.db._make_source_prefix(source)
         for sid in self._get_terms(prefix):
             self._remove_term(prefix, sid)
-        self._remove_term(self.xapers._find_prefix('source'), source)
+        self._remove_term(self.db._find_prefix('source'), source)
 
     # TAGS
     def _add_tag(self, tag):
-        prefix = self.xapers._find_prefix('tag')
+        prefix = self.db._find_prefix('tag')
         self._add_term(prefix, tag)
 
     def add_tags(self, tags):
@@ -246,11 +246,11 @@ class Document():
 
     def get_tags(self):
         """Return document tags."""
-        prefix = self.xapers._find_prefix('tag')
+        prefix = self.db._find_prefix('tag')
         return self._get_terms(prefix)
 
     def _remove_tag(self, tag):
-        prefix = self.xapers._find_prefix('tag')
+        prefix = self.db._find_prefix('tag')
         self._remove_term(prefix, tag)
 
     def remove_tags(self, tags):
@@ -264,14 +264,14 @@ class Document():
     # URL
     def set_url(self, url):
         """Add a url to document"""
-        prefix = self.xapers._find_prefix('url')
+        prefix = self.db._find_prefix('url')
         for term in self._get_terms(prefix):
             self._remove_term(prefix, term)
         self._add_term(prefix, url)
 
     def get_url(self):
         """Return url associated with document."""
-        prefix = self.xapers._find_prefix('url')
+        prefix = self.db._find_prefix('url')
         url = self._get_terms(prefix)
         if url:
             return url[0]
@@ -281,8 +281,8 @@ class Document():
     # TITLE
     def set_title(self, title):
         """Set title of document."""
-        pt = self.xapers._find_prefix('title')
-        pf = self.xapers._find_prefix('fulltitle')
+        pt = self.db._find_prefix('title')
+        pf = self.db._find_prefix('fulltitle')
         for term in self._get_terms(pt):
             self._remove_term(pt, term)
         # FIXME: what the clean way all these prefixed terms?
@@ -295,7 +295,7 @@ class Document():
 
     def get_title(self):
         """Return title of document."""
-        title = self._get_terms(self.xapers._find_prefix('fulltitle'))
+        title = self._get_terms(self.db._find_prefix('fulltitle'))
         if title:
             return title[0]
         else:
@@ -304,8 +304,8 @@ class Document():
     # AUTHOR
     def set_authors(self, authors):
         """Set authors of document."""
-        pa = self.xapers._find_prefix('author')
-        pf = self.xapers._find_prefix('fullauthors')
+        pa = self.db._find_prefix('author')
+        pf = self.db._find_prefix('fullauthors')
         for term in self._get_terms(pa):
             self._remove_term(pa, term)
         # FIXME: what the clean way all these prefixed terms?
@@ -321,7 +321,7 @@ class Document():
 
     def get_authors(self):
         """Return authors of document."""
-        authors = self._get_terms(self.xapers._find_prefix('fullauthors'))
+        authors = self._get_terms(self.db._find_prefix('fullauthors'))
         if authors:
             return authors[0]
         else:
@@ -330,14 +330,14 @@ class Document():
     # YEAR
     def set_year(self, year):
         """Set publication year of document."""
-        prefix = self.xapers._find_prefix('year')
+        prefix = self.db._find_prefix('year')
         for term in self._get_terms(prefix):
             self._remove_term(prefix, term)
         self._add_term(prefix, year)
 
     def get_year(self):
         """Return publication year of document."""
-        prefix = self.xapers._find_prefix('year')
+        prefix = self.db._find_prefix('year')
         year =  self._get_terms(prefix)
         if year:
             return year[0]
