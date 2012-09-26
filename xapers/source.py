@@ -14,22 +14,25 @@ def list_sources():
         sources.append(s)
     return sources
 
+
+def get_source(source, sid=None):
+    try:
+        exec('from xapers.sources.' + source + ' import Source')
+        return Source(sid)
+    except:
+        return None
+
 def source_from_url(url):
     source = None
     sid = None
 
     if os.path.exists(url):
         name = os.path.basename(url)
-
-    # ParseResult(scheme='http', netloc='www.cwi.nl:80', path='/%7Eguido/Python.html',
-    #             params='', query='', fragment='')
     
     for ss in list_sources():
         print >>sys.stderr, 'trying', ss, '...', 
-        #exec('import xapers.sources.' + ss + ' as smod')
-        exec('from xapers.sources.' + ss + ' import Source')
 
-        smod = Source()
+        smod = get_source(ss)
 
         if os.path.exists(url):
             base, ext = os.path.splitext(os.path.basename(url))
@@ -47,15 +50,4 @@ def source_from_url(url):
             smod = None
             print >>sys.stderr, ''
 
-    if not smod:
-        print >>sys.stderr, 'no matching source module found.'
-
     return smod
-
-
-def get_source(source):
-    try:
-        exec('import xapers.sources.' + ss + ' as smod')
-        return smod
-    except:
-        return None
