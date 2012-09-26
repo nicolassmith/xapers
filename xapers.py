@@ -87,17 +87,17 @@ if __name__ == '__main__':
         while True:
             if argc >= len(sys.argv):
                 break
-            elif '--prompt' in sys.argv[argc]:
-                prompt = True
+            elif '--tags=' in sys.argv[argc]:
+                data['tags'] = sys.argv[argc].split('=',1)[1].split(',')
+
             elif '--source=' in sys.argv[argc]:
                 s,i = sys.argv[argc].split('=',1)[1].split(':',1)
                 data['source'] = {s: i}
             elif '--url=' in sys.argv[argc]:
                 data['url'] = sys.argv[argc].split('=',1)[1]
-            elif '--tags=' in sys.argv[argc]:
-                data['tags'] = sys.argv[argc].split('=',1)[1].split(',')
-            elif '--bib=' in sys.argv[argc]:
-                data['bibfile'] = sys.argv[argc].split('=',1)[1]
+
+            elif '--prompt' in sys.argv[argc]:
+                prompt = True
             else:
                 break
             argc += 1
@@ -106,7 +106,7 @@ if __name__ == '__main__':
             infile = None
         else:
             infile = sys.argv[argc]
-        cli.add(infile, data, prompt=prompt)
+        cli.add(infile, data=data, prompt=prompt)
 
     ########################################
     elif cmd == 'delete':
