@@ -1,6 +1,5 @@
 import sys
 import io
-# import cStringIO
 from pybtex.database.input import bibtex as bibparser
 
 def clean_string(string):
@@ -12,9 +11,8 @@ def bib2data(bibtex):
     """Parse a bibtex string for indexable data fields."""
 
     # io produces a stream object that pybtex can handle
-    bibfile = io.StringIO(unicode(bibtex))
-    # bibfile = cStringIO.StringIO()
-    # bibfile.write(bib)
+    # FIXME: need to worry about encodings!
+    bibfile = io.StringIO(bibtex.decode('UTF-8'))
 
     parser = bibparser.Parser(encoding='UTF-8')
 
