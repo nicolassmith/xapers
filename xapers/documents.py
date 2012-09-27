@@ -82,7 +82,12 @@ class Document():
             self.docid = self.db._generate_docid()
             self._add_term(self.db._find_prefix('id'), self.docid)
 
+    def get_docid(self):
+        """Return document id of document."""
+        return self.docid
+
     def sync(self):
+        """Sync document to database."""
         self.db.xapian_db.replace_document(self.docid, self.doc)
 
     ########################################
@@ -126,13 +131,15 @@ class Document():
         return list
 
     # set the data object for the document
-    def set_data(self, text):
+    def _set_data(self, text):
         self.doc.set_data(text)
 
-    def add_path(self, path):
-        base, full = self.db._basename_for_path(path)
-        prefix = self.db._find_prefix('file')
-        self._add_term(prefix, base)
+    # get the data object for the document
+    def get_data(self):
+        return self.doc.get_data()
+
+    ########################################
+    # input indexing
 
     # index/add a new file for the document
     # file should be relative to xapian.root
@@ -140,8 +147,11 @@ class Document():
     def _index_file(self, path):
         base, full = self.db._basename_for_path(path)
 
+        # FIXME: pick parser based on mime type
         from .parsers import pdf as parser
         text = parser.parse_file(full)
+
+        # FIXME: set mime type term
 
         self._gen_terms(None, text)
 
@@ -152,7 +162,14 @@ class Document():
     ########################################
     # external stuff
 
+    def _add_path(self, path):
+        base, full = self.db._basename_for_path(path)
+        prefix = self.db._find_prefix('file')
+        self._add_term(prefix, base)
+
+
     def add_file(self, path):
+        """Add, and index, a file to document."""
         base, full = self.db._basename_for_path(path)
         if not base:
             raise IllegalImportPath()
@@ -164,50 +181,37 @@ class Document():
 
         summary = self._index_file(full)
 
-        self.add_path(path)
+        self._add_path(base)
 
         # set data to be text sample
         # FIXME: what should really be in here?  what if we have
         # multiple files for the document?  what about bibtex?
-        self.set_data(summary)
+        self._set_data(summary)
 
-    def get_docid(self):
-        """Return document id of document."""
-        return self.docid
-
-    def get_paths(self):
-        """Return all paths associated with document."""
+    def _get_paths(self):
         return self._get_terms(self.db._find_prefix('file'))
 
     def get_fullpaths(self):
         """Return fullpaths associated with document."""
         list = []
-        for path in self.get_paths():
+        for path in self._get_paths():
             path = path.lstrip('/')
             base, full = self.db._basename_for_path(path)
             list.append(full)
         return list
 
-    def get_data(self):
-        """Return data associated with document."""
-        return self.doc.get_data()
-
-    # multi value fields
-
     # SOURCES
-    def _add_source(self, source, sid):
-        prefix = self.db._find_prefix('source')
-        self._add_term(prefix, source)
-        prefix = self.db._make_source_prefix(source)
-        self._add_term(prefix, sid)
-
     def add_sources(self, sources):
-        """Add sources, in form of a source:sid dictionary, to document."""
+        """Add sources from dict (source:sid)."""
+        p = self.db._find_prefix('source')
         for source,sid in sources.items():
-            self._add_source(source,sid)
+            source = source.lower()
+            self._add_term(p, source)
+            sp = self.db._make_source_prefix(source)
+            self._add_term(sp, sid)
 
     def get_source_id(self, source):
-        """Return source id for specified document source."""
+        """Return source id for specified source."""
         # FIXME: this should produce a single term
         prefix = self.db._make_source_prefix(source)
         sid = self._get_terms(prefix)
@@ -234,32 +238,24 @@ class Document():
         self._remove_term(self.db._find_prefix('source'), source)
 
     # TAGS
-    def _add_tag(self, tag):
-        prefix = self.db._find_prefix('tag')
-        self._add_term(prefix, tag)
-
     def add_tags(self, tags):
-        """Add tags to a document."""
+        """Add tags from list to document."""
+        prefix = self.db._find_prefix('tag')
         for tag in tags:
-            self._add_tag(tag)
+            self._add_term(prefix, tag)
             # FIXME: index tags so they're searchable
 
     def get_tags(self):
-        """Return document tags."""
+        """Return a list of tags associated with document."""
         prefix = self.db._find_prefix('tag')
         return self._get_terms(prefix)
 
-    def _remove_tag(self, tag):
-        prefix = self.db._find_prefix('tag')
-        self._remove_term(prefix, tag)
-
     def remove_tags(self, tags):
         """Remove tags from a document."""
+        prefix = self.db._find_prefix('tag')
         for tag in tags:
-            self._remove_tag(tag)
+            self._remove_term(prefix, tag)
 
-
-    # single value fields
 
     # URL
     def set_url(self, url):
