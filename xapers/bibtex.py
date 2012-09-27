@@ -67,4 +67,7 @@ def data2bib(data, key):
     text = f.getvalue()
     f.close()
 
+    # strip trailing newlines
+    text = text.strip()
+
     return text
