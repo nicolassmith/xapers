@@ -1,20 +1,6 @@
-name = 'arxiv'
-
+import urllib
 from HTMLParser import HTMLParser
-
-def parse_url(parsedurl):
-    loc = parsedurl.netloc
-    path = parsedurl.path
-    if loc.find('arxiv.org') < 0:
-        return None
-    for prefix in ['/abs/', '/pdf/', '/format/']:
-        index = path.find(prefix)
-        if index == 0:
-            break
-    index = len(prefix)
-    # FIXME: strip anything else?
-    sid = path[index:].strip('/')
-    return sid
+import xapers.bibtex as bibparse
 
 # html parser override to override handler methods
 class MyHTMLParser(HTMLParser):
@@ -22,13 +8,11 @@ class MyHTMLParser(HTMLParser):
         HTMLParser.__init__(self)
         self.lefthead = False
         self.title = None
-        self.authors = []
+        self.author = []
         self.year = None
         self.sid = None
 
     def handle_starttag(self, tag, attrs):
-        #print "Start tag:", tag
-
         title = False
         author = False
         date = False
@@ -56,46 +40,68 @@ class MyHTMLParser(HTMLParser):
                 if title:
                     self.title = attr[1]
                 if author:
-                    self.authors.append(attr[1])
+                    self.author.append(attr[1])
                     #self.author = self.author.append(attr[1])
                 if date:
-                    self.year = attr[1]
+                    self.year = attr[1].split('/')[0]
                 if sid:
                     self.sid = attr[1]
 
     def handle_endtag(self, tag):
-        #print "Encountered an end tag :", tag
         if tag == 'head':
             self.lefthead = True
 
-def get_data(sid, lfile=None):
-    urlbase = "http://arxiv.org/abs"
-    url = "%s/%s" % (urlbase, sid)
+class Source():
+    source = 'arxiv'
+    netloc = 'arxiv.org'
 
-    if lfile:
-        #f = open('test/sources/arxiv.html','r')
-        f = open(lfile, 'r')
-    else:
-        import urllib
-        f = urllib.urlopen(url)
-    html = f.read()
-    f.close()
+    def __init__(self, sid=None):
+        self.sid = sid
 
-    # instantiate the parser and fed it some HTML
-    try:
-        parser = MyHTMLParser()
-        parser.feed(html)
-    except:
-        return None
+    def gen_url(self):
+        return 'http://%s/abs/%s' % (self.netloc, self.sid)
 
-    astring = ' and '.join(parser.authors),
+    def parse_url(self, parsedurl):
+        loc = parsedurl.netloc
+        path = parsedurl.path
+        if loc.find(self.netloc) < 0:
+            return
+        for prefix in ['/abs/', '/pdf/', '/format/']:
+            index = path.find(prefix)
+            if index == 0:
+                break
+        index = len(prefix)
+        # FIXME: strip anything else?
+        self.sid = path[index:].strip('/')
 
-    data = {
-        'source':  'arxiv',
-        'sid':     sid,
-        'title':   parser.title,
-        'authors': astring,
-        'year':    parser.year,
-        }
+    def get_data(self):
+        url = self.gen_url()
 
-    return data
+        if 'file' in dir(self):
+            f = open(self.file, 'r')
+        else:
+            f = urllib.urlopen(url)
+        html = f.read()
+        f.close()
+
+        # instantiate the parser and fed it some HTML
+        try:
+            parser = MyHTMLParser()
+            parser.feed(html)
+        except:
+            return None
+
+        data = {
+            'source':  self.source,
+            'sid':     self.sid,
+            'title':   parser.title,
+            'authors': parser.author,
+            'year':    parser.year,
+            }
+
+        return data
+
+    def get_bibtex(self):
+        data = self.get_data()
+        key = '%s:%s' % (self.source, self.sid)
+        return bibparse.data2bib(data, key)
