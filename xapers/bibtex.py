@@ -1,8 +1,12 @@
 import sys
 import io
-from pybtex.database.input import bibtex as bibparser
+import pybtex
+from pybtex.core import Entry, Person
+from pybtex.database.input import bibtex as inparser
+from pybtex.database.output import bibtex as outparser
+#from pybtex.database.output import bibtexml as outparser
 
-def clean_string(string):
+def clean_bib_string(string):
     for char in ['{', '}']:
         string = string.replace(char,'')
     return string
@@ -14,42 +18,50 @@ def bib2data(bibtex):
     # FIXME: need to worry about encodings!
     bibfile = io.StringIO(bibtex.decode('UTF-8'))
 
-    parser = bibparser.Parser(encoding='UTF-8')
-
+    parser = inparser.Parser(encoding='UTF-8')
     bibdata = parser.parse_stream(bibfile)
-
-    # for key in bibdata.entries.keys():
-    #     print key
-    #     for field, val in bibdata.entries[key].fields.iteritems():
-    #         print '   ', field, '=', val
-    #     print '   ', 'authors =', ' and '.join(bibdata.entries[key].persons['author'])
-
     bibentry = bibdata.entries.values()[0].fields
 
-    # parse crazy authors entries
+    data = {}
+
+    for field in bibentry:
+        data[field] = unicode(clean_bib_string(bibentry[field]))
+
+    # parse crazy authors entries into list
     authors = []
     for p in bibdata.entries.values()[0].persons['author']:
-        authors.append('%s %s' % (p.first()[0], p.last()[0]))
-
-    data = {
-        'url': None,
-        'title': None,
-        'authors': None,
-        'year': None,
-        }
-
-    if 'url' in bibentry:
-        data['url'] = clean_string(bibentry['url']).encode('utf-8')
-
-    if 'title' in bibentry:
-        data['title'] = clean_string(bibentry['title']).encode('utf-8')
+        authors.append(unicode(p))
 
     data['authors'] = authors
 
-    if 'year' in bibentry:
-        data['year'] = bibentry['year'].encode('utf-8')
+    return data, key
 
-    return data
+def data2bib(data, source=None, sid=None):
+    """Convert data fields into a bibtex entry."""
 
-def data2bib(data):
-    pass
+    # need to remove authors field from data
+    authors = None
+    if 'authors' in data:
+        authors = data['authors']
+        del data['authors']
+
+    # FIXME: what should this be for undefined?  specify
+    btype = 'article'
+
+    entry = Entry(btype, fields=data)
+    if authors:
+        for p in authors:
+            entry.add_person(Person(p), 'author')
+
+    bibdata = pybtex.database.BibliographyData()
+    bibdata.add_entry(0, entry)
+
+    # FIXME: this is not ouputting the right format
+    writer = outparser.Writer()
+
+    f = io.StringIO()
+    writer.write_stream(bibdata, f)
+    text = f.getvalue()
+    f.close()
+
+    return text
