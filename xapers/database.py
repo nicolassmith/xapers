@@ -122,6 +122,13 @@ class Database():
 
         return base, full
 
+    def _path_in_db(self, path):
+        base, full = self._basename_for_path(path)
+        if not base:
+            return False
+        else:
+            return True
+
     ########################################
 
     # return a list of terms for prefix
