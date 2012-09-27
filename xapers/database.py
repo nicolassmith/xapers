@@ -28,6 +28,7 @@ class Database():
             
     BOOLEAN_PREFIX_EXTERNAL = {
         'id': 'Q',
+        'bib': 'XBIB|',
 
         'source': 'XSOURCE:',
         'tag': 'K',
