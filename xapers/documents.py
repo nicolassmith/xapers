@@ -345,9 +345,30 @@ class Document():
             return ''
 
     ########################################
+    # bibtex
 
-    # writing out bibtex text
-    def write_bibtex(self, bibtex):
+    def _index_bibtex(self, bibtex):
+        import xapers.bibtex as bibparse
+
+        data, key = bibparse.bib2data(bibtex)
+
+        if 'title' in data:
+            self.set_title(data['title'])
+
+        if 'author' in data:
+            self.set_authors(data['author'])
+
+        if 'year' in data:
+            self.set_year(data['year'])
+
+        if 'doi' in data:
+            self.add_source('doi', data['doi'])
+
+        self.set_bibkey(key)
+
+
+    def _write_bibtex(self, bibtex):
+        """Write bibtex to file adjacent to document file."""
         fullpaths = self.get_fullpaths()
         if not fullpaths:
             # FIXME: return exception
@@ -359,3 +380,7 @@ class Document():
         f.write('\n')
         f.close()
         return bibfile
+
+    def add_bibtex(self, bibtex):
+        self._index_bibtex(bibtex)
+        bibfile = self._write_bibfile(bibtex)
