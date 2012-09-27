@@ -20,23 +20,26 @@ def bib2data(bibtex):
 
     parser = inparser.Parser(encoding='UTF-8')
     bibdata = parser.parse_stream(bibfile)
-    bibentry = bibdata.entries.values()[0].fields
+
+    key = bibdata.entries.keys()[0]
+    bibentry = bibdata.entries.values()[0]
 
     data = {}
 
-    for field in bibentry:
-        data[field] = unicode(clean_bib_string(bibentry[field]))
+    bibfields = bibentry.fields
+    for field in bibfields:
+        data[field] = unicode(clean_bib_string(bibfields[field]))
 
     # parse crazy authors entries into list
     authors = []
-    for p in bibdata.entries.values()[0].persons['author']:
+    for p in bibentry.persons['author']:
         authors.append(unicode(p))
 
     data['authors'] = authors
 
     return data, key
 
-def data2bib(data, source=None, sid=None):
+def data2bib(data, key):
     """Convert data fields into a bibtex entry."""
 
     # need to remove authors field from data
@@ -54,7 +57,7 @@ def data2bib(data, source=None, sid=None):
             entry.add_person(Person(p), 'author')
 
     bibdata = pybtex.database.BibliographyData()
-    bibdata.add_entry(0, entry)
+    bibdata.add_entry(key, entry)
 
     # FIXME: this is not ouputting the right format
     writer = outparser.Writer()
