@@ -162,10 +162,10 @@ authors: %s
 
         source = None
 
-        # returns a source object from specified source or parsed url
+        # find source object from specified source or url
         if 'source' in data:
-            for ss in iter(data['source']):
-                ii = data['source'][ss]
+            for ss,ii in data['source'].items():
+                break
             print >>sys.stderr, "loading source: %s:%s" % (ss,ii)
             source = xapers.source.get_source(ss,ii)
         elif 'url' in data:
@@ -179,27 +179,16 @@ authors: %s
         bibtex = None
         bdata = None
 
-        # get data from source
+        # get bibtex from source
         if source:
             # this should return bibtex as a string
             try:
                 print >>sys.stderr, "retrieving bibtex...",
                 bibtex = source.get_bibtex()
-                bdata = bibparse.bib2data(bibtex)
                 print >>sys.stderr, "done."
             except:
-                print >>sys.stderr, ""
+                print >>sys.stderr, "failed!"
                 raise
-
-        if bdata:
-            data['source'] = {source.name: source.sid}
-            data['title'] = bdata['title']
-            if isinstance(bdata['authors'], list):
-                authors = ' and '.join(bdata['authors'])
-            else:
-                authors = bdata['authors']
-            data['authors'] = authors
-            data['year'] = bdata['year']
 
         if prompt:
             try:
@@ -231,21 +220,22 @@ authors: %s
 
         if bibtex:
             # if we have bibtex, use this as the data
-            doc.set_data(bibtex)
+            doc.add_bibtex(bibtex)
+        else:
+            if 'url' in data:
+                doc.set_url(data['url'])
+            if 'title' in data:
+                doc.set_title(data['title'])
+            if 'authors' in data:
+                doc.set_authors(data['authors'])
+            if 'year' in data:
+                doc.set_year(data['year'])
 
-        if 'url' in data:
-            doc.set_url(data['url'])
         if 'source' in data:
             doc.add_sources(data['source'])
-        if 'title' in data:
-            doc.set_title(data['title'])
-        if 'authors' in data:
-            doc.set_authors(data['authors'])
-        if 'year' in data:
-            doc.set_year(data['year'])
+
         if 'tags' in data:
             doc.add_tags(data['tags'])
-
 
         try:
             print >>sys.stderr, "Syncing document...",
