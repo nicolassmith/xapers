@@ -347,27 +347,26 @@ class Document():
     ########################################
     # bibtex
 
+    def _set_bibkey(self, key):
+        prefix = self.db._find_prefix('bib')
+        for term in self._get_terms(prefix):
+            self._remove_term(prefix, term)
+        self._add_term(prefix, key)
+
     def _index_bibtex(self, bibtex):
         import xapers.bibtex as bibparse
-
         data, key = bibparse.bib2data(bibtex)
-
         if 'title' in data:
             self.set_title(data['title'])
-
         if 'author' in data:
             self.set_authors(data['author'])
-
         if 'year' in data:
             self.set_year(data['year'])
-
         if 'doi' in data:
-            self.add_source('doi', data['doi'])
+            self.add_sources({'doi': data['doi']})
+        self._set_bibkey(key)
 
-        self.set_bibkey(key)
-
-
-    def _write_bibtex(self, bibtex):
+    def _write_bibfile(self, bibtex):
         """Write bibtex to file adjacent to document file."""
         fullpaths = self.get_fullpaths()
         if not fullpaths:
