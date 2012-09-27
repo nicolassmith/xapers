@@ -6,7 +6,7 @@ import xapers.sources
 
 def list_sources():
     sources = []
-    return ['doi']
+    return ['doi', 'arxiv']
     for s in dir(xapers.sources):
         # skip the __init__ file when finding sources
         if '__' in s:
