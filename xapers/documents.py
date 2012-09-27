@@ -345,10 +345,17 @@ class Document():
             return ''
 
     ########################################
-    # writing out bibtex from data
-    def write_bibtex():
-        base, ext = os.path.splitext(path)
-        bibfile = os.path.join(base, '.bib')
+
+    # writing out bibtex text
+    def write_bibtex(self, bibtex):
+        fullpaths = self.get_fullpaths()
+        if not fullpaths:
+            # FIXME: return exception
+            return
+        base, ext = os.path.splitext(fullpaths[0])
+        bibfile = base + '.bib'
         f = open(bibfile, 'w')
         f.write(bibtex)
+        f.write('\n')
         f.close()
+        return bibfile
