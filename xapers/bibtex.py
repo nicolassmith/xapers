@@ -2,6 +2,7 @@ import sys
 import io
 import pybtex
 from pybtex.core import Entry, Person
+from pybtex.bibtex.utils import split_name_list
 from pybtex.database.input import bibtex as inparser
 from pybtex.database.output import bibtex as outparser
 #from pybtex.database.output import bibtexml as outparser
@@ -46,28 +47,36 @@ def data2bib(data, key):
     authors = None
     if 'authors' in data:
         authors = data['authors']
+        if isinstance(authors, str):
+            authors = split_name_list(authors)
+            if len(authors) == 1:
+                authors = authors[0].split(',')
         del data['authors']
 
     # FIXME: what should this be for undefined?  specify
     btype = 'article'
 
-    entry = Entry(btype, fields=data)
-    if authors:
-        for p in authors:
-            entry.add_person(Person(p), 'author')
+    try:
+        entry = Entry(btype, fields=data)
+        if authors:
+            for p in authors:
+                entry.add_person(Person(p), 'author')
 
-    bibdata = pybtex.database.BibliographyData()
-    bibdata.add_entry(key, entry)
+        bibdata = pybtex.database.BibliographyData()
+        bibdata.add_entry(key, entry)
 
-    # FIXME: this is not ouputting the right format
-    writer = outparser.Writer()
+        # FIXME: this is not ouputting the right format
+        writer = outparser.Writer()
 
-    f = io.StringIO()
-    writer.write_stream(bibdata, f)
-    text = f.getvalue()
-    f.close()
+        f = io.StringIO()
+        writer.write_stream(bibdata, f)
+        text = f.getvalue()
+        f.close()
 
-    # strip trailing newlines
-    text = text.strip()
+        # strip trailing newlines
+        text = text.strip()
+
+    except:
+        text = None
 
     return text
