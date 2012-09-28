@@ -21,6 +21,7 @@ Jameson Rollins <jrollins@finestructure.net>
 import os
 import sys
 import xapian
+import xapers.bibtex
 
 ##################################################
 
@@ -355,8 +356,7 @@ class Document():
         self._add_term(prefix, key)
 
     def _index_bibtex(self, bibtex):
-        import xapers.bibtex as bibparse
-        data, key = bibparse.bib2data(bibtex)
+        data, key = xapers.bibtex.bib2data(bibtex)
         if 'title' in data:
             self.set_title(data['title'])
         if 'author' in data:
@@ -384,3 +384,28 @@ class Document():
     def add_bibtex(self, bibtex):
         self._index_bibtex(bibtex)
         bibfile = self._write_bibfile(bibtex)
+
+    def sync_to_bib(self):
+        data = {}
+        sources = self.get_sources()
+        data['sources'] = ' '.join(sources.keys())
+        for source,sid in sources.items():
+            data[source] = sid
+        if 'doi' in sources:
+            key = 'doi:' + data['doi']
+        elif 'dcc' in sources:
+            key = 'dcc:' + data['dcc']
+        elif 'arxiv' in sources:
+            key = 'arxiv:' + data['arxiv']
+        else:
+            # punt!
+            return
+        data['title'] = self.get_title()
+        data['authors'] = self.get_authors()
+        data['year'] = self.get_year()
+        data['tags'] = ' '.join(self.get_tags())
+        bibtex = xapers.bibtex.data2bib(data, key)
+        if bibtex:
+            return self._write_bibfile(bibtex)
+        else:
+            return None
