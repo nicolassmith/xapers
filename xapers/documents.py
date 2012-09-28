@@ -195,7 +195,12 @@ class Document():
         """Return fullpaths associated with document."""
         list = []
         for path in self._get_paths():
+            # FIXME: this is a hack for old bad path specifications and should be removed
+            if path.find(self.root) == 0:
+                index = len(self.root) + 1
+                path = path[index:]
             path = path.lstrip('/')
+            # FIXME
             base, full = self.db._basename_for_path(path)
             list.append(full)
         return list
