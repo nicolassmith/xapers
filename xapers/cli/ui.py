@@ -397,6 +397,15 @@ authors: %s
             break
 
     def dump(self, query_string):
+        db = Database(self.xdir)
+        for doc in db.search(query_string):
+            print >>sys.stderr, "syncing %s..." % (doc.docid),
+            bibfile = doc.sync_to_bib()
+            if bibfile:
+                print >>sys.stderr, "%s" % (bibfile)
+            else:
+                print >>sys.stderr, ""
+        return
         self.search('*',
                     limit=0,
                     oformat='json')
