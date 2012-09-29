@@ -44,10 +44,14 @@ def usage():
     --source=source:sid                         sources for initial data
     --bib=bibfile
   search [options] <search-term>...           search the database
-    --output=[simple|full|files|sources|tags]
+    --output=[simple|bibtex|sources|tags]
     --limit=N
   tag +tag|-tab [...] [--] <search-term>...   add/remove tags
   set <attribute> <value> <docid>             set a document attribute with value
+    title
+    authors
+    year
+    file
   show <search-term>...                       display first result
   count <search-term>...                      count matches
   dump [<search-terms>...]                    dump tags to stdout
@@ -80,8 +84,9 @@ if __name__ == '__main__':
 
     ########################################
     if cmd == 'add':
-        prompt = False
         data = {}
+        bibfile = None
+        prompt = False
 
         argc = 2
         while True:
@@ -92,9 +97,12 @@ if __name__ == '__main__':
 
             elif '--source=' in sys.argv[argc]:
                 s,i = sys.argv[argc].split('=',1)[1].split(':',1)
-                data['source'] = {s: i}
+                data['sources'] = {s.lower(): i}
             elif '--url=' in sys.argv[argc]:
                 data['url'] = sys.argv[argc].split('=',1)[1]
+
+            elif '--bib=' in sys.argv[argc]:
+                bibfile = sys.argv[argc].split('=',1)[1]
 
             elif '--prompt' in sys.argv[argc]:
                 prompt = True
@@ -106,7 +114,7 @@ if __name__ == '__main__':
             infile = None
         else:
             infile = sys.argv[argc]
-        cli.add(infile, data=data, prompt=prompt)
+        cli.add(infile, data=data, bibfile=bibfile, prompt=prompt)
 
     ########################################
     elif cmd == 'delete':
@@ -180,14 +188,6 @@ if __name__ == '__main__':
         cli.tag(query, add_tags, remove_tags)
 
     ########################################
-    elif cmd == 'set':
-        attribute = sys.argv[2]
-        value = sys.argv[3]
-
-        query = make_query_string(sys.argv[4:])
-        cli.set(query, attribute, value)
-
-    ########################################
     elif cmd == 'dumpterms':
         query = make_query_string(sys.argv[2:])
         cli.dumpterms(query)
@@ -196,17 +196,6 @@ if __name__ == '__main__':
     elif cmd == 'count':
         query = make_query_string(sys.argv[2:])
         cli.count(query)
-
-    ########################################
-    elif cmd == 'dump':
-        query = make_query_string(sys.argv[2:])
-        if not query or query == '':
-            query = '*'
-        cli.dump(query)
-
-    ########################################
-    elif cmd == 'restore':
-        cli.restore()
 
     ########################################
     elif cmd == 'version':

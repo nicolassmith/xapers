@@ -264,10 +264,6 @@ authors: %s
                 print source
             return
 
-        if oformat == 'json':
-            pass
-            #print '[',
-
         for doc in db.search(query_string, limit=limit):
             docid = doc.get_docid()
 
@@ -299,83 +295,13 @@ authors: %s
                 else:
                     print bibtex
                     print
-            continue
-
-            url = doc.get_url()
-            title = doc.get_title()
-            authors = doc.get_authors()
-            year = doc.get_year()
-            data = doc.get_data()
-
-            # FIXME: need to deal with encoding issues
-
-            if oformat == 'full':
-                print "id:%s" % (docid)
-                print "match: %s" % (doc.matchp)
-                print "fullpath: %s" % (fullpath)
-                print "url: %s" % (url)
-                print "sources: %s" % (' '.join(sources))
-                for source,sid in sources.items():
-                    print " %s:%s" % (source, sid)
-                print "tags: %s" % (' '.join(tags))
-                print "title: %s" % (title)
-                print "authors: %s" % (authors)
-                print "year: %s" % (year)
-                print "data: \n%s\n" % (data)
                 continue
-
-            if oformat == 'json':
-                import json
-                print json.dumps({
-                    'docid': docid,
-                    'percent': doc.matchp,
-                    'fullpath': fullpath,
-                    'url': url,
-                    'sources': sources,
-                    'tags': tags,
-                    'title': title,
-                    'authors': authors,
-                    'year': year,
-                    #'data': data
-                    },
-                                 )
-
-        if oformat == 'json':
-            pass
-            #print ']'
-
-
-    def select(self, query_string):
-        nci.UI(self.xdb, query_string)
-
 
     def tag(self, query_string, add_tags, remove_tags):
         db = Database(self.xdir, writable=True)
         for doc in db.search(query_string):
             doc.add_tags(add_tags)
             doc.remove_tags(remove_tags)
-        doc.sync()
-
-    def set(self, query_string, attribute, value):
-        db = Database(self.xdir, writable=True)
-        docs = db.search(query_string)
-
-        if len(docs) > 1:
-            print >>sys.stderr, "Query matches more than one document.  Aborting."
-            sys.exit(1)
-
-        doc = docs[0]
-
-        if attribute == 'title':
-            doc.set_title(value)
-        elif attribute in ['author', 'authors']:
-            doc.set_authors(value)
-        elif attribute in ['year']:
-            doc.set_year(value)
-        else:
-            print >>sys.stderr, "Unknown attribute '%s'." % (attribute)
-            sys.exit(1)
-
         doc.sync()
 
     def dumpterms(self, query_string):
@@ -394,37 +320,4 @@ authors: %s
         for doc in db.search(query_string):
             path = doc.get_fullpaths()[0]
             call(' '.join(["okular", path]) + ' &', shell=True, stderr=open('/dev/null','w'))
-            #os.system(' '.join(["okular", path]) + ' &')
-            #os.execlp('okular', path)
             break
-
-    def dump(self, query_string):
-        db = Database(self.xdir)
-        for doc in db.search(query_string, limit=0):
-            print >>sys.stderr, "syncing %s..." % (doc.docid),
-            bibfile = doc.sync_to_bib()
-            if bibfile:
-                print >>sys.stderr, "%s" % (bibfile)
-            else:
-                print >>sys.stderr, ""
-        return
-        self.search('*',
-                    limit=0,
-                    oformat='json')
-
-    def restore(self):
-        import json
-        import urllib
-        
-        db = Database(self.xdir, writable=True)
-
-        for line in sys.stdin:
-            parsed =  json.loads(line)
-            fullpath = urllib.unquote(parsed['fullpath'])
-            sources = parsed['sources']
-            tags = parsed['tags']
-
-            # FIXME: add or append as needed
-            # db.add_document(fullpath,
-            #                 sources=sources,
-            #                 tags=tags)
