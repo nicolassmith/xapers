@@ -20,6 +20,7 @@ Jameson Rollins <jrollins@finestructure.net>
 
 import os
 import sys
+import shutil
 import xapian
 import xapers.bibtex
 
@@ -83,13 +84,31 @@ class Document():
             self.docid = self.db._generate_docid()
             self._add_term(self.db._find_prefix('id'), self.docid)
 
+        # specify a directory in the Xapers root for document data
+        self.docdir = os.path.join(self.root, '%010d' % int(self.docid))
+
     def get_docid(self):
         """Return document id of document."""
         return self.docid
 
+    def _make_docdir(self):
+        os.makedirs(self.docdir)
+
+    def _rm_docdir(self):
+        shutil.rmtree(self.docdir)
+
     def sync(self):
         """Sync document to database."""
+        # FIXME: should be db function
         self.db.xapian_db.replace_document(self.docid, self.doc)
+
+    def purge(self):
+        # FIXME: should be db function
+        try:
+            self.db.xapian_db.delete_document(self.docid)
+        except xapian.DocNotFoundError:
+            pass
+        self._rm_docdir()
 
     ########################################
     # internal stuff
@@ -135,12 +154,12 @@ class Document():
     def _set_data(self, text):
         self.doc.set_data(text)
 
-    # get the data object for the document
     def get_data(self):
+        """Get data object for document."""
         return self.doc.get_data()
 
     ########################################
-    # input indexing
+    # files
 
     # index/add a new file for the document
     # file should be relative to xapian.root
@@ -160,34 +179,10 @@ class Document():
 
         return summary
 
-    ########################################
-    # external stuff
-
     def _add_path(self, path):
         base, full = self.db._basename_for_path(path)
         prefix = self.db._find_prefix('file')
         self._add_term(prefix, base)
-
-
-    def add_file(self, path):
-        """Add, and index, a file to document."""
-        base, full = self.db._basename_for_path(path)
-        if not base:
-            raise IllegalImportPath()
-
-        # FIXME: do we really need to do this check?
-        doc = self.db.doc_for_path(base)
-        if doc:
-            raise ImportPathExists(doc.get_docid())
-
-        summary = self._index_file(full)
-
-        self._add_path(base)
-
-        # set data to be text sample
-        # FIXME: what should really be in here?  what if we have
-        # multiple files for the document?  what about bibtex?
-        self._set_data(summary)
 
     def _get_paths(self):
         return self._get_terms(self.db._find_prefix('file'))
@@ -205,6 +200,36 @@ class Document():
             base, full = self.db._basename_for_path(path)
             list.append(full)
         return list
+
+    def add_file(self, infile):
+        """Add a file to document, copying into new xapers doc directory."""
+        # base, full = self.db._basename_for_path(path)
+        # if not base:
+        #     raise IllegalImportPath()
+
+        # FIXME: do we really need to do this check?
+        # doc = self.db.doc_for_path(base)
+        # if doc:
+        #     raise ImportPathExists(doc.get_docid())
+
+        self._make_docdir()
+        outfile = os.path.join(self.docdir, os.path.basename(infile))
+        shutil.copyfile(infile, outfile)
+
+        base, full = self.db._basename_for_path(outfile)
+
+        summary = self._index_file(full)
+
+        self._add_path(base)
+
+        # set data to be text sample
+        # FIXME: what should really be in here?  what if we have
+        # multiple files for the document?  what about bibtex?
+        self._set_data(summary)
+
+        return full
+
+    ########################################
 
     # SOURCES
     def add_sources(self, sources):
