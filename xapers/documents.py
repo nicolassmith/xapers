@@ -389,4 +389,8 @@ class Document():
     ########################################
 
     def get_url(self):
-        return None
+        bibdata = self.get_bibdata()
+        if 'url' in bibdata:
+            return bibdata['url']
+        else:
+            return None
