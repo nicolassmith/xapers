@@ -97,6 +97,7 @@ class Source():
             'title':   parser.title,
             'authors': parser.author,
             'year':    parser.year,
+            'eprint':  self.sid,
             }
 
         return data
