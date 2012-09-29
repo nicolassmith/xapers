@@ -21,6 +21,7 @@ Jameson Rollins <jrollins@finestructure.net>
 import os
 import sys
 import readline
+from subprocess import call
 
 from xapers.database import Database
 from xapers.documents import Document
@@ -57,9 +58,9 @@ class UI():
 
         source = None
         sid = None
-        if 'source' in data:
-            for source in iter(data['source']):
-                sid = data['source'][source]
+        if 'sources' in data:
+            for source in iter(data['sources']):
+                sid = data['sources'][source]
 
         # db = Database(self.xdir, writable=False)
         # isources = db.get_terms('source')
@@ -142,60 +143,54 @@ authors: %s
                 break
             first = False
 
-        data['source'] = {source: sid}
+        data['sources'] = {source: sid}
 
         return data
 
 
-    def add(self, infile, data=None, prompt=False):
+    def add(self, infile, data=None, bibfile=None, prompt=False):
         if not infile and 'url' not in data and 'source' not in data:
             print >>sys.stderr, "Must specify file, url, or source:id to add."
             sys.exit(1)
 
         # FIXME: better checks about input file before prompting
 
-        if prompt:
-            readline.parse_and_bind('')
-            if 'url' in data:
-                readline.set_startup_hook(lambda: readline.insert_text(data['url']))
-            data['url'] = raw_input('url: ')
-
-        source = None
-
         # find source object from specified source or url
-        if 'source' in data:
-            for ss,ii in data['source'].items():
+        source = None
+        if 'sources' in data:
+            for ss,ii in data['sources'].items():
                 break
-            print >>sys.stderr, "loading source: %s:%s" % (ss,ii)
+            print >>sys.stderr, "Loading source: %s:%s" % (ss,ii)
             source = xapers.source.get_source(ss,ii)
         elif 'url' in data:
             # parse the url for source and sid
-            print >>sys.stderr, "parsing url: %s" % data['url']
+            print >>sys.stderr, "Parsing url: %s" % data['url']
             source = xapers.source.source_from_url(data['url'])
 
-        if ('source' in data or 'url' in data) and not source:
+        if not source:
             print >>sys.stderr, 'No matching source module found.'
 
         bibtex = None
         bdata = None
 
-        # get bibtex from source
-        if source:
-            # this should return bibtex as a string
+        if bibfile:
             try:
-                print >>sys.stderr, "retrieving bibtex...",
+                print >>sys.stderr, "Reading bibtex...",
+                f = open(bibfile, 'r')
+                bibtex = f.read()
+                f.close()
+                print >>sys.stderr, "done."
+            except:
+                print >>sys.stderr, "\n"
+                raise
+        elif source:
+            try:
+                print >>sys.stderr, "Retrieving bibtex...",
                 bibtex = source.get_bibtex()
                 print >>sys.stderr, "done."
             except:
-                print >>sys.stderr, "failed!"
+                print >>sys.stderr, "\n"
                 raise
-
-        if prompt:
-            try:
-                data = self.prompt_for_metadata(data)
-            except KeyboardInterrupt:
-                print >>sys.stderr, "\nAborting.  Nothing imported."
-                sys.exit(-1)
 
         # now make the document
         db = Database(self.xdir, writable=True, create=True)
@@ -205,34 +200,32 @@ authors: %s
         if infile:
             path = os.path.abspath(infile)
             try:
-                print >>sys.stderr, "Indexing '%s'..." % (path),
+                print >>sys.stderr, "Adding file '%s'..." % (path),
                 doc.add_file(path)
                 print >>sys.stderr, "done."
-            except IllegalImportPath:
-                print >>sys.stderr, "\nFile path not in Xapers directory."
-                sys.exit(1)
-            except ImportPathExists as e:
-                print >>sys.stderr, "\nFile already indexed as %s." % (e.docid)
-                sys.exit(1)
+            # except IllegalImportPath:
+            #     print >>sys.stderr, "\nFile path not in Xapers directory."
+            #     sys.exit(1)
+            # except ImportPathExists as e:
+            #     print >>sys.stderr, "\nFile already indexed as %s." % (e.docid)
+            #     sys.exit(1)
             except:
                 print >>sys.stderr, "\n"
+                doc.purge()
                 raise
 
         if bibtex:
-            # if we have bibtex, use this as the data
-            doc.add_bibtex(bibtex)
-        else:
-            if 'url' in data:
-                doc.set_url(data['url'])
-            if 'title' in data:
-                doc.set_title(data['title'])
-            if 'authors' in data:
-                doc.set_authors(data['authors'])
-            if 'year' in data:
-                doc.set_year(data['year'])
+            try:
+                print >>sys.stderr, "Adding bibtex...",
+                doc.add_bibtex(bibtex)
+                print >>sys.stderr, "done."
+            except:
+                print >>sys.stderr, "\n"
+                doc.purge()
+                raise
 
-        if 'source' in data:
-            doc.add_sources(data['source'])
+        if 'sources' in data:
+            doc.add_sources(data['sources'])
 
         if 'tags' in data:
             doc.add_tags(data['tags'])
@@ -242,7 +235,8 @@ authors: %s
             doc.sync()
             print >>sys.stderr, "done (id:%s)." % doc.docid
         except:
-            print >>sys.stderr, "faild!"
+            print >>sys.stderr, "\n"
+            doc.purge()
             raise
 
 
