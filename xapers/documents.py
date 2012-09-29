@@ -261,6 +261,13 @@ class Document():
             sources[source] = self.get_source_id(source)
         return sources
 
+    def get_sources_list(self):
+        list = []
+        sources = self.get_sources()
+        for source,sid in sources.items():
+            list.append('%s:%s' % (source,sid))
+        return list
+
     def remove_source(self, source):
         """Remove source from document."""
         prefix = self.db._make_source_prefix(source)
