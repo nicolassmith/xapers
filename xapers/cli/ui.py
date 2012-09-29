@@ -283,14 +283,23 @@ authors: %s
                 continue
 
             tags = doc.get_tags()
-            sources = doc.get_sources()
+            sources = doc.get_sources_list()
 
             if oformat == 'simple':
                 print "id:%s %s [%s] (%s)" % (docid,
                                               fullpath,
-                                              ' '.join(sources.keys()),
+                                              ' '.join(sources),
                                               ' '.join(tags))
                 continue
+
+            if oformat == 'bibtex':
+                bibtex = doc.get_bibtex()
+                if not bibtex:
+                    print >>sys.stderr, "No bibtex for doc id:%s." % docid
+                else:
+                    print bibtex
+                    print
+            continue
 
             url = doc.get_url()
             title = doc.get_title()
@@ -381,7 +390,6 @@ authors: %s
         print count
 
     def view(self, query_string):
-        from subprocess import call
         db = Database(self.xdir)
         for doc in db.search(query_string):
             path = doc.get_fullpaths()[0]
@@ -392,7 +400,7 @@ authors: %s
 
     def dump(self, query_string):
         db = Database(self.xdir)
-        for doc in db.search(query_string):
+        for doc in db.search(query_string, limit=0):
             print >>sys.stderr, "syncing %s..." % (doc.docid),
             bibfile = doc.sync_to_bib()
             if bibfile:
