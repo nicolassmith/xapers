@@ -191,7 +191,7 @@ class Database():
 
     def doc_for_docid(self, docid):
         """Return document for specified docid."""
-        term = self._find_prefix('id') + docid
+        term = self._find_prefix('id') + str(docid)
         return self._doc_for_term(term)
 
     def doc_for_path(self, path):
