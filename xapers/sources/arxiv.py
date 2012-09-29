@@ -105,4 +105,5 @@ class Source():
     def get_bibtex(self):
         data = self.get_data()
         key = '%s:%s' % (self.source, self.sid)
-        return bibparse.data2bib(data, key)
+        bibentry = bibparse.data2bib(data, key)
+        return bibentry.as_string()
