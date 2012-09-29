@@ -5,43 +5,59 @@ from pybtex.core import Entry, Person
 from pybtex.bibtex.utils import split_name_list
 from pybtex.database.input import bibtex as inparser
 from pybtex.database.output import bibtex as outparser
-#from pybtex.database.output import bibtexml as outparser
 
 def clean_bib_string(string):
     for char in ['{', '}']:
         string = string.replace(char,'')
     return string
 
-def bib2data(bibtex):
-    """Parse a bibtex string for indexable data fields."""
 
-    # io produces a stream object that pybtex can handle
-    # FIXME: need to worry about encodings!
-    bibfile = io.StringIO(bibtex.decode('UTF-8'))
+class Bibentry():
+    def __init__(self, bibtex):
+        parser = inparser.Parser(encoding='UTF-8')
 
-    parser = inparser.Parser(encoding='UTF-8')
-    bibdata = parser.parse_stream(bibfile)
+        stream = io.StringIO(bibtex.decode('UTF-8'))
+        self.bibdata = parser.parse_stream(stream)
 
-    key = bibdata.entries.keys()[0]
-    bibentry = bibdata.entries.values()[0]
+        self.key = self.bibdata.entries.keys()[0]
+        self.entry = self.bibdata.entries.values()[0]
 
-    data = {}
+    def get_authors(self):
+        """Return a list of authors."""
+        authors = []
+        for p in self.entry.persons['author']:
+            authors.append(clean_bib_string(unicode(p)))
+        return authors
 
-    bibfields = bibentry.fields
-    for field in bibfields:
-        data[field] = unicode(clean_bib_string(bibfields[field]))
+    def get_fields(self):
+        """Return a dict of entry fields."""
+        bibfields = self.entry.fields
+        fields = {}
+        for field in bibfields:
+            fields[field] = unicode(clean_bib_string(bibfields[field]))
+        return fields
 
-    # parse crazy authors entries into list
-    authors = []
-    for p in bibentry.persons['author']:
-        authors.append(unicode(p))
+    def get_data(self):
+        """Return entire entry as a dict."""
+        data = self.get_fields()
+        data['authors'] = self.get_authors()
+        return data
 
-    data['authors'] = authors
+    def as_string(self):
+        """Return entry as formatted bibtex string."""
+        bibdata = pybtex.database.BibliographyData()
+        bibdata.add_entry(self.key, self.entry)
+        writer = outparser.Writer()
+        f = io.StringIO()
+        writer.write_stream(self.bibdata, f)
+        string = f.getvalue()
+        f.close()
+        string = string.strip()
+        return string
 
-    return data, key
 
 def data2bib(data, key):
-    """Convert data fields into a bibtex entry."""
+    """Convert data fields into a Bibentry object."""
 
     # need to remove authors field from data
     authors = None
@@ -53,7 +69,7 @@ def data2bib(data, key):
                 authors = authors[0].split(',')
         del data['authors']
 
-    # FIXME: what should this be for undefined?  specify
+    # FIXME: what should this be for undefined?
     btype = 'article'
 
     try:
@@ -65,7 +81,7 @@ def data2bib(data, key):
         bibdata = pybtex.database.BibliographyData()
         bibdata.add_entry(key, entry)
 
-        # FIXME: this is not ouputting the right format
+        # FIXME: how do we make this output {}-wrapped fields?
         writer = outparser.Writer()
 
         f = io.StringIO()
@@ -73,10 +89,7 @@ def data2bib(data, key):
         text = f.getvalue()
         f.close()
 
-        # strip trailing newlines
-        text = text.strip()
+        return Bibentry(text)
 
     except:
-        text = None
-
-    return text
+        return None

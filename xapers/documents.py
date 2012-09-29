@@ -294,92 +294,40 @@ class Document():
         for tag in tags:
             self._remove_term(prefix, tag)
 
-
-    # URL
-    def set_url(self, url):
-        """Add a url to document"""
-        prefix = self.db._find_prefix('url')
-        for term in self._get_terms(prefix):
-            self._remove_term(prefix, term)
-        self._add_term(prefix, url)
-
-    def get_url(self):
-        """Return url associated with document."""
-        prefix = self.db._find_prefix('url')
-        url = self._get_terms(prefix)
-        if url:
-            return url[0]
-        else:
-            return ''
-
     # TITLE
-    def set_title(self, title):
-        """Set title of document."""
+    def _set_title(self, title):
         pt = self.db._find_prefix('title')
-        pf = self.db._find_prefix('fulltitle')
         for term in self._get_terms(pt):
             self._remove_term(pt, term)
         # FIXME: what the clean way all these prefixed terms?
         for term in self._get_terms('ZS'):
             self._remove_term('ZS', term)
-        for term in self._get_terms(pf):
-            self._remove_term(pf, term)
         self._gen_terms(pt, title)
-        self._add_term(pf, title)
-
-    def get_title(self):
-        """Return title of document."""
-        title = self._get_terms(self.db._find_prefix('fulltitle'))
-        if title:
-            return title[0]
-        else:
-            return ''
 
     # AUTHOR
-    def set_authors(self, authors):
-        """Set authors of document."""
+    def _set_authors(self, authors):
         pa = self.db._find_prefix('author')
-        pf = self.db._find_prefix('fullauthors')
         for term in self._get_terms(pa):
             self._remove_term(pa, term)
         # FIXME: what the clean way all these prefixed terms?
         for term in self._get_terms('ZA'):
             self._remove_term('ZA', term)
-        for term in self._get_terms(pf):
-            self._remove_term(pf, term)
         self._gen_terms(pa, authors)
-        # FIXME: can't handle long author lists.  character limit.
-        # need to check limit and split up, and maybe store each
-        # author individually?
-        self._add_term(pf, authors)
-
-    def get_authors(self):
-        """Return authors of document."""
-        authors = self._get_terms(self.db._find_prefix('fullauthors'))
-        if authors:
-            return authors[0]
-        else:
-            return ''
 
     # YEAR
-    def set_year(self, year):
-        """Set publication year of document."""
+    def _set_year(self, year):
+        # FIXME: this should be a value
+        pass
         prefix = self.db._find_prefix('year')
         for term in self._get_terms(prefix):
             self._remove_term(prefix, term)
         self._add_term(prefix, year)
 
-    def get_year(self):
-        """Return publication year of document."""
-        prefix = self.db._find_prefix('year')
-        year =  self._get_terms(prefix)
-        if year:
-            return year[0]
-        else:
-            return ''
-
     ########################################
     # bibtex
+
+    def _get_bibpath(self):
+        return os.path.join(self.root, self.docdir, 'bibtex')
 
     def _set_bibkey(self, key):
         prefix = self.db._find_prefix('bib')
@@ -388,56 +336,57 @@ class Document():
         self._add_term(prefix, key)
 
     def _index_bibtex(self, bibtex):
-        data, key = xapers.bibtex.bib2data(bibtex)
+        bibentry = xapers.bibtex.Bibentry(bibtex)
+        data = bibentry.get_data()
         if 'title' in data:
-            self.set_title(data['title'])
+            self._set_title(data['title'])
         if 'author' in data:
-            self.set_authors(data['author'])
+            self._set_authors(data['author'])
         if 'year' in data:
-            self.set_year(data['year'])
+            self._set_year(data['year'])
         if 'doi' in data:
             self.add_sources({'doi': data['doi']})
-        self._set_bibkey(key)
+        self._set_bibkey(bibentry.key)
+        return bibentry
 
-    def _write_bibfile(self, bibtex):
-        """Write bibtex to file adjacent to document file."""
-        fullpaths = self.get_fullpaths()
-        if not fullpaths:
-            # FIXME: return exception
-            return
-        base, ext = os.path.splitext(fullpaths[0])
-        bibfile = base + '.bib'
+    def _write_bibfile(self, bibentry):
+        bibfile = self._get_bibpath()
         f = open(bibfile, 'w')
-        f.write(bibtex)
+        f.write(bibentry.as_string())
         f.write('\n')
         f.close()
         return bibfile
 
     def add_bibtex(self, bibtex):
-        self._index_bibtex(bibtex)
-        bibfile = self._write_bibfile(bibtex)
+        """Add bibtex to document."""
+        bibentry = self._index_bibtex(bibtex)
+        bibfile = self._write_bibfile(bibentry)
+        return bibfile
 
-    def sync_to_bib(self):
-        data = {}
-        sources = self.get_sources()
-        data['sources'] = ' '.join(sources.keys())
-        for source,sid in sources.items():
-            data[source] = sid
-        if 'doi' in sources:
-            key = 'doi:' + data['doi']
-        elif 'dcc' in sources:
-            key = 'dcc:' + data['dcc']
-        elif 'arxiv' in sources:
-            key = 'arxiv:' + data['arxiv']
-        else:
-            # punt!
+    def get_bibtex(self):
+        bibpath = self._get_bibpath()
+        if not os.path.exists(bibpath):
             return
-        data['title'] = self.get_title()
-        data['authors'] = self.get_authors()
-        data['year'] = self.get_year()
-        data['tags'] = ' '.join(self.get_tags())
-        bibtex = xapers.bibtex.data2bib(data, key)
+        f = open(bibpath, 'r')
+        bibtex = f.read()
+        f.close()
+        return bibtex.strip()
+
+    def get_bibentry(self):
+        bibtex = self.get_bibtex()
         if bibtex:
-            return self._write_bibfile(bibtex)
+            return xapers.bibtex.Bibentry(bibtex)
         else:
             return None
+
+    def get_bibdata(self):
+        bibentry = self.get_bibentry()
+        if bibentry:
+            return bibentry.get_data()
+        else:
+            return None
+
+    ########################################
+
+    def get_url(self):
+        return None
