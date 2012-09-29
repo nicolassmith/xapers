@@ -98,6 +98,7 @@ class Source():
             'authors': parser.author,
             'year':    parser.year,
             'eprint':  self.sid,
+            'url':     self.gen_url(),
             }
 
         return data
