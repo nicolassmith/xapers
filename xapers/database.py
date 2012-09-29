@@ -19,7 +19,8 @@ class Database():
 
     # http://xapian.org/docs/omega/termprefixes.html
     BOOLEAN_PREFIX_INTERNAL = {
-        'url': 'U',
+        # FIXME: use this for doi?
+        #'url': 'U',
         'file': 'P',
 
         # FIXME: use this for doc mime type
@@ -29,11 +30,8 @@ class Database():
     BOOLEAN_PREFIX_EXTERNAL = {
         'id': 'Q',
         'bib': 'XBIB|',
-
-        'source': 'XSOURCE:',
+        'source': 'XSOURCE|',
         'tag': 'K',
-        'fulltitle': 'XTITLE:',
-        'fullauthors': 'XAUTHORS:',
 
         'year': 'Y',
         }
@@ -48,6 +46,8 @@ class Database():
     # added date
     # modified date
 
+    # FIXME: need database version
+
     def _find_prefix(self, name):
         if name in self.BOOLEAN_PREFIX_INTERNAL:
             return self.BOOLEAN_PREFIX_INTERNAL[name]
@@ -58,7 +58,7 @@ class Database():
         # FIXME: raise internal error for unknown name
 
     def _make_source_prefix(self, source):
-        return 'X%s:' % (source.upper())
+        return 'X%s|' % (source.upper())
 
     def __init__(self, root, writable=False, create=False):
         # xapers root
