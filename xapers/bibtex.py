@@ -59,6 +59,12 @@ class Bibentry():
 def data2bib(data, key):
     """Convert data fields into a Bibentry object."""
 
+    if not data:
+        return
+
+    # FIXME: what should this be for undefined?
+    btype = 'article'
+
     # need to remove authors field from data
     authors = None
     if 'authors' in data:
@@ -69,27 +75,21 @@ def data2bib(data, key):
                 authors = authors[0].split(',')
         del data['authors']
 
-    # FIXME: what should this be for undefined?
-    btype = 'article'
+    entry = Entry(btype, fields=data)
+    if authors:
+        for p in authors:
+            entry.add_person(Person(p), 'author')
 
-    try:
-        entry = Entry(btype, fields=data)
-        if authors:
-            for p in authors:
-                entry.add_person(Person(p), 'author')
+    # make a full bibdb with the single entry
+    bibdata = pybtex.database.BibliographyData()
+    bibdata.add_entry(key, entry)
 
-        bibdata = pybtex.database.BibliographyData()
-        bibdata.add_entry(key, entry)
+    # FIXME: how do we make this output {}-wrapped fields?
+    writer = outparser.Writer()
 
-        # FIXME: how do we make this output {}-wrapped fields?
-        writer = outparser.Writer()
-
-        f = io.StringIO()
-        writer.write_stream(bibdata, f)
-        text = f.getvalue()
-        f.close()
-
-        return Bibentry(text)
-
-    except:
-        return None
+    # now write the db to a bibtex entry string
+    f = io.StringIO()
+    writer.write_stream(bibdata, f)
+    text = f.getvalue()
+    f.close()
+    return Bibentry(text)
