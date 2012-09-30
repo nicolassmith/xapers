@@ -92,8 +92,7 @@ class Source():
             return None
 
         data = {
-            'source':  self.source,
-            'sid':     self.sid,
+            'arxiv':   self.sid,
             'title':   parser.title,
             'authors': parser.author,
             'year':    parser.year,
