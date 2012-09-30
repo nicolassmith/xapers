@@ -50,3 +50,8 @@ def source_from_url(url):
             print >>sys.stderr, ''
 
     return smod
+
+def fetch_url(url):
+    source = source_from_url(url)
+    bibtex = source.get_bibtex()
+    print bibtex
