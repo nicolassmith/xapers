@@ -100,13 +100,11 @@ class Document():
 
     def sync(self):
         """Sync document to database."""
-        # FIXME: should be db function
-        self.db.xapian_db.replace_document(self.docid, self.doc)
+        self.db.replace_document(self.docid, self.doc)
 
     def purge(self):
-        # FIXME: should be db function
         try:
-            self.db.xapian_db.delete_document(self.docid)
+            self.db.delete_document(self.docid)
         except xapian.DocNotFoundError:
             pass
         self._rm_docdir()
