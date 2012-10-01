@@ -46,6 +46,8 @@ class Database():
     # added date
     # modified date
 
+    # FIXME: add prefixes for all sources
+
     # FIXME: need database version
 
     def _find_prefix(self, name):
@@ -65,18 +67,18 @@ class Database():
         self.root = os.path.abspath(root)
 
         # xapers db directory
-        self.xapers_path = os.path.join(self.root, '.xapers')
-        if create and not os.path.exists(self.xapers_path):
-            os.makedirs(self.xapers_path)
+        xapers_path = os.path.join(self.root, '.xapers')
+        if create and not os.path.exists(xapers_path):
+            os.makedirs(xapers_path)
 
         # FIXME: need a try/except here to catch db open errors
 
         # the Xapian db
-        xapian_db = os.path.join(self.xapers_path, 'xapian')
+        xapian_path = os.path.join(xapers_path, 'xapian')
         if writable:
-            self.xapian_db = xapian.WritableDatabase(xapian_db, xapian.DB_CREATE_OR_OPEN)
+            self.xapian = xapian.WritableDatabase(xapian_path, xapian.DB_CREATE_OR_OPEN)
         else:
-            self.xapian_db = xapian.Database(xapian_db)
+            self.xapian = xapian.Database(xapian_path)
 
         stemmer = xapian.Stem("english")
 
@@ -87,7 +89,7 @@ class Database():
 
         # The Xapian QueryParser
         self.query_parser = xapian.QueryParser()
-        self.query_parser.set_database(self.xapian_db)
+        self.query_parser.set_database(self.xapian)
         self.query_parser.set_stemmer(stemmer)
         self.query_parser.set_stemming_strategy(xapian.QueryParser.STEM_SOME)
 
@@ -101,7 +103,7 @@ class Database():
 
     # generate a new doc id, based on the last availabe doc id
     def _generate_docid(self):
-        return self.xapian_db.get_lastdocid() + 1
+        return self.xapian.get_lastdocid() + 1
 
     # Return the xapers-relative path for a path
     # If the the specified path is not in the xapers root, return None.
@@ -135,7 +137,7 @@ class Database():
     # FIXME: is this the fastest way to do this?
     def _get_terms(self, prefix):
         list = []
-        for term in self.xapian_db:
+        for term in self.xapian:
             if term.term.find(prefix) == 0:
                 index = len(prefix)
                 list.append(term.term[index:])
@@ -150,7 +152,7 @@ class Database():
 
     # search for documents based on query string
     def _search(self, query_string, limit=0):
-        enquire = xapian.Enquire(self.xapian_db)
+        enquire = xapian.Enquire(self.xapian)
 
         if query_string == "*":
             query = xapian.Query.MatchAll
@@ -165,7 +167,7 @@ class Database():
         if limit > 0:
             mset = enquire.get_mset(0, limit)
         else:
-            mset = enquire.get_mset(0, self.xapian_db.get_doccount())
+            mset = enquire.get_mset(0, self.xapian.get_doccount())
 
         return mset
 
@@ -179,7 +181,7 @@ class Database():
         return self._search(query_string, count=0).get_matches_estimated()
 
     def _doc_for_term(self, term):
-        enquire = xapian.Enquire(self.xapian_db)
+        enquire = xapian.Enquire(self.xapian)
         query = xapian.Query(term)
         enquire.set_query(query)
         mset = enquire.get_mset(0, 2)
@@ -202,4 +204,5 @@ class Database():
     ########################################
 
     def delete_document(self, docid):
-        self.xapian_db.delete_document(docid)
+        # docid needs to be an int
+        self.xapian.delete_document(int(docid))
