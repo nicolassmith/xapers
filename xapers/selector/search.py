@@ -173,6 +173,26 @@ class Search(urwid.WidgetWrap):
                         stdout=open('/dev/null','w'),
                         stderr=open('/dev/null','w'))
 
+    def search(self):
+        prompt = 'search: '
+        self.foot = CustomEdit(prompt)
+        self.ui.view.set_footer(self.foot)
+        self.ui.view.set_focus('footer')
+        urwid.connect_signal(self.foot, 'done', self.search_done)
+
+    def search_done(self, query):
+        self.ui.view.set_focus('body')
+        urwid.disconnect_signal(self, self.foot, 'done', self.search_done)
+        cmd = Search(self.ui, query)
+        self.ui.view = urwid.Frame(urwid.AttrWrap(cmd, 'body'))
+        self.ui.mainloop = urwid.MainLoop(
+            self.ui.view,
+            self.ui.palette,
+            unhandled_input=self.ui.keypress,
+            handle_mouse=False,
+            )
+        self.ui.mainloop.run()
+
     def tag(self, sign):
         # focus = self.listbox.get_focus()[0]
         # tags = focus.tags
@@ -249,6 +269,8 @@ class Search(urwid.WidgetWrap):
             self.viewURL()
         elif key is 'b':
             self.viewBibtex()
+        elif key is 's':
+            self.search()
         elif key is 'T':
             self.setField('title')
         elif key is 'A':
