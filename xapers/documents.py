@@ -326,7 +326,7 @@ class Document():
     ########################################
     # bibtex
 
-    def _get_bibpath(self):
+    def get_bibpath(self):
         return os.path.join(self.root, self.docdir, 'bibtex')
 
     def _set_bibkey(self, key):
@@ -346,11 +346,12 @@ class Document():
             self._set_year(data['year'])
         if 'doi' in data:
             self.add_sources({'doi': data['doi']})
+        # FIXME: we're not adding other sources (arxiv, dcc)
         self._set_bibkey(bibentry.key)
         return bibentry
 
     def _write_bibfile(self, bibentry):
-        bibfile = self._get_bibpath()
+        bibfile = self.get_bibpath()
         f = open(bibfile, 'w')
         f.write(bibentry.as_string())
         f.write('\n')
@@ -364,7 +365,7 @@ class Document():
         return bibfile
 
     def get_bibtex(self):
-        bibpath = self._get_bibpath()
+        bibpath = self.get_bibpath()
         if not os.path.exists(bibpath):
             return
         f = open(bibpath, 'r')
