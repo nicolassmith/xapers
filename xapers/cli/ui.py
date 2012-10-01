@@ -241,11 +241,18 @@ authors: %s
 
 
     def delete(self, docid):
-        resp = raw_input('Are you sure you want to delete documents ?: ' % docid)
+        if docid.find('id:') == 0:
+            docid = docid.split(':')[1]
+        db = Database(self.xdir, writable=True)
+        doc = db.doc_for_docid(docid)
+        if not doc:
+            print >>sys.stderr, "No document id:%s." % (docid)
+            sys.exit(1)
+        resp = raw_input('Are you sure you want to delete document id:%s?: ' % docid)
         if resp != 'Y':
             print >>sys.stderr, "Aborting."
             sys.exit(1)
-        db = Database(self.xdir, writable=True)
+        doc._rm_docdir()
         db.delete_document(docid)
 
 
