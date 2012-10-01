@@ -95,7 +95,8 @@ class Document():
         os.makedirs(self.docdir)
 
     def _rm_docdir(self):
-        shutil.rmtree(self.docdir)
+        if os.path.exists(self.docdir):
+            shutil.rmtree(self.docdir)
 
     def sync(self):
         """Sync document to database."""
