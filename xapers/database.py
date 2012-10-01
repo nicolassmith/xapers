@@ -203,6 +203,12 @@ class Database():
 
     ########################################
 
+    def replace_document(self, docid, doc):
+        """Replace (sync) document to database."""
+        docid = int(docid)
+        self.xapian.replace_document(docid, doc)
+
     def delete_document(self, docid):
-        # docid needs to be an int
-        self.xapian.delete_document(int(docid))
+        """Delete document from database."""
+        docid = int(docid)
+        self.xapian.delete_document(docid)
