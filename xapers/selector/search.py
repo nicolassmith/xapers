@@ -159,6 +159,20 @@ class Search(urwid.WidgetWrap):
                         stdout=open('/dev/null','w'),
                         stderr=open('/dev/null','w'))
 
+    def viewBibtex(self):
+        entry = self.listbox.get_focus()[0]
+        docid = entry.docid
+        bibtex = entry.doc.get_bibpath()
+        if not bibtex:
+            self.ui.set_status('ERROR: bibtex not found for id:%s.' % docid)
+            return
+        self.ui.set_status('viewing bibtex %s...' % bibtex)
+        # FIXME: we can do this better
+        subprocess.call(' '.join(["nohup", "xterm", "-e", "less", bibtex]) + ' &',
+                        shell=True,
+                        stdout=open('/dev/null','w'),
+                        stderr=open('/dev/null','w'))
+
     def tag(self, sign):
         # focus = self.listbox.get_focus()[0]
         # tags = focus.tags
@@ -233,6 +247,8 @@ class Search(urwid.WidgetWrap):
             self.viewEntry()
         elif key is 'u':
             self.viewURL()
+        elif key is 'b':
+            self.viewBibtex()
         elif key is 'T':
             self.setField('title')
         elif key is 'A':
