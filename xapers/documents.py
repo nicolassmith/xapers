@@ -344,9 +344,12 @@ class Document():
             self._set_authors(data['author'])
         if 'year' in data:
             self._set_year(data['year'])
-        if 'doi' in data:
-            self.add_sources({'doi': data['doi']})
-        # FIXME: we're not adding other sources (arxiv, dcc)
+
+        # FIXME: do this better for arbitrary source
+        for source in ['doi', 'dcc', 'arxiv', 'ads']:
+            if source in data:
+                self.add_sources({source: data[source]})
+
         self._set_bibkey(bibentry.key)
         return bibentry
 
