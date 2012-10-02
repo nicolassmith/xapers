@@ -156,7 +156,7 @@ authors: %s
         bibtex = None
         smod = None
         if os.path.exists(source):
-            bibfile = string
+            bibfile = source
             try:
                 print >>sys.stderr, "Reading bibtex...",
                 f = open(bibfile, 'r')
