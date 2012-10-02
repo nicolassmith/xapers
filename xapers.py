@@ -53,8 +53,13 @@ def usage():
   count <search-term>...                      count matches
   dump [<search-terms>...]                    dump tags to stdout
   restore                                     restore dump file on stdin
+
+  source2bib source                           retrieve bibtex for source
+
   version
   help                                        this help
+
+sources: sources can be either urls, or 'source:id' strings.
 """
 
 if __name__ == '__main__':
@@ -186,6 +191,17 @@ if __name__ == '__main__':
     elif cmd == 'count':
         query = make_query_string(sys.argv[2:])
         cli.count(query)
+
+    ########################################
+    elif cmd == 'source2bib':
+        string = sys.argv[2]
+        import xapers.source
+        bibtex = xapers.source.fetch_bibtex(string)
+        try:
+            print xapers.bibtex.Bibentry(bibtex).as_string()
+        except:
+            print >>sys.stderr, "Problem parsing bibtex.  Outputting raw bibtex..."
+            print bibtex
 
     ########################################
     elif cmd == 'version':
