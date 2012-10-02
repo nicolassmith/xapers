@@ -350,6 +350,9 @@ class Document():
             if source in data:
                 self.add_sources({source: data[source]})
 
+        if 'eprint' in data:
+            self.add_sources({'arxiv': data['eprint']})
+
         self._set_bibkey(bibentry.key)
         return bibentry
 
