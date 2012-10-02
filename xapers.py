@@ -89,7 +89,7 @@ if __name__ == '__main__':
         docid = None
         tags = None
         infile = None
-        bibfile = None
+        source = None
 
         argc = 2
         while True:
