@@ -3,6 +3,7 @@ import sys
 from urlparse import urlparse
 
 import xapers.sources
+import xapers.bibtex
 
 def list_sources():
     sources = []
@@ -29,7 +30,7 @@ def source_from_url(url):
         name = os.path.basename(url)
     
     for ss in list_sources():
-        print >>sys.stderr, 'trying', ss, '...', 
+        print >>sys.stderr, 'trying %s...' % ss,
 
         smod = get_source(ss)
 
@@ -51,7 +52,15 @@ def source_from_url(url):
 
     return smod
 
-def fetch_url(url):
-    source = source_from_url(url)
+def source_from_string(string):
+    o = urlparse(string)
+    if o.scheme in ['http', 'https']:
+        source = source_from_url(string)
+    else:
+        source = get_source(o.scheme, o.path)
+    return source
+
+def fetch_bibtex(string):
+    source = source_from_string(string)
     bibtex = source.get_bibtex()
-    print bibtex
+    return bibtex
