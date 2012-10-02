@@ -189,6 +189,9 @@ authors: %s
             if docid.find('id:') == 0:
                 docid = docid.split(':')[1]
             doc = db.doc_for_docid(docid)
+            if not doc:
+                print >>sys.stderr, "Failed to find document id:%s." % (docid)
+                sys.exit(1)
         else:
             doc = Document(db)
 
