@@ -92,7 +92,8 @@ class Document():
         return self.docid
 
     def _make_docdir(self):
-        os.makedirs(self.docdir)
+        if not os.path.exists(self.docdir):
+            os.makedirs(self.docdir)
 
     def _rm_docdir(self):
         if os.path.exists(self.docdir):
