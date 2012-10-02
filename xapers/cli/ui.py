@@ -316,7 +316,7 @@ authors: %s
         for doc in db.search(query_string):
             doc.add_tags(add_tags)
             doc.remove_tags(remove_tags)
-        doc.sync()
+            doc.sync()
 
     def dumpterms(self, query_string):
         db = Database(self.xdir)
