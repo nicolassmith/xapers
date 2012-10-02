@@ -362,6 +362,7 @@ class Document():
 
     def add_bibtex(self, bibtex):
         """Add bibtex to document."""
+        self._make_docdir()
         bibentry = self._index_bibtex(bibtex)
         bibfile = self._write_bibfile(bibentry)
         return bibfile
