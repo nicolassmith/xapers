@@ -241,7 +241,7 @@ authors: %s
         try:
             print >>sys.stderr, "Syncing document...",
             doc.sync()
-            print >>sys.stderr, "done (id:%s)." % doc.docid
+            print >>sys.stderr, "done: id:%s" % doc.docid
         except:
             print >>sys.stderr, "\n"
             if not docid:
