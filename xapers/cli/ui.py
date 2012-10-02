@@ -155,7 +155,7 @@ authors: %s
 
         bibtex = None
         smod = None
-        if os.path.exists(source):
+        if source and os.path.exists(source):
             bibfile = source
             try:
                 print >>sys.stderr, "Reading bibtex...",
@@ -167,7 +167,7 @@ authors: %s
                 print >>sys.stderr, "\n"
                 raise
 
-        else:
+        elif source:
             print >>sys.stderr, "Parsing source: %s" % source
             smod = xapers.source.source_from_string(source)
             if not smod:
