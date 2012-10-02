@@ -36,13 +36,10 @@ def usage():
     prog = os.path.basename(sys.argv[0])
     print "Usage:", prog, "<command> [args...]"
     print """
-  add [options] file                          add file to database
-    --prompt
-    --tags=tag[,...]
-
-    --url=url
-    --source=source:sid                         sources for initial data
-    --bib=bibfile
+  add [options] [docid]                       add new document to database
+    --source=source                             specify source
+    --file=file                                 file to index
+    --tags=tag[,...]                            initial tags
   search [options] <search-term>...           search the database
     --output=[simple|bibtex|sources|tags]
     --limit=N
@@ -84,37 +81,30 @@ if __name__ == '__main__':
 
     ########################################
     if cmd == 'add':
-        data = {}
+        docid = None
+        tags = None
+        infile = None
         bibfile = None
-        prompt = False
 
         argc = 2
         while True:
             if argc >= len(sys.argv):
                 break
-            elif '--tags=' in sys.argv[argc]:
-                data['tags'] = sys.argv[argc].split('=',1)[1].split(',')
-
             elif '--source=' in sys.argv[argc]:
-                s,i = sys.argv[argc].split('=',1)[1].split(':',1)
-                data['sources'] = {s.lower(): i}
-            elif '--url=' in sys.argv[argc]:
-                data['url'] = sys.argv[argc].split('=',1)[1]
-
-            elif '--bib=' in sys.argv[argc]:
-                bibfile = sys.argv[argc].split('=',1)[1]
-
-            elif '--prompt' in sys.argv[argc]:
-                prompt = True
+                source = sys.argv[argc].split('=',1)[1]
+            elif '--file=' in sys.argv[argc]:
+                infile = sys.argv[argc].split('=',1)[1]
+            elif '--tags=' in sys.argv[argc]:
+                tags = sys.argv[argc].split('=',1)[1].split(',')
             else:
                 break
             argc += 1
 
         if argc >= len(sys.argv):
-            infile = None
+            docid = None
         else:
-            infile = sys.argv[argc]
-        cli.add(infile, data=data, bibfile=bibfile, prompt=prompt)
+            docid = sys.argv[argc]
+        cli.add(docid, infile=infile, source=source, tags=tags)
 
     ########################################
     elif cmd == 'delete':

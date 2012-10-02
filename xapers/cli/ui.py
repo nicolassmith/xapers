@@ -148,32 +148,15 @@ authors: %s
         return data
 
 
-    def add(self, infile, data=None, bibfile=None, prompt=False):
-        if not infile and 'url' not in data and 'source' not in data:
-            print >>sys.stderr, "Must specify file, url, or source:id to add."
+    def add(self, docid, infile=None, source=None, tags=None):
+        if not infile and not source:
+            print >>sys.stderr, "Must specify file or source to add."
             sys.exit(1)
 
-        # FIXME: better checks about input file before prompting
-
-        # find source object from specified source or url
-        source = None
-        if 'sources' in data:
-            for ss,ii in data['sources'].items():
-                break
-            print >>sys.stderr, "Loading source: %s:%s" % (ss,ii)
-            source = xapers.source.get_source(ss,ii)
-        elif 'url' in data:
-            # parse the url for source and sid
-            print >>sys.stderr, "Parsing url: %s" % data['url']
-            source = xapers.source.source_from_url(data['url'])
-
-        if not source:
-            print >>sys.stderr, 'No matching source module found.'
-
         bibtex = None
-        bdata = None
-
-        if bibfile:
+        smod = None
+        if os.path.exists(source):
+            bibfile = string
             try:
                 print >>sys.stderr, "Reading bibtex...",
                 f = open(bibfile, 'r')
@@ -183,19 +166,31 @@ authors: %s
             except:
                 print >>sys.stderr, "\n"
                 raise
-        elif source:
-            try:
-                print >>sys.stderr, "Retrieving bibtex...",
-                bibtex = source.get_bibtex()
-                print >>sys.stderr, "done."
-            except:
-                print >>sys.stderr, "\n"
-                raise
+
+        else:
+            print >>sys.stderr, "Parsing source: %s" % source
+            smod = xapers.source.source_from_string(source)
+            if not smod:
+                print >>sys.stderr, 'No matching source module found.'
+            else:
+                try:
+                    print >>sys.stderr, "Retrieving bibtex...",
+                    bibtex = smod.get_bibtex()
+                    print >>sys.stderr, "done."
+                except:
+                    print >>sys.stderr, "\n"
+                    raise
 
         # now make the document
         db = Database(self.xdir, writable=True, create=True)
 
-        doc = Document(db)
+        # if docid provided, update that doc, otherwise create a new one
+        if docid:
+            if docid.find('id:') == 0:
+                docid = docid.split(':')[1]
+            doc = db.doc_for_docid(docid)
+        else:
+            doc = Document(db)
 
         if infile:
             path = os.path.abspath(infile)
@@ -211,7 +206,9 @@ authors: %s
             #     sys.exit(1)
             except:
                 print >>sys.stderr, "\n"
-                doc.purge()
+                if not docid:
+                    print >>sys.stderr, "error, purging..."
+                    doc.purge()
                 raise
 
         if bibtex:
@@ -221,14 +218,22 @@ authors: %s
                 print >>sys.stderr, "done."
             except:
                 print >>sys.stderr, "\n"
-                doc.purge()
+                if not docid:
+                    print >>sys.stderr, "error, purging..."
+                    doc.purge()
                 raise
 
-        if 'sources' in data:
-            doc.add_sources(data['sources'])
-
-        if 'tags' in data:
-            doc.add_tags(data['tags'])
+        if tags:
+            try:
+                print >>sys.stderr, "Adding tags...",
+                doc.add_tags(tags)
+                print >>sys.stderr, "done."
+            except:
+                print >>sys.stderr, "\n"
+                if not docid:
+                    print >>sys.stderr, "error, purging..."
+                    doc.purge()
+                raise
 
         try:
             print >>sys.stderr, "Syncing document...",
@@ -236,7 +241,9 @@ authors: %s
             print >>sys.stderr, "done (id:%s)." % doc.docid
         except:
             print >>sys.stderr, "\n"
-            doc.purge()
+            if not docid:
+                print >>sys.stderr, "error, purging..."
+                doc.purge()
             raise
 
 
