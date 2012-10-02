@@ -15,9 +15,9 @@ def clean_bib_string(string):
 class Bibentry():
     def __init__(self, bibtex):
         parser = inparser.Parser(encoding='UTF-8')
-
-        stream = io.StringIO(bibtex.decode('UTF-8'))
+        stream = io.StringIO(unicode(bibtex))
         self.bibdata = parser.parse_stream(stream)
+        stream.close()
 
         self.key = self.bibdata.entries.keys()[0]
         self.entry = self.bibdata.entries.values()[0]
