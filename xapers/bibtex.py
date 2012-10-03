@@ -52,7 +52,7 @@ class Bibentry():
         writer.write_stream(self.bibdata, f)
         string = f.getvalue()
         f.close()
-        string = string.strip()
+        string = string.strip() + '\n'
         return string
 
 
