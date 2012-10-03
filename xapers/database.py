@@ -164,6 +164,7 @@ class Database():
         enquire.set_query(query)
 
         # FIXME: can set how the mset is ordered
+        # FIXME: prefer newer entries to older
         if limit > 0:
             mset = enquire.get_mset(0, limit)
         else:
