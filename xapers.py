@@ -36,13 +36,18 @@ def usage():
     prog = os.path.basename(sys.argv[0])
     print "Usage:", prog, "<command> [args...]"
     print """
-  add [options] [docid]                       add new document to database
+  add [options]                               add new document to database
     --source=source                             specify source
     --file=file                                 file to index
     --tags=tag[,...]                            initial tags
+  update [options] docid                      update document
+    --source=source                             specify source
+    --file=file                                 file to index
+
   search [options] <search-term>...           search the database
     --output=[simple|bibtex|sources|tags]
     --limit=N
+
   tag +tag|-tab [...] [--] <search-term>...   add/remove tags
   set <attribute> <value> <docid>             set a document attribute with value
     title
@@ -86,7 +91,6 @@ if __name__ == '__main__':
 
     ########################################
     if cmd == 'add':
-        docid = None
         tags = None
         infile = None
         source = None
@@ -105,11 +109,28 @@ if __name__ == '__main__':
                 break
             argc += 1
 
-        if argc >= len(sys.argv):
-            docid = None
-        else:
-            docid = sys.argv[argc]
-        cli.add(docid, infile=infile, source=source, tags=tags)
+        cli.add(None, infile=infile, source=source, tags=tags)
+
+    ########################################
+    elif cmd == 'update':
+        infile = None
+        source = None
+
+        argc = 2
+        while True:
+            if argc >= len(sys.argv):
+                break
+            elif '--source=' in sys.argv[argc]:
+                source = sys.argv[argc].split('=',1)[1]
+            elif '--file=' in sys.argv[argc]:
+                infile = sys.argv[argc].split('=',1)[1]
+            else:
+                break
+            argc += 1
+
+        docid = sys.argv[argc]
+
+        cli.add(docid, infile=infile, source=source)
 
     ########################################
     elif cmd == 'delete':
