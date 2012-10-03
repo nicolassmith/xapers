@@ -101,6 +101,7 @@ class Document():
 
     def sync(self):
         """Sync document to database."""
+        # FIXME: add value for modification time
         self.db.replace_document(self.docid, self.doc)
 
     def purge(self):
@@ -112,10 +113,6 @@ class Document():
 
     ########################################
     # internal stuff
-
-    # FIXME: should we add equivalent of
-    # _notmuch_message_ensure_metadata, that would extract fields from
-    # the xapian document?
 
     # add an individual prefix'd term for the document
     def _add_term(self, prefix, value):
@@ -299,7 +296,7 @@ class Document():
         pt = self.db._find_prefix('title')
         for term in self._get_terms(pt):
             self._remove_term(pt, term)
-        # FIXME: what the clean way all these prefixed terms?
+        # FIXME: what's the clean way to get these prefixes?
         for term in self._get_terms('ZS'):
             self._remove_term('ZS', term)
         self._gen_terms(pt, title)
@@ -309,7 +306,7 @@ class Document():
         pa = self.db._find_prefix('author')
         for term in self._get_terms(pa):
             self._remove_term(pa, term)
-        # FIXME: what the clean way all these prefixed terms?
+        # FIXME: what's the clean way to get these prefixes?
         for term in self._get_terms('ZA'):
             self._remove_term('ZA', term)
         self._gen_terms(pa, authors)
@@ -318,10 +315,6 @@ class Document():
     def _set_year(self, year):
         # FIXME: this should be a value
         pass
-        prefix = self.db._find_prefix('year')
-        for term in self._get_terms(prefix):
-            self._remove_term(prefix, term)
-        self._add_term(prefix, year)
 
     ########################################
     # bibtex
