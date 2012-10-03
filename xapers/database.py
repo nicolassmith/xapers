@@ -31,6 +31,7 @@ class Database():
         'id': 'Q',
         'bib': 'XBIB|',
         'source': 'XSOURCE|',
+        's': 'XSOURCE|',
         'tag': 'K',
 
         'year': 'Y',
@@ -38,7 +39,9 @@ class Database():
 
     PROBABILISTIC_PREFIX = {
         'title': 'S',
+        't': 'S',
         'author': 'A',
+        'a': 'A',
         }
 
     # FIXME: need to set the following value fields:
