@@ -63,6 +63,11 @@ class Bibentry():
         string = string.strip() + '\n'
         return string
 
+    def to_file(self, path):
+        """Write bib entry to bibtex file."""
+        writer = outparser.Writer()
+        writer.write_file(self.bibdata, path)
+
 
 def data2bib(data, key):
     """Convert data fields into a Bibentry object."""
