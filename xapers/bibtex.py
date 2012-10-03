@@ -16,6 +16,7 @@ def clean_bib_string(string):
 class Bibentry():
     def __init__(self, bibtex):
         parser = inparser.Parser(encoding='UTF-8')
+
         # can accept file or string
         if os.path.exists(bibtex):
             self.bibdata = parser.parse_file(bibtex)
@@ -26,6 +27,10 @@ class Bibentry():
 
         self.key = self.bibdata.entries.keys()[0]
         self.entry = self.bibdata.entries.values()[0]
+
+        # how to make bibdata from key/entry:
+        # bibdata = pybtex.database.BibliographyData()
+        # bibdata.add_entry(self.key, self.entry)
 
     def get_authors(self):
         """Return a list of authors."""
@@ -50,8 +55,6 @@ class Bibentry():
 
     def as_string(self):
         """Return entry as formatted bibtex string."""
-        bibdata = pybtex.database.BibliographyData()
-        bibdata.add_entry(self.key, self.entry)
         writer = outparser.Writer()
         f = io.StringIO()
         writer.write_stream(self.bibdata, f)
