@@ -358,12 +358,8 @@ class Document():
         self._set_bibkey(bibentry.key)
 
     def _write_bibfile(self, bibentry):
-        bibfile = self.get_bibpath()
-        f = open(bibfile, 'w')
-        f.write(bibentry.as_string())
-        f.write('\n')
-        f.close()
-        return bibfile
+        bibpath = self.get_bibpath()
+        bibentry.to_file(bibpath)
 
     def add_bibtex(self, bibtex):
         """Add bibtex to document."""
@@ -373,24 +369,15 @@ class Document():
         bibfile = self._write_bibfile(bibentry)
         return bibfile
 
-    def _get_bibtex_raw(self):
-        bibpath = self.get_bibpath()
-        if not os.path.exists(bibpath):
-            return
-        f = open(bibpath, 'r')
-        bibtex = f.read()
-        f.close()
-        return bibtex.strip()
-
     def _get_bibentry(self):
-        bibtex = self._get_bibtex_raw()
-        if bibtex:
-            return xapers.bibtex.Bibentry(bibtex)
+        bibpath = self.get_bibpath()
+        if os.path.exists(bibpath):
+            return xapers.bibtex.Bibentry(bibpath)
         else:
             return None
 
     def get_bibtex(self):
-        """Get the bibtex for document."""
+        """Get the bib for document as a bibtex string."""
         bibentry = self._get_bibentry()
         if bibentry:
             return bibentry.as_string()
@@ -398,7 +385,7 @@ class Document():
             return None
 
     def get_bibdata(self):
-        """Get the bib data dict for document."""
+        """Get the bib for document as a dict."""
         bibentry = self._get_bibentry()
         if bibentry:
             return bibentry.get_data()
