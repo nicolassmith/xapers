@@ -148,7 +148,7 @@ if __name__ == '__main__':
             sys.exit()
 
     ########################################
-    elif cmd == ['select','view','show']:
+    elif cmd in ['select', 'view', 'show']:
         query = make_query_string(sys.argv[2:])
         if not query or query == '':
             query = '*'
@@ -207,6 +207,6 @@ if __name__ == '__main__':
 
     ########################################
     else:
-        print >>sys.stderr, "unknown sub command:", cmd
+        print >>sys.stderr, "unknown sub command '%s'." % cmd
         usage()
         sys.exit(1)
