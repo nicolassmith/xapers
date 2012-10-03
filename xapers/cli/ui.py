@@ -149,8 +149,8 @@ authors: %s
 
 
     def add(self, docid, infile=None, source=None, tags=None):
-        if not infile and not source:
-            print >>sys.stderr, "Must specify file or source to add."
+        if not docid and not infile and not source:
+            print >>sys.stderr, "Must specify file or source to import, or docid to update."
             sys.exit(1)
 
         bibtex = None
@@ -199,6 +199,7 @@ authors: %s
             path = os.path.abspath(infile)
             try:
                 print >>sys.stderr, "Adding file '%s'..." % (path),
+                # FIXME: what to do if file already exists for document?
                 doc.add_file(path)
                 print >>sys.stderr, "done."
             # except IllegalImportPath:
@@ -224,6 +225,14 @@ authors: %s
                 if not docid:
                     print >>sys.stderr, "error, purging..."
                     doc.purge()
+                raise
+        elif docid:
+            try:
+                print >>sys.stderr, "Updating bibtex...",
+                doc.update_from_bibtex()
+                print >>sys.stderr, "done."
+            except:
+                print >>sys.stderr, "\n"
                 raise
 
         if tags:
