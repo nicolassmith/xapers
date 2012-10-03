@@ -327,6 +327,7 @@ class Document():
     # bibtex
 
     def get_bibpath(self):
+        """Return path to document bibtex file."""
         return os.path.join(self.root, self.docdir, 'bibtex')
 
     def _set_bibkey(self, key):
@@ -335,13 +336,14 @@ class Document():
             self._remove_term(prefix, term)
         self._add_term(prefix, key)
 
-    def _index_bibtex(self, bibtex):
-        bibentry = xapers.bibtex.Bibentry(bibtex)
+    def _index_bibtex(self, bibentry):
         data = bibentry.get_data()
         if 'title' in data:
             self._set_title(data['title'])
-        if 'author' in data:
-            self._set_authors(data['author'])
+        if 'authors' in data:
+            # authors field should be a list, so we make a text string
+            # FIXME: do this better
+            self._set_authors(' '.join(data['authors']))
         if 'year' in data:
             self._set_year(data['year'])
 
@@ -354,7 +356,6 @@ class Document():
             self.add_sources({'arxiv': data['eprint']})
 
         self._set_bibkey(bibentry.key)
-        return bibentry
 
     def _write_bibfile(self, bibentry):
         bibfile = self.get_bibpath()
@@ -367,11 +368,12 @@ class Document():
     def add_bibtex(self, bibtex):
         """Add bibtex to document."""
         self._make_docdir()
-        bibentry = self._index_bibtex(bibtex)
+        bibentry = xapers.bibtex.Bibentry(bibtex)
+        self._index_bibtex(bibentry)
         bibfile = self._write_bibfile(bibentry)
         return bibfile
 
-    def get_bibtex(self):
+    def _get_bibtex_raw(self):
         bibpath = self.get_bibpath()
         if not os.path.exists(bibpath):
             return
@@ -380,15 +382,24 @@ class Document():
         f.close()
         return bibtex.strip()
 
-    def get_bibentry(self):
-        bibtex = self.get_bibtex()
+    def _get_bibentry(self):
+        bibtex = self._get_bibtex_raw()
         if bibtex:
             return xapers.bibtex.Bibentry(bibtex)
         else:
             return None
 
+    def get_bibtex(self):
+        """Get the bibtex for document."""
+        bibentry = self._get_bibentry()
+        if bibentry:
+            return bibentry.as_string()
+        else:
+            return None
+
     def get_bibdata(self):
-        bibentry = self.get_bibentry()
+        """Get the bib data dict for document."""
+        bibentry = self._get_bibentry()
         if bibentry:
             return bibentry.get_data()
         else:
