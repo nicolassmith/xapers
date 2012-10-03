@@ -72,7 +72,7 @@ if __name__ == '__main__':
     cli = xapers.cli.UI(xdir)
 
     ########################################
-    if cmd == 'add':
+    if cmd in ['add','a']:
         tags = None
         infile = None
         source = None
@@ -94,7 +94,7 @@ if __name__ == '__main__':
         cli.add(None, infile=infile, source=source, tags=tags)
 
     ########################################
-    elif cmd == 'update':
+    elif cmd in ['update','u']:
         infile = None
         source = None
 
@@ -127,7 +127,7 @@ if __name__ == '__main__':
         print >>sys.stderr, "not implemented."
 
     ########################################
-    elif cmd == 'search':
+    elif cmd in ['search','s']:
         if len(sys.argv) < 3:
             print >>sys.stderr, "Must specify a search term."
             sys.exit()
@@ -152,14 +152,14 @@ if __name__ == '__main__':
             sys.exit()
 
     ########################################
-    elif cmd in ['select', 'view', 'show']:
+    elif cmd in ['select','view','v','show']:
         query = make_query_string(sys.argv[2:])
         if not query or query == '':
             query = '*'
         xapers.selector.UI(xdir, 'search', query)
 
     ########################################
-    elif cmd == 'tag':
+    elif cmd in ['tag','t']:
         add_tags = []
         remove_tags = []
 
@@ -190,7 +190,7 @@ if __name__ == '__main__':
         cli.count(query)
 
     ########################################
-    elif cmd == 'source2bib':
+    elif cmd in ['source2bib','s2b']:
         string = sys.argv[2]
         import xapers.source
         bibtex = xapers.source.fetch_bibtex(string)
@@ -205,7 +205,7 @@ if __name__ == '__main__':
         print "Ha!"
 
     ########################################
-    elif cmd == 'help':
+    elif cmd in ['help','h']:
         usage()
         sys.exit(0)
 
