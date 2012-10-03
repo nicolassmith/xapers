@@ -115,6 +115,10 @@ if __name__ == '__main__':
         cli.add(docid, infile=infile, source=source)
 
     ########################################
+    elif cmd == 'update-all':
+        cli.update_all()
+
+    ########################################
     elif cmd == 'delete':
         cli.delete(make_query_string(sys.argv[2:]))
 

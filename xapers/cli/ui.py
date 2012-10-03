@@ -228,7 +228,7 @@ authors: %s
                 raise
         elif docid:
             try:
-                print >>sys.stderr, "Updating bibtex...",
+                print >>sys.stderr, "Updating from bibtex...",
                 doc.update_from_bibtex()
                 print >>sys.stderr, "done."
             except:
@@ -273,6 +273,19 @@ authors: %s
             sys.exit(1)
         doc._rm_docdir()
         db.delete_document(docid)
+
+
+    def update_all(self):
+        db = Database(self.xdir, writable=True)
+        for doc in db.search('*', limit=0):
+            try:
+                print >>sys.stderr, "Updating %s..." % doc.docid,
+                doc.update_from_bibtex()
+                doc.sync()
+                print >>sys.stderr, "done."
+            except:
+                print >>sys.stderr, "\n"
+                raise
 
 
     def search(self, query_string, oformat='simple', limit=20):
