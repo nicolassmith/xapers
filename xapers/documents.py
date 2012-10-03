@@ -413,8 +413,11 @@ class Document():
     ########################################
 
     def get_url(self):
+        """Get the URL from document bibtex."""
         bibdata = self.get_bibdata()
         if 'url' in bibdata:
             return bibdata['url']
+        if 'adsurl' in bibdata:
+            return bibdata['adsurl']
         else:
             return None
