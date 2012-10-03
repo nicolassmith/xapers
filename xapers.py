@@ -5,27 +5,8 @@ import sys
 import xapers
 
 ########################################################################
-# TODO:
 
-# source fetch modules
-#  - url parser
-#  - bibtex fetch
-
-# doc parser modules
-
-# better atomic opening of database
-
-# store bibtex in data
-#   - want add_bibtex function, that parses the bibtex to add terms:
-#     - author
-#     - title
-#     - pub date
-#   - add ability to modify data for document
-#   - dump file --> dump directories, in git!
-
-########################################################################
-
-# Combine a list of terms with spaces between, so that simple queries
+# combine a list of terms with spaces between, so that simple queries
 # don't have to be quoted at the shell level.
 def make_query_string(terms):
     return str.join(' ', terms)
@@ -36,35 +17,36 @@ def usage():
     prog = os.path.basename(sys.argv[0])
     print "Usage:", prog, "<command> [args...]"
     print """
-  add [options]                               add new document to database
+  add [options]                               add new document
     --source=source                             specify source
     --file=file                                 file to index
     --tags=tag[,...]                            initial tags
   update [options] docid                      update document
     --source=source                             specify source
     --file=file                                 file to index
+  delete docid                                delete document from database
 
-  search [options] <search-term>...           search the database
-    --output=[simple|bibtex|sources|tags]
-    --limit=N
+  tag +tag|-tab [...] [--] search-terms...    add/remove tags
 
-  tag +tag|-tab [...] [--] <search-term>...   add/remove tags
-  set <attribute> <value> <docid>             set a document attribute with value
-    title
-    authors
-    year
-    file
-  show <search-term>...                       display first result
-  count <search-term>...                      count matches
-  dump [<search-terms>...]                    dump tags to stdout
-  restore                                     restore dump file on stdin
+  search [options] search-term...             search the database
+    --output=[simple|bibtex|sources|tags]       output format
+    --limit=N                                   limit number returned (20) 
+  view search-term...                         view search in selector UI
+  count search-term...                        count matches
 
   source2bib source                           retrieve bibtex for source
 
   version
   help                                        this help
 
-sources: sources can be either urls, or 'source:id' strings.
+sources: sources can be either urls, or 'source:id' strings, or bibtex files.
+search-terms: terms to search for, included prefixed terms:
+  id:        document id
+  source:    source type
+  bib:       bibtex db entry key
+  author:    author string
+  title:     title string
+  tag:       user tags
 """
 
 if __name__ == '__main__':
@@ -166,21 +148,11 @@ if __name__ == '__main__':
             sys.exit()
 
     ########################################
-    elif cmd == 'select':
+    elif cmd == ['select','view','show']:
         query = make_query_string(sys.argv[2:])
         if not query or query == '':
             query = '*'
         xapers.selector.UI(xdir, 'search', query)
-
-    ########################################
-    elif cmd == 'edit':
-        query = make_query_string(sys.argv[2:])
-        xapers.selector.UI(xdir, 'edit', query)
-
-    ########################################
-    elif cmd in ['view','show']:
-        query = make_query_string(sys.argv[2:])
-        cli.view(query)
 
     ########################################
     elif cmd == 'tag':

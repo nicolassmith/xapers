@@ -340,10 +340,3 @@ authors: %s
         db = Database(self.xdir)
         count = db.count(query_string)
         print count
-
-    def view(self, query_string):
-        db = Database(self.xdir)
-        for doc in db.search(query_string):
-            path = doc.get_fullpaths()[0]
-            call(' '.join(["okular", path]) + ' &', shell=True, stderr=open('/dev/null','w'))
-            break
