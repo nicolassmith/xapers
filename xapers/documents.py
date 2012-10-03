@@ -405,6 +405,11 @@ class Document():
         else:
             return None
 
+    def update_from_bibtex(self):
+        """Update document metadata from document bibtex."""
+        bibentry = self._get_bibentry()
+        self._index_bibtex(bibentry)
+
     ########################################
 
     def get_url(self):
