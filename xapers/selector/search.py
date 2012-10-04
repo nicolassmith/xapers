@@ -23,9 +23,10 @@ class DocListItem(urwid.WidgetWrap):
             if 'title' in data:
                 self.title = urwid.Text(data['title'])
             if 'authors' in data:
+                # astring = ' and '.join(data['authors'])
                 astring = ' and '.join(data['authors'][:10])
                 if len(data['authors']) > 10:
-                    astring = astring + ' et. al.'
+                    astring = astring + ' et al.'
                 self.authors = urwid.Text(astring)
             if 'year' in data:
                 self.year = urwid.Text(data['year'])
