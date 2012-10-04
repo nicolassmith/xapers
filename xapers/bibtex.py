@@ -14,23 +14,24 @@ def clean_bib_string(string):
 
 
 class Bibentry():
-    def __init__(self, bibtex):
-        parser = inparser.Parser(encoding='UTF-8')
-
-        # can accept file or string
-        if os.path.exists(bibtex):
-            self.bibdata = parser.parse_file(bibtex)
+    def __init__(self, bibtex=None, entry=None, key=None):
+        if entry and key:
+            self.entry = entry
+            self.key = key
+        elif bibtex:
+            parser = inparser.Parser(encoding='UTF-8')
+            if os.path.exists(bibtex):
+                self.bibdata = parser.parse_file(bibtex)
+            else:
+                stream = io.StringIO(unicode(bibtex))
+                self.bibdata = parser.parse_stream(stream)
+                stream.close()
+            self.key = self.bibdata.entries.keys()[0]
+            self.entry = self.bibdata.entries.values()[0]
         else:
-            stream = io.StringIO(unicode(bibtex))
-            self.bibdata = parser.parse_stream(stream)
-            stream.close()
+            # FIXME: do something here?
+            pass
 
-        self.key = self.bibdata.entries.keys()[0]
-        self.entry = self.bibdata.entries.values()[0]
-
-        # how to make bibdata from key/entry:
-        # bibdata = pybtex.database.BibliographyData()
-        # bibdata.add_entry(self.key, self.entry)
 
     def get_authors(self):
         """Return a list of authors."""
