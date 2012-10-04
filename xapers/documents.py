@@ -329,24 +329,25 @@ class Document():
             self._remove_term(prefix, term)
         self._add_term(prefix, key)
 
-    def _index_bibtex(self, bibentry):
-        data = bibentry.get_data()
-        if 'title' in data:
-            self._set_title(data['title'])
-        if 'authors' in data:
-            # authors field should be a list, so we make a text string
-            # FIXME: do this better
-            self._set_authors(' '.join(data['authors']))
-        if 'year' in data:
-            self._set_year(data['year'])
+    def _index_bib(self, bibentry):
+        authors = bibentry.get_authors()
+        fields = bibentry.get_fields()
+        if 'title' in fields:
+            self._set_title(fields['title'])
+        if 'year' in fields:
+            self._set_year(fields['year'])
+        if authors:
+            # authors should be a list, so we make a single text string
+            # FIXME: better way to do this?
+            self._set_authors(' '.join(authors))
 
         # FIXME: do this better for arbitrary source
         for source in ['doi', 'dcc', 'arxiv', 'ads']:
-            if source in data:
-                self.add_sources({source: data[source]})
+            if source in fields:
+                self.add_sources({source: fields[source]})
 
-        if 'eprint' in data:
-            self.add_sources({'arxiv': data['eprint']})
+        if 'eprint' in fields:
+            self.add_sources({'arxiv': fields['eprint']})
 
         self._set_bibkey(bibentry.key)
 
@@ -358,7 +359,7 @@ class Document():
         """Add bibtex to document."""
         self._make_docdir()
         bibentry = xapers.bibtex.Bibentry(bibtex)
-        self._index_bibtex(bibentry)
+        self._index_bib(bibentry)
         bibfile = self._write_bibfile(bibentry)
         return bibfile
 
@@ -378,10 +379,11 @@ class Document():
             return None
 
     def get_bibdata(self):
-        """Get the bib for document as a dict."""
         bibentry = self._get_bibentry()
         if bibentry:
-            return bibentry.get_data()
+            data = bibentry.get_fields()
+            data['authors'] = bibentry.get_authors()
+            return data
         else:
             return None
 
@@ -394,10 +396,11 @@ class Document():
 
     def get_url(self):
         """Get the URL from document bibtex."""
-        bibdata = self.get_bibdata()
-        if 'url' in bibdata:
-            return bibdata['url']
-        if 'adsurl' in bibdata:
-            return bibdata['adsurl']
+        bibentry = self._get_bibentry()
+        fields = bibentry.get_fields()
+        if 'url' in fields:
+            return fields['url']
+        if 'adsurl' in fields:
+            return fields['adsurl']
         else:
             return None
