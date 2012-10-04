@@ -1,6 +1,7 @@
 import os
 import sys
 import io
+import json
 import pybtex
 from pybtex.core import Entry, Person
 from pybtex.bibtex.utils import split_name_list
@@ -101,4 +102,34 @@ def data2bib(data, key):
     return Bibentry(entry=entry, key=key)
 
 
+def json2bib(jsonstring, key):
+    """Convert a json string into a Bibentry object."""
 
+    if not json:
+        return
+
+    data = json.loads(jsonstring)
+
+    # FIXME: determine this somehow
+    btype = 'article'
+
+    # need to remove authors field from data
+    authors = None
+    if 'author' in data:
+        authors = data['author']
+        del data['author']
+
+    if 'issued' in data:
+        data['year'] = str(data['issued']['date-parts'][0][0])
+        del data['issued']
+
+    # delete other problematic fields
+    del data['editor']
+
+    entry = Entry(btype, fields=data)
+
+    if authors:
+        for author in authors:
+            entry.add_person(Person(first=author['given'], last=author['family']), 'author')
+
+    return Bibentry(entry=entry, key=key)
