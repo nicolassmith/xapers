@@ -53,12 +53,6 @@ class Bibentry():
             fields[field] = unicode(clean_bib_string(bibfields[field]))
         return fields
 
-    def get_data(self):
-        """Return entire entry as a dict."""
-        data = self.get_fields()
-        data['authors'] = self.get_authors()
-        return data
-
     def as_string(self):
         """Return entry as formatted bibtex string."""
         writer = outparser.Writer()
