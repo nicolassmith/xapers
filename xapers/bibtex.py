@@ -8,6 +8,7 @@ from pybtex.bibtex.utils import split_name_list
 from pybtex.database.input import bibtex as inparser
 from pybtex.database.output import bibtex as outparser
 
+
 def clean_bib_string(string):
     for char in ['{', '}']:
         string = string.replace(char,'')
@@ -46,8 +47,10 @@ class Bibentry():
         return authors
 
     def get_fields(self):
-        """Return a dict of entry fields."""
+        """Return a dict of non-author fields."""
         bibfields = self.entry.fields
+        # entry.fields is actually already a dict, but we want to
+        # clean the strings first
         fields = {}
         for field in bibfields:
             fields[field] = unicode(clean_bib_string(bibfields[field]))
@@ -70,7 +73,7 @@ class Bibentry():
 
 
 def data2bib(data, key):
-    """Convert data fields into a Bibentry object."""
+    """Convert a python dict into a Bibentry object."""
 
     if not data:
         return
