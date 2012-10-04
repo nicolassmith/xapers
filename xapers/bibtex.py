@@ -32,6 +32,10 @@ class Bibentry():
             # FIXME: do something here?
             pass
 
+    def _entry2db(self):
+        db = pybtex.database.BibliographyData()
+        db.add_entry(self.key, self.entry)
+        return db
 
     def get_authors(self):
         """Return a list of authors."""
@@ -58,16 +62,16 @@ class Bibentry():
         """Return entry as formatted bibtex string."""
         writer = outparser.Writer()
         f = io.StringIO()
-        writer.write_stream(self.bibdata, f)
+        writer.write_stream(self._entry2db(), f)
         string = f.getvalue()
         f.close()
         string = string.strip() + '\n'
         return string
 
     def to_file(self, path):
-        """Write bib entry to bibtex file."""
+        """Write entry bibtex to file."""
         writer = outparser.Writer()
-        writer.write_file(self.bibdata, path)
+        writer.write_file(self._entry2db(), path)
 
 
 def data2bib(data, key):
@@ -94,16 +98,7 @@ def data2bib(data, key):
         for p in authors:
             entry.add_person(Person(p), 'author')
 
-    # make a full bibdb with the single entry
-    bibdata = pybtex.database.BibliographyData()
-    bibdata.add_entry(key, entry)
+    return Bibentry(entry=entry, key=key)
 
-    # FIXME: how do we make this output {}-wrapped fields?
-    writer = outparser.Writer()
 
-    # now write the db to a bibtex entry string
-    f = io.StringIO()
-    writer.write_stream(bibdata, f)
-    text = f.getvalue()
-    f.close()
-    return Bibentry(text)
+
