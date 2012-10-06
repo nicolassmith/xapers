@@ -63,7 +63,7 @@ class Bibentry():
         writer.write_stream(self._entry2db(), f)
         string = f.getvalue()
         f.close()
-        string = string.strip() + '\n'
+        string = string.strip()
         return string
 
     def to_file(self, path):
