@@ -152,6 +152,19 @@ if __name__ == '__main__':
             sys.exit()
 
     ########################################
+    elif cmd in ['bibtex','bib','b']:
+        if len(sys.argv) < 3:
+            print >>sys.stderr, "Must specify a search term."
+            sys.exit()
+
+        argc = 2
+        query = make_query_string(sys.argv[argc:])
+        try:
+            cli.search(query, oformat='bibtex')
+        except KeyboardInterrupt:
+            sys.exit()
+
+    ########################################
     elif cmd in ['select','view','v','show']:
         query = make_query_string(sys.argv[2:])
         if not query or query == '':
