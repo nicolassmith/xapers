@@ -289,7 +289,7 @@ authors: %s
                 raise
 
 
-    def search(self, query_string, oformat='simple', limit=20):
+    def search(self, query_string, oformat='simple', limit=None):
         db = Database(self.xdir, writable=False)
 
         # FIXME: writing needs to be in a try to catch IOError

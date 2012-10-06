@@ -154,7 +154,7 @@ class Database():
     ########################################
 
     # search for documents based on query string
-    def _search(self, query_string, limit=0):
+    def _search(self, query_string, limit=None):
         enquire = xapian.Enquire(self.xapian)
 
         if query_string == "*":
@@ -168,7 +168,7 @@ class Database():
 
         # FIXME: can set how the mset is ordered
         # FIXME: prefer newer entries to older
-        if limit > 0:
+        if limit:
             mset = enquire.get_mset(0, limit)
         else:
             mset = enquire.get_mset(0, self.xapian.get_doccount())
