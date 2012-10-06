@@ -390,7 +390,7 @@ class Document():
     def update_from_bibtex(self):
         """Update document metadata from document bibtex."""
         bibentry = self._get_bibentry()
-        self._index_bibtex(bibentry)
+        self._index_bib(bibentry)
 
     ########################################
 
