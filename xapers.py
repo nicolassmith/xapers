@@ -21,6 +21,7 @@ def usage():
     --source=source                             specify source
     --file=file                                 file to index
     --tags=tag[,...]                            initial tags
+    --prompt                                    prompt for any unsupplied info
   update [options] docid                      update document
     --source=source                             specify source
     --file=file                                 file to index
@@ -28,11 +29,12 @@ def usage():
 
   tag +tag|-tab [...] [--] search-terms...    add/remove tags
 
-  search [options] search-term...             search the database
+  search [options] search-terms...            search the database
     --output=[simple|bibtex|sources|tags]       output format
     --limit=N                                   limit number returned (20) 
-  view search-term...                         view search in selector UI
-  count search-term...                        count matches
+  bibtex search-terms...                      search --output=bibtex
+  view search-terms...                        view search in selector UI
+  count search-terms...                       count matches
 
   source2bib source                           retrieve bibtex for source
 
@@ -76,6 +78,7 @@ if __name__ == '__main__':
         tags = None
         infile = None
         source = None
+        prompt = False
 
         argc = 2
         while True:
@@ -87,11 +90,13 @@ if __name__ == '__main__':
                 infile = sys.argv[argc].split('=',1)[1]
             elif '--tags=' in sys.argv[argc]:
                 tags = sys.argv[argc].split('=',1)[1].split(',')
+            elif '--prompt' in sys.argv[argc]:
+                prompt = True
             else:
                 break
             argc += 1
 
-        cli.add(None, infile=infile, source=source, tags=tags)
+        cli.add(None, infile=infile, source=source, tags=tags, prompt=prompt)
 
     ########################################
     elif cmd in ['update','u']:

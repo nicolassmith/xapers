@@ -51,6 +51,39 @@ class UI():
         self.xdir = xdir
         self.xdb = os.path.join(self.xdir, '.xapers')
 
+    def prompt_add_simple(self, infile, source, tags):
+        db = Database(self.xdir, writable=False)
+
+        if not infile:
+            readline.set_startup_hook()
+            readline.parse_and_bind('')
+            readline.set_completer()
+            infile = raw_input('file: ')
+            if infile == '':
+                infile = None
+
+        if not source:
+            isources = db.get_terms('source')
+            readline.set_startup_hook()
+            readline.parse_and_bind("tab: complete")
+            completer = Completer(isources)
+            readline.set_completer(completer.terms)
+            source = raw_input('source: ')
+            if source == '':
+                source = None
+
+        if not tags:
+            itags = db.get_terms('tag')
+            readline.set_startup_hook()
+            readline.parse_and_bind("tab: complete")
+            completer = Completer(itags)
+            readline.set_completer(completer.terms)
+            tags = raw_input('tags: ')
+            if tags == '':
+                tags = None
+
+        return infile, source, tags
+
     # prompt user for document metadata
     def prompt_for_metadata(self, data):
         isources = None
@@ -148,7 +181,10 @@ authors: %s
         return data
 
 
-    def add(self, docid, infile=None, source=None, tags=None):
+    def add(self, docid, infile=None, source=None, tags=None, prompt=False):
+        if prompt:
+            infile, source, tags = self.prompt_add_simple(infile, source, tags)
+
         if not docid and not infile and not source:
             print >>sys.stderr, "Must specify file or source to import, or docid to update."
             sys.exit(1)
