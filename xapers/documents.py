@@ -74,14 +74,14 @@ class Document():
         # if Xapian doc provided, initiate for that document
         if doc:
             self.doc = doc
-            self.docid = doc.get_docid()
+            self.docid = str(doc.get_docid())
             self.path = self._get_terms(self.db._find_prefix('file'))
 
         # else, create a new empty document
         # document won't be added to database until sync is called
         else:
             self.doc = xapian.Document()
-            self.docid = self.db._generate_docid()
+            self.docid = str(self.db._generate_docid())
             self._add_term(self.db._find_prefix('id'), self.docid)
 
         # specify a directory in the Xapers root for document data
