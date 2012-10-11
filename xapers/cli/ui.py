@@ -295,6 +295,8 @@ authors: %s
                 doc.purge()
             raise
 
+        return doc.docid
+
 
     def delete(self, docid):
         if docid.find('id:') == 0:
