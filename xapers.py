@@ -21,7 +21,8 @@ def usage():
     --source=source                             specify source
     --file=file                                 file to index
     --tags=tag[,...]                            initial tags
-    --prompt                                    prompt for any unsupplied info
+    --prompt                                    prompt for unspecified options
+    --view                                      view entry after adding
   update [options] docid                      update document
     --source=source                             specify source
     --file=file                                 file to index
@@ -79,6 +80,7 @@ if __name__ == '__main__':
         infile = None
         source = None
         prompt = False
+        view = False
 
         argc = 2
         while True:
@@ -92,11 +94,15 @@ if __name__ == '__main__':
                 tags = sys.argv[argc].split('=',1)[1].split(',')
             elif '--prompt' in sys.argv[argc]:
                 prompt = True
+            elif '--view' in sys.argv[argc]:
+                view = True
             else:
                 break
             argc += 1
 
-        cli.add(None, infile=infile, source=source, tags=tags, prompt=prompt)
+        docid = cli.add(None, infile=infile, source=source, tags=tags, prompt=prompt)
+        if view and docid:
+            xapers.selector.UI(xdir, 'search', 'id:'+docid)
 
     ########################################
     elif cmd in ['update','u']:
