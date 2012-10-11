@@ -110,6 +110,7 @@ class Document():
         except xapian.DocNotFoundError:
             pass
         self._rm_docdir()
+        self.docid = None
 
     ########################################
     # internal stuff
