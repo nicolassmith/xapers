@@ -78,9 +78,12 @@ class UI():
             readline.parse_and_bind("tab: complete")
             completer = Completer(itags)
             readline.set_completer(completer.terms)
-            tags = raw_input('tags: ')
-            if tags == '':
-                tags = None
+            while True:
+                tag = raw_input('tag: ')
+                if tag and tag != '':
+                    tags.append(tag.strip())
+                else:
+                    break
 
         return infile, source, tags
 
