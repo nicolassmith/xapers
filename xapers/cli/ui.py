@@ -54,7 +54,9 @@ class UI():
     def prompt_add_simple(self, infile, source, tags):
         db = Database(self.xdir, writable=False)
 
-        if not infile:
+        if infile:
+            print >>sys.stderr, 'file: %s' % infile
+        else:
             readline.set_startup_hook()
             readline.parse_and_bind('')
             readline.set_completer()
@@ -62,7 +64,9 @@ class UI():
             if infile == '':
                 infile = None
 
-        if not source:
+        if source:
+            print >>sys.stderr, 'source: %s' % source
+        else:
             isources = db.get_terms('source')
             readline.set_startup_hook()
             readline.parse_and_bind("tab: complete")
@@ -72,7 +76,9 @@ class UI():
             if source == '':
                 source = None
 
-        if not tags:
+        if tags:
+            print >>sys.stderr, 'tags: %s' % ' '.join(tags)
+        else:
             itags = db.get_terms('tag')
             readline.set_startup_hook()
             readline.parse_and_bind("tab: complete")
