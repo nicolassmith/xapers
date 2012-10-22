@@ -179,7 +179,7 @@ if __name__ == '__main__':
     elif cmd in ['select','view','v','show']:
         query = make_query_string(sys.argv[2:])
         if not query or query == '':
-            query = '*'
+            query = 'tag:inbox'
         try:
             xapers.selector.UI(xdir, 'search', query)
         except KeyboardInterrupt:
