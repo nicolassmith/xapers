@@ -123,7 +123,10 @@ class Document():
     # remove an individual prefix'd term for the document
     def _remove_term(self, prefix, value):
         term = '%s%s' % (prefix, value)
-        self.doc.remove_term(term)
+        try:
+            self.doc.remove_term(term)
+        except xapian.InvalidArgumentError:
+            pass
 
     # Parse 'text' and add a term to 'message' for each parsed
     # word. Each term will be added both prefixed (if prefix_name is
