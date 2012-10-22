@@ -76,21 +76,22 @@ class UI():
             if source == '':
                 source = None
 
+        # always prompt for tags, and append to initial
         if tags:
             print >>sys.stderr, 'tags: %s' % ' '.join(tags)
         else:
-            itags = db.get_terms('tag')
-            readline.set_startup_hook()
-            readline.parse_and_bind("tab: complete")
-            completer = Completer(itags)
-            readline.set_completer(completer.terms)
             tags = []
-            while True:
-                tag = raw_input('tag: ')
-                if tag and tag != '':
-                    tags.append(tag.strip())
-                else:
-                    break
+        itags = db.get_terms('tag')
+        readline.set_startup_hook()
+        readline.parse_and_bind("tab: complete")
+        completer = Completer(itags)
+        readline.set_completer(completer.terms)
+        while True:
+            tag = raw_input('tag: ')
+            if tag and tag != '':
+                tags.append(tag.strip())
+            else:
+                break
 
         return infile, source, tags
 
