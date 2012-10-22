@@ -398,6 +398,16 @@ class Document():
 
     ########################################
 
+    def get_title(self):
+        """Get the title from document bibtex."""
+        bibentry = self._get_bibentry()
+        if not bibentry:
+            return None
+        fields = bibentry.get_fields()
+        if 'title' in fields:
+            return fields['title']
+        return None
+
     def get_url(self):
         """Get the URL from document bibtex."""
         bibentry = self._get_bibentry()
