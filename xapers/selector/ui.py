@@ -63,6 +63,11 @@ class UI():
             message = '%s' % (text)
         self.view.set_footer(urwid.AttrWrap(urwid.Text(message), 'footer'))
 
+    def set_prompt(self, prompt):
+        # prompt is an Edit object
+        self.view.set_footer(urwid.AttrWrap(prompt, 'prompt'))
+        self.view.set_focus('footer')
+
     def keypress(self, key):
         if key is 's':
             return
