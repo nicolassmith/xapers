@@ -175,15 +175,14 @@ class Search(urwid.WidgetWrap):
                         stderr=open('/dev/null','w'))
 
     def search(self):
-        prompt = 'search: '
-        self.foot = CustomEdit(prompt)
-        self.ui.view.set_footer(self.foot)
-        self.ui.view.set_focus('footer')
-        urwid.connect_signal(self.foot, 'done', self.search_done)
+        msg = 'search: '
+        self.prompt = CustomEdit(msg)
+        self.ui.set_prompt(self.prompt)
+        urwid.connect_signal(self.prompt, 'done', self.search_done)
 
     def search_done(self, query):
         self.ui.view.set_focus('body')
-        urwid.disconnect_signal(self, self.foot, 'done', self.search_done)
+        urwid.disconnect_signal(self, self.prompt, 'done', self.search_done)
         cmd = Search(self.ui, query)
         self.ui.view = urwid.Frame(urwid.AttrWrap(cmd, 'body'))
         self.ui.mainloop = urwid.MainLoop(
@@ -198,17 +197,16 @@ class Search(urwid.WidgetWrap):
         # focus = self.listbox.get_focus()[0]
         # tags = focus.tags
         if sign is '+':
-            prompt = 'add tag: '
+            msg = 'add tag: '
         elif sign is '-':
-            prompt = 'remove tag: '
-        self.foot = CustomEdit(prompt)
-        self.ui.view.set_footer(self.foot)
-        self.ui.view.set_focus('footer')
-        urwid.connect_signal(self.foot, 'done', self.tag_done, sign)
+            msg = 'remove tag: '
+        self.prompt = CustomEdit(msg)
+        self.ui.set_prompt(self.prompt)
+        urwid.connect_signal(self.prompt, 'done', self.tag_done, sign)
 
     def tag_done(self, tag, sign):
         self.ui.view.set_focus('body')
-        urwid.disconnect_signal(self, self.foot, 'done', self.tag_done)
+        urwid.disconnect_signal(self, self.prompt, 'done', self.tag_done)
         focus = self.listbox.get_focus()[0]
         docid = focus.docid
         db = Database(self.ui.xdir, writable=True)
@@ -230,14 +228,13 @@ class Search(urwid.WidgetWrap):
         focus = self.listbox.get_focus()[0]
         element = eval('focus.' + field)
         value = element.get_text()[0]
-        self.foot = CustomEdit(field + ': ', edit_text=value)
-        self.ui.view.set_footer(self.foot)
-        self.ui.view.set_focus('footer')
-        urwid.connect_signal(self.foot, 'done', self.setField_done, field)
+        self.prompt = CustomEdit(field + ': ', edit_text=value)
+        self.ui.set_prompt(self.prompt)
+        urwid.connect_signal(self.prompt, 'done', self.setField_done, field)
 
     def setField_done(self, new, field):
         self.ui.view.set_focus('body')
-        urwid.disconnect_signal(self, self.foot, 'done', self.setField_done)
+        urwid.disconnect_signal(self, self.prompt, 'done', self.setField_done)
         if new is not None:
             focus = self.listbox.get_focus()[0]
             docid = focus.docid
