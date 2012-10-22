@@ -28,12 +28,20 @@ def dccRetrieve(url):
 def dccXMLExtract(xmlstring):
     from xml.dom.minidom import parse, parseString
     xml = parseString(xmlstring)
-    title = xml.getElementsByTagName("title")[0].firstChild.data
+    etitle = xml.getElementsByTagName("title")[0].firstChild
+    if etitle:
+        title = etitle.data
+    else:
+        title = None
     alist = xml.getElementsByTagName("author")
     authors = []
     for author in alist:
         authors.append(author.getElementsByTagName("fullname")[0].firstChild.data)
-    abstract = xml.getElementsByTagName("abstract")[0].firstChild.data
+    eabstract = xml.getElementsByTagName("abstract")[0].firstChild
+    if eabstract:
+        abstract = eabstract.data
+    else:
+        abstract = None
     # FIXME: find year
     year = None
     return title, authors, year, abstract
@@ -73,18 +81,27 @@ class Source():
             title, authors, year, abstract = dccXMLExtract(xml)
         except:
             print >>sys.stderr, xml
-            return None
+            raise
 
         data = {
             'dcc':      self.sid,
-            'title':    title,
-            'authors':  authors,
-            'abstract': abstract,
             'url':      self.gen_url()
             }
 
+        if title:
+            data['title'] = title
+        if authors:
+            data['authors'] = authors
+        if abstract:
+            data['abstract'] = abstract
         if year:
             data['year'] = year
+
+        # FIXME: use these fields:
+        #   @techreport
+        #   institution: LIGO Labratory
+        #   number: DCC number
+        #   month:
 
         return data
 
