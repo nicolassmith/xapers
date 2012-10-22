@@ -37,6 +37,9 @@ def usage():
   view search-terms...                        view search in selector UI
   count search-terms...                       count matches
 
+  export dir search-terms...                  export documents to a directory,
+                                              docs named based on contents
+
   source2bib source                           retrieve bibtex for source
 
   version
@@ -215,6 +218,12 @@ if __name__ == '__main__':
     elif cmd == 'count':
         query = make_query_string(sys.argv[2:])
         cli.count(query)
+
+    ########################################
+    elif cmd == 'export':
+        outdir = sys.argv[2]
+        query = make_query_string(sys.argv[3:])
+        cli.export(outdir, query)
 
     ########################################
     elif cmd in ['source2bib','s2b']:

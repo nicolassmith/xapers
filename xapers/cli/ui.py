@@ -403,3 +403,19 @@ authors: %s
         db = Database(self.xdir)
         count = db.count(query_string)
         print count
+
+    def export(self, outdir, query_string):
+        import shutil
+        db = Database(self.xdir)
+        try:
+            os.makedirs(outdir)
+        except:
+            pass
+        for doc in db.search(query_string):
+            orig = doc.get_fullpaths()[0]
+            title = doc.get_title()
+            name = '%s.pdf' % (title.replace(' ','_'))
+            outpath = os.path.join(outdir,name)
+            #print orig, outpath
+            print outpath
+            shutil.copyfile(orig, outpath)
