@@ -8,7 +8,7 @@ from xapers.documents import Document
 class UI():
 
     palette = [
-        ('head_id', 'dark red,bold', '', 'standout'),
+        ('head_id', 'dark blue,bold', '', 'standout'),
         ('focus_id', 'white,bold', 'dark blue', 'standout'),
         ('search_sources', 'light magenta,bold', '', 'standout'),
         ('search_tags', 'dark green,bold', '', 'standout'),
@@ -19,6 +19,7 @@ class UI():
 
         ('header', 'white', 'dark blue'),
         ('footer', 'white', 'dark blue'),
+        ('prompt', 'white', 'dark red'),
         ]
 
     def __init__(self, xdir, cmd, args):
