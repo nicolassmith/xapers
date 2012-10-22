@@ -180,7 +180,10 @@ if __name__ == '__main__':
         query = make_query_string(sys.argv[2:])
         if not query or query == '':
             query = '*'
-        xapers.selector.UI(xdir, 'search', query)
+        try:
+            xapers.selector.UI(xdir, 'search', query)
+        except KeyboardInterrupt:
+            sys.exit()
 
     ########################################
     elif cmd in ['tag','t']:
