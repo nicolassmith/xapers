@@ -222,6 +222,19 @@ class Search(urwid.WidgetWrap):
         focus.tags.set_text(' '.join(tags))
         self.ui.set_status(msg)
 
+    def archive(self):
+        focus = self.listbox.get_focus()[0]
+        docid = focus.docid
+        db = Database(self.ui.xdir, writable=True)
+        doc = db.doc_for_docid(docid)
+        tag = 'inbox'
+        msg = "Removed tag '%s'" % (tag)
+        doc.remove_tags([tag])
+        doc.sync()
+        tags = doc.get_tags()
+        focus.tags.set_text(' '.join(tags))
+        self.ui.set_status(msg)
+
     def setField(self, field):
         self.ui.set_status('Not implemented')
         return
@@ -261,6 +274,8 @@ class Search(urwid.WidgetWrap):
             self.tag('+')
         elif key is '-':
             self.tag('-')
+        elif key is 'a':
+            self.archive()
         elif key is 'enter':
             self.viewEntry()
         elif key is 'u':
