@@ -194,8 +194,23 @@ authors: %s
 
         return data
 
+######################################################################
 
     def add(self, docid, infile=None, source=None, tags=None, prompt=False):
+        # now make the document
+        db = Database(self.xdir, writable=True, create=True)
+
+        # if docid provided, update that doc, otherwise create a new one
+        if docid:
+            if docid.find('id:') == 0:
+                docid = docid.split(':')[1]
+            doc = db.doc_for_docid(docid)
+            if not doc:
+                print >>sys.stderr, "Failed to find document id:%s." % (docid)
+                sys.exit(1)
+        else:
+            doc = Document(db)
+
         if prompt:
             source, tags = self.prompt_for_source_tags(source, tags)
 
@@ -230,20 +245,6 @@ authors: %s
                 except:
                     print >>sys.stderr, "\n"
                     raise
-
-        # now make the document
-        db = Database(self.xdir, writable=True, create=True)
-
-        # if docid provided, update that doc, otherwise create a new one
-        if docid:
-            if docid.find('id:') == 0:
-                docid = docid.split(':')[1]
-            doc = db.doc_for_docid(docid)
-            if not doc:
-                print >>sys.stderr, "Failed to find document id:%s." % (docid)
-                sys.exit(1)
-        else:
-            doc = Document(db)
 
         if infile:
             path = os.path.abspath(infile)
