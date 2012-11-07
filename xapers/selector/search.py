@@ -1,8 +1,24 @@
+import os
 import subprocess
 import urwid
 
 from xapers.database import Database
 from xapers.documents import Document
+
+def xclip(text):
+    """Copy text or file contents into X clipboard."""
+    f = None
+    if os.path.exists(text):
+        f = open(text, 'r')
+        sin = f
+    else:
+        sin = subprocess.PIPE
+    p = subprocess.Popen(' '.join(["xclip", "-i"]),
+                         shell=True,
+                         stdin=sin)
+    p.communicate(text)
+    if f:
+        f.close()
 
 class DocListItem(urwid.WidgetWrap):
     def __init__(self, doc):
@@ -173,6 +189,36 @@ class Search(urwid.WidgetWrap):
                         stdout=open('/dev/null','w'),
                         stderr=open('/dev/null','w'))
 
+    def copyPath(self):
+        entry = self.listbox.get_focus()[0]
+        docid = entry.docid
+        path = entry.doc.get_fullpaths()[0]
+        if not path:
+            self.ui.set_status('ERROR: id:%s: file path not found.' % docid)
+            return
+        xclip(path)
+        self.ui.set_status('path yanked: %s' % path)
+
+    def copyURL(self):
+        entry = self.listbox.get_focus()[0]
+        docid = entry.docid
+        url = entry.doc.get_url()
+        if not url:
+            self.ui.set_status('ERROR: id:%s: URL not found.' % docid)
+            return
+        xclip(url)
+        self.ui.set_status('url yanked: %s' % url)
+
+    def copyBibtex(self):
+        entry = self.listbox.get_focus()[0]
+        docid = entry.docid
+        bibtex = entry.doc.get_bibpath()
+        if not bibtex:
+            self.ui.set_status('ERROR: id:%s: bibtex not found.' % docid)
+            return
+        xclip(bibtex)
+        self.ui.set_status('bibtex yanked: %s' % bibtex)
+
     def search(self):
         msg = 'search: '
         self.prompt = CustomEdit(msg)
@@ -281,6 +327,12 @@ class Search(urwid.WidgetWrap):
             self.viewURL()
         elif key is 'b':
             self.viewBibtex()
+        elif key is 'F':
+            self.copyPath()
+        elif key is 'U':
+            self.copyURL()
+        elif key is 'B':
+            self.copyBibtex()
         elif key is 's':
             self.search()
         else:
