@@ -10,7 +10,6 @@ class DocListItem(urwid.WidgetWrap):
         self.matchp = doc.matchp
         self.docid = self.doc.docid
 
-        #self.source_string = '[%s]' % ' '.join(self.doc.get_sources_list())
         self.sources = urwid.Text(' '.join(self.doc.get_sources_list()))
         self.tags = urwid.Text(' '.join(self.doc.get_tags()))
         self.title = urwid.Text('')
@@ -135,26 +134,26 @@ class Search(urwid.WidgetWrap):
         self.listbox.set_focus(pos - 1)
 
     def viewEntry(self):
-        docid = self.listbox.get_focus()[0].docid
-        path = self.listbox.get_focus()[0].doc.get_fullpaths()[0]
-        if not path:
-            self.ui.set_status('ERROR: Could not find file for id:%s.' % docid)
+        entry = self.listbox.get_focus()[0]
+        docid = entry.docid
+        path = entry.doc.get_fullpaths()[0].replace(' ','\ ')
+        if not path or not os.path.exists(path):
+            self.ui.set_status('ERROR: id:%s: file not found.' % docid)
             return
-        path = path.replace(' ','\ ')
-        message = 'opening doc id:%s...' % docid
-        self.ui.set_status(message)
+        self.ui.set_status('opening file: %s...' % path)
         subprocess.call(' '.join(["nohup", "okular", path]) + ' &',
                         shell=True,
                         stdout=open('/dev/null','w'),
                         stderr=open('/dev/null','w'))
 
     def viewURL(self):
-        docid = self.listbox.get_focus()[0].docid
-        url = self.listbox.get_focus()[0].doc.get_url()
+        entry = self.listbox.get_focus()[0]
+        docid = entry.docid
+        url = entry.doc.get_url()
         if not url:
-            self.ui.set_status('ERROR: Could not determine url for id:%s.' % docid)
+            self.ui.set_status('ERROR: id:%s: URL not found.' % docid)
             return
-        self.ui.set_status('opening url %s...' % url)
+        self.ui.set_status('opening url: %s...' % url)
         subprocess.call(' '.join(["nohup", "jbrowser", url]) + ' &',
                         shell=True,
                         stdout=open('/dev/null','w'),
@@ -165,9 +164,9 @@ class Search(urwid.WidgetWrap):
         docid = entry.docid
         bibtex = entry.doc.get_bibpath()
         if not bibtex:
-            self.ui.set_status('ERROR: bibtex not found for id:%s.' % docid)
+            self.ui.set_status('ERROR: id:%s: bibtex not found.' % docid)
             return
-        self.ui.set_status('viewing bibtex %s...' % bibtex)
+        self.ui.set_status('viewing bibtex: %s...' % bibtex)
         # FIXME: we can do this better
         subprocess.call(' '.join(["nohup", "xterm", "-e", "less", bibtex]) + ' &',
                         shell=True,
