@@ -284,15 +284,5 @@ class Search(urwid.WidgetWrap):
             self.viewBibtex()
         elif key is 's':
             self.search()
-        elif key is 'T':
-            self.setField('title')
-        elif key is 'A':
-            self.setField('authors')
-        elif key is 'Y':
-            self.setField('year')
-        elif key is 'P':
-            self.setField('path')
-        elif key is 'U':
-            self.setField('url')
         else:
             self.ui.keypress(key)
