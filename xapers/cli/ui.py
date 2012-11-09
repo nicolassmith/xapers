@@ -308,6 +308,7 @@ class UI():
 ######################################################################
 
     def tag(self, query_string, add_tags, remove_tags):
+        self.db = Database(self.xdir, writable=True)
         for doc in self.db.search(query_string):
             doc.add_tags(add_tags)
             doc.remove_tags(remove_tags)
