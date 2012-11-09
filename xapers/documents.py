@@ -411,10 +411,11 @@ class Document():
     def get_url(self):
         """Get the URL from document bibtex."""
         bibentry = self._get_bibentry()
+        if not bibentry:
+            return None
         fields = bibentry.get_fields()
         if 'url' in fields:
             return fields['url']
         if 'adsurl' in fields:
             return fields['adsurl']
-        else:
-            return None
+        return None
