@@ -71,8 +71,11 @@ class Database():
 
         # xapers db directory
         xapers_path = os.path.join(self.root, '.xapers')
-        if create and not os.path.exists(xapers_path):
-            os.makedirs(xapers_path)
+        if not os.path.exists(xapers_path):
+            if create:
+                os.makedirs(xapers_path)
+            else:
+                return None
 
         # FIXME: need a try/except here to catch db open errors
 
