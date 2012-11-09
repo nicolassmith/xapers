@@ -62,30 +62,31 @@ class UI():
             infile = raw_input('file: ')
             if infile == '':
                 infile = None
-
         return infile
 
-    def prompt_for_source_tags(self, infile, source, tags):
-        db = Database(self.xdir, writable=False)
+    def prompt_for_source(self, sources):
+        if sources:
+            readline.set_startup_hook(lambda: readline.insert_text(sources[0]))
+        elif self.db:
+            sources = self.db.get_terms('source')
+        readline.parse_and_bind("tab: complete")
+        completer = Completer(sources)
+        readline.set_completer(completer.terms)
+        source = raw_input('source: ')
+        if source == '':
+            source = None
+        return source
 
-        if source:
-            print >>sys.stderr, 'source: %s' % source
-        else:
-            isources = db.get_terms('source')
-            readline.set_startup_hook()
-            readline.parse_and_bind("tab: complete")
-            completer = Completer(isources)
-            readline.set_completer(completer.terms)
-            source = raw_input('source: ')
-            if source == '':
-                source = None
-
+    def prompt_for_tags(self, tags):
         # always prompt for tags, and append to initial
         if tags:
             print >>sys.stderr, 'tags: %s' % ' '.join(tags)
         else:
             tags = []
-        itags = db.get_terms('tag')
+        if self.db:
+            itags = self.db.get_terms('tag')
+        else:
+            itags = None
         readline.set_startup_hook()
         readline.parse_and_bind("tab: complete")
         completer = Completer(itags)
@@ -96,8 +97,7 @@ class UI():
                 tags.append(tag.strip())
             else:
                 break
-
-        return source, tags
+        return tags
 
 ######################################################################
 
