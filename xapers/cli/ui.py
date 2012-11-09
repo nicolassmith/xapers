@@ -286,12 +286,14 @@ class UI():
 
             tags = doc.get_tags()
             sources = doc.get_sources_list()
+            title = doc.get_title()
 
-            if oformat == 'simple':
-                print "id:%s %s [%s] (%s)" % (docid,
-                                              fullpath,
-                                              ' '.join(sources),
-                                              ' '.join(tags))
+            if oformat in ['summary','simple']:
+                print "id:%s [%s] (%s) \"%s\" " % (docid,
+                                                   ' '.join(sources),
+                                                   ' '.join(tags),
+                                                   title,
+                                                   )
                 continue
 
             if oformat == 'bibtex':
