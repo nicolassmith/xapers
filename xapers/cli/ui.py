@@ -102,20 +102,6 @@ class UI():
 ######################################################################
 
     def add(self, docid, infile=None, source=None, tags=None, prompt=False):
-        # now make the document
-        db = Database(self.xdir, writable=True, create=True)
-
-        # if docid provided, update that doc, otherwise create a new one
-        if docid:
-            if docid.find('id:') == 0:
-                docid = docid.split(':')[1]
-            doc = db.doc_for_docid(docid)
-            if not doc:
-                print >>sys.stderr, "Failed to find document id:%s." % (docid)
-                sys.exit(1)
-        else:
-            doc = Document(db)
-
         if prompt:
             infile = self.prompt_for_file(infile)
             if infile:
@@ -159,6 +145,19 @@ class UI():
                 except:
                     print >>sys.stderr, "\n"
                     raise
+
+        # if docid provided, update that doc, otherwise create a new one
+        # need a document from a writable db.
+        self.db = Database(self.xdir, writable=True, create=True)
+        if docid:
+            if docid.find('id:') == 0:
+                docid = docid.split(':')[1]
+            doc = self.db.doc_for_docid(docid)
+            if not doc:
+                print >>sys.stderr, "Failed to find document id:%s." % (docid)
+                sys.exit(1)
+        else:
+            doc = Document(self.db)
 
         if infile:
             path = os.path.abspath(infile)
