@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 from urlparse import urlparse
 
 import xapers.sources
@@ -21,6 +22,23 @@ def get_source(source, sid=None):
         return Source(sid)
     except:
         return None
+
+def scan_for_sources(file):
+    from .parsers import pdf as parser
+    text = parser.parse_file(file)
+    sources = []
+    for ss in list_sources():
+        smod = get_source(ss)
+        if 'scan_regex' not in dir(smod):
+            continue
+        prog = re.compile(smod.scan_regex)
+        matches = prog.findall(text)
+        if matches:
+            for match in matches:
+                #sources.append((smod.source, match))
+                # FIXME: this should be a set
+                sources.append('%s:%s' % (smod.source.lower(), match))
+    return sources
 
 def source_from_url(url):
     source = None
