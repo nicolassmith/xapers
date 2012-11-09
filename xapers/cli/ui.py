@@ -20,6 +20,7 @@ Jameson Rollins <jrollins@finestructure.net>
 
 import os
 import sys
+import shutil
 import readline
 from subprocess import call
 
@@ -313,7 +314,6 @@ class UI():
         print count
 
     def export(self, outdir, query_string):
-        import shutil
         db = Database(self.xdir)
         try:
             os.makedirs(outdir)
