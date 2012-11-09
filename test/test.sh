@@ -112,21 +112,21 @@ xapers search --output=bibtex tag:new
 
 echo
 echo '##########'
-echo '# search sources'
+echo '# search sources (doi)'
 echo
 
 xapers search source:doi
 
 echo
 echo '##########'
-echo '# search by terms'
+echo '# search by terms (pubic hair)'
 echo
 
 xapers search pubic hair
 
 echo
 echo '##########'
-echo '# search by id'
+echo '# search by id (id:2)'
 echo
 
 xapers search id:2
