@@ -117,7 +117,16 @@ class UI():
             doc = Document(db)
 
         if prompt:
-            source, tags = self.prompt_for_source_tags(source, tags)
+            infile = self.prompt_for_file(infile)
+            if infile:
+                # scan the file for source info
+                print >>sys.stderr, "Scanning document for source identifiers..."
+                sources = xapers.source.scan_for_sources(infile)
+                print >>sys.stderr, "%d source ids found:" % (len(sources))
+                for ss in sources:
+                    print >>sys.stderr, "  %s" % (ss)
+            source = self.prompt_for_source(sources)
+            tags = self.prompt_for_tags(tags)
 
         if not docid and not infile and not source:
             print >>sys.stderr, "Must specify file or source to import, or docid to update."
