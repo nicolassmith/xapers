@@ -31,8 +31,8 @@ def usage():
   tag +tag|-tab [...] [--] search-terms...    add/remove tags
 
   search [options] search-terms...            search the database
-    --output=[simple|bibtex|sources|tags]       output format
-    --limit=N                                   limit number returned (20) 
+    --output=[files|summary|bibtex|sources|tags] output format
+    --limit=N                                    limit number returned (20)
   bibtex search-terms...                      search --output=bibtex
   view search-terms...                        view search in selector UI
   count search-terms...                       count matches
