@@ -80,7 +80,7 @@ class UI():
     def prompt_for_tags(self, tags):
         # always prompt for tags, and append to initial
         if tags:
-            print >>sys.stderr, 'tags: %s' % ' '.join(tags)
+            print >>sys.stderr, 'initial tags: %s' % ' '.join(tags)
         else:
             tags = []
         if self.db:
@@ -108,9 +108,12 @@ class UI():
                 # scan the file for source info
                 print >>sys.stderr, "Scanning document for source identifiers..."
                 sources = xapers.source.scan_for_sources(infile)
-                print >>sys.stderr, "%d source ids found:" % (len(sources))
-                for ss in sources:
-                    print >>sys.stderr, "  %s" % (ss)
+                if len(sources) == 0:
+                    print >>sys.stderr, "0 source ids found."
+                else:
+                    print >>sys.stderr, "%d source ids found:" % (len(sources))
+                    for ss in sources:
+                        print >>sys.stderr, "  %s" % (ss)
             source = self.prompt_for_source(sources)
             tags = self.prompt_for_tags(tags)
 
@@ -214,7 +217,7 @@ class UI():
         try:
             print >>sys.stderr, "Syncing document...",
             doc.sync()
-            print >>sys.stderr, "done:"
+            print >>sys.stderr, "done:",
             print "id:%s" % doc.docid
         except:
             print >>sys.stderr, "\n"
