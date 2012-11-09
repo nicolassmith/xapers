@@ -287,6 +287,8 @@ class UI():
             tags = doc.get_tags()
             sources = doc.get_sources_list()
             title = doc.get_title()
+            if not title:
+                title = ''
 
             if oformat in ['summary','simple']:
                 print "id:%s [%s] (%s) \"%s\" " % (docid,
