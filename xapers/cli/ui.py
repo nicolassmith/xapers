@@ -50,7 +50,7 @@ class UI():
 
     def __init__(self, xdir):
         self.xdir = xdir
-        self.xdb = os.path.join(self.xdir, '.xapers')
+        self.db = Database(self.xdir)
 
     def prompt_for_file(self, infile):
         if infile:
@@ -217,12 +217,13 @@ class UI():
 
         return doc.docid
 
+######################################################################
 
     def delete(self, docid):
+        self.db = Database(self.xdir, writable=True)
         if docid.find('id:') == 0:
             docid = docid.split(':')[1]
-        db = Database(self.xdir, writable=True)
-        doc = db.doc_for_docid(docid)
+        doc = self.db.doc_for_docid(docid)
         if not doc:
             print >>sys.stderr, "No document id:%s." % (docid)
             sys.exit(1)
@@ -231,12 +232,12 @@ class UI():
             print >>sys.stderr, "Aborting."
             sys.exit(1)
         doc._rm_docdir()
-        db.delete_document(docid)
+        self.db.delete_document(docid)
 
 
     def update_all(self):
-        db = Database(self.xdir, writable=True)
-        for doc in db.search('*', limit=0):
+        self.db = Database(self.xdir, writable=True)
+        for doc in self.db.search('*', limit=0):
             try:
                 print >>sys.stderr, "Updating %s..." % doc.docid,
                 doc.update_from_bibtex()
@@ -246,23 +247,22 @@ class UI():
                 print >>sys.stderr, "\n"
                 raise
 
+######################################################################
 
     def search(self, query_string, oformat='simple', limit=None):
-        db = Database(self.xdir, writable=False)
-
         # FIXME: writing needs to be in a try to catch IOError
         # exception
 
         if oformat == 'tags' and query_string == '*':
-            for tag in db.get_terms('tag'):
+            for tag in self.db.get_terms('tag'):
                 print tag
             return
         if oformat == 'sources' and query_string == '*':
-            for source in db.get_terms('source'):
+            for source in self.db.get_terms('source'):
                 print source
             return
 
-        for doc in db.search(query_string, limit=limit):
+        for doc in self.db.search(query_string, limit=limit):
             docid = doc.get_docid()
 
             # FIXME: could this be multiple paths?
@@ -295,31 +295,29 @@ class UI():
                     print
                 continue
 
+######################################################################
+
     def tag(self, query_string, add_tags, remove_tags):
-        db = Database(self.xdir, writable=True)
-        for doc in db.search(query_string):
+        for doc in self.db.search(query_string):
             doc.add_tags(add_tags)
             doc.remove_tags(remove_tags)
             doc.sync()
 
     def dumpterms(self, query_string):
-        db = Database(self.xdir)
-        for doc in db.search(query_string):
+        for doc in self.db.search(query_string):
             for term in doc.doc:
                 print term.term
 
     def count(self, query_string):
-        db = Database(self.xdir)
-        count = db.count(query_string)
+        count = self.db.count(query_string)
         print count
 
     def export(self, outdir, query_string):
-        db = Database(self.xdir)
         try:
             os.makedirs(outdir)
         except:
             pass
-        for doc in db.search(query_string):
+        for doc in self.db.search(query_string):
             orig = doc.get_fullpaths()[0]
             title = doc.get_title()
             name = '%s.pdf' % (title.replace(' ','_'))
