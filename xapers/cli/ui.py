@@ -217,7 +217,7 @@ class UI():
         try:
             print >>sys.stderr, "Syncing document...",
             doc.sync()
-            print >>sys.stderr, "done:",
+            print >>sys.stderr, "done: ",
             print "id:%s" % doc.docid
         except:
             print >>sys.stderr, "\n"
