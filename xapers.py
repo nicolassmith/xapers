@@ -104,6 +104,9 @@ if __name__ == '__main__':
             argc += 1
 
         docid = cli.add(None, infile=infile, source=source, tags=tags, prompt=prompt)
+        # dereference the cli object so that the database is flushed
+        # FIXME: is there a better way to handle this?
+        cli = None
         if view and docid:
             xapers.selector.UI(xdir, 'search', 'id:'+docid)
 
