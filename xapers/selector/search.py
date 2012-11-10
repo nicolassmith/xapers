@@ -5,10 +5,10 @@ import urwid
 from xapers.database import Database
 from xapers.documents import Document
 
-def xclip(text):
+def xclip(text, isfile=False):
     """Copy text or file contents into X clipboard."""
     f = None
-    if os.path.exists(text):
+    if isfile:
         f = open(text, 'r')
         sin = f
     else:
@@ -216,7 +216,7 @@ class Search(urwid.WidgetWrap):
         if not bibtex:
             self.ui.set_status('ERROR: id:%s: bibtex not found.' % docid)
             return
-        xclip(bibtex)
+        xclip(bibtex, isfile=True)
         self.ui.set_status('bibtex yanked: %s' % bibtex)
 
     def search(self):
