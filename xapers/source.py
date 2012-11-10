@@ -80,5 +80,4 @@ def source_from_string(string):
 
 def fetch_bibtex(string):
     source = source_from_string(string)
-    bibtex = source.get_bibtex()
-    return bibtex
+    return source.get_bibtex()
