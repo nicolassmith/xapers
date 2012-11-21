@@ -1,0 +1,21 @@
+Source: xapers
+Section: python
+Priority: optional
+Maintainer: Jameson Rollins <jrollins@finestructure.net>
+Build-Depends:
+ pkg-config,
+ python-all-dev (>= 2.6.6-3~),
+ python-setuptools,
+ debhelper (>= 8.0.0)
+Standards-Version: 3.9.3
+
+Package: xapers
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ ${python:Depends},
+ python-xapian,
+ python-urwid,
+Description: Xapian-based document indexing system
+ Xapers!

@@ -1,0 +1,21 @@
+Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=59
+Debianized-By: Jameson Rollins <jrollins@finestructure.net>
+Debianized-Date: Tue, 20 Nov 2012 14:27:04 -0800
+Original-Source: 
+
+Files: *
+Copyright:
+ 2012, Jameson Rollins <jrollins@finestructure.net>
+
+Files: debian/*
+Copyright:
+ 2012, Jameson Rollins <jrollins@finestructure.net>
+
+License: GPL-3+
+ This package is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ version 3 can be found in file "/usr/share/common-licenses/GPL-3".
