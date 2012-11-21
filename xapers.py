@@ -108,7 +108,7 @@ if __name__ == '__main__':
         # FIXME: is there a better way to handle this?
         cli = None
         if view and docid:
-            xapers.selector.UI(xdir, 'search', 'id:'+docid)
+            xapers.nci.UI(xdir, 'search', 'id:'+docid)
 
     ########################################
     elif cmd in ['update','u']:
@@ -187,7 +187,7 @@ if __name__ == '__main__':
         if not query or query == '':
             query = 'tag:inbox'
         try:
-            xapers.selector.UI(xdir, 'search', query)
+            xapers.nci.UI(xdir, 'search', query)
         except KeyboardInterrupt:
             sys.exit()
 
