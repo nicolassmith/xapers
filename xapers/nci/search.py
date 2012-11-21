@@ -154,10 +154,9 @@ class Search(urwid.WidgetWrap):
     def viewEntry(self):
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        docid = entry.docid
         path = entry.doc.get_fullpaths()[0].replace(' ','\ ')
         if not path or not os.path.exists(path):
-            self.ui.set_status('ERROR: id:%s: file not found.' % docid)
+            self.ui.set_status('ERROR: id:%s: file not found.' % entry.docid)
             return
         self.ui.set_status('opening file: %s...' % path)
         subprocess.call(' '.join(["nohup", "okular", path]) + ' &',
@@ -168,10 +167,9 @@ class Search(urwid.WidgetWrap):
     def viewURL(self):
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        docid = entry.docid
         url = entry.doc.get_url()
         if not url:
-            self.ui.set_status('ERROR: id:%s: URL not found.' % docid)
+            self.ui.set_status('ERROR: id:%s: URL not found.' % entry.docid)
             return
         self.ui.set_status('opening url: %s...' % url)
         subprocess.call(' '.join(["nohup", "jbrowser", url]) + ' &',
@@ -182,10 +180,9 @@ class Search(urwid.WidgetWrap):
     def viewBibtex(self):
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        docid = entry.docid
         bibtex = entry.doc.get_bibpath()
         if not bibtex:
-            self.ui.set_status('ERROR: id:%s: bibtex not found.' % docid)
+            self.ui.set_status('ERROR: id:%s: bibtex not found.' % entry.docid)
             return
         self.ui.set_status('viewing bibtex: %s...' % bibtex)
         # FIXME: we can do this better
@@ -197,10 +194,9 @@ class Search(urwid.WidgetWrap):
     def copyPath(self):
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        docid = entry.docid
         path = entry.doc.get_fullpaths()[0]
         if not path:
-            self.ui.set_status('ERROR: id:%s: file path not found.' % docid)
+            self.ui.set_status('ERROR: id:%s: file path not found.' % entry.docid)
             return
         xclip(path)
         self.ui.set_status('path yanked: %s' % path)
@@ -208,10 +204,9 @@ class Search(urwid.WidgetWrap):
     def copyURL(self):
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        docid = entry.docid
         url = entry.doc.get_url()
         if not url:
-            self.ui.set_status('ERROR: id:%s: URL not found.' % docid)
+            self.ui.set_status('ERROR: id:%s: URL not found.' % entry.docid)
             return
         xclip(url)
         self.ui.set_status('url yanked: %s' % url)
@@ -219,10 +214,9 @@ class Search(urwid.WidgetWrap):
     def copyBibtex(self):
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        docid = entry.docid
         bibtex = entry.doc.get_bibpath()
         if not bibtex:
-            self.ui.set_status('ERROR: id:%s: bibtex not found.' % docid)
+            self.ui.set_status('ERROR: id:%s: bibtex not found.' % entry.docid)
             return
         xclip(bibtex, isfile=True)
         self.ui.set_status('bibtex yanked: %s' % bibtex)
@@ -262,10 +256,9 @@ class Search(urwid.WidgetWrap):
     def tag_done(self, tag, sign):
         self.ui.view.set_focus('body')
         urwid.disconnect_signal(self, self.prompt, 'done', self.tag_done)
-        focus = self.listbox.get_focus()[0]
-        docid = focus.docid
+        entry = self.listbox.get_focus()[0]
         db = Database(self.ui.xdir, writable=True)
-        doc = db.doc_for_docid(docid)
+        doc = db.doc_for_docid(entry.docid)
         if sign is '+':
             msg = "Added tag '%s'" % (tag)
             doc.add_tags([tag])
@@ -274,7 +267,7 @@ class Search(urwid.WidgetWrap):
             doc.remove_tags([tag])
         doc.sync()
         tags = doc.get_tags()
-        focus.tags.set_text(' '.join(tags))
+        entry.tags.set_text(' '.join(tags))
         self.ui.set_status(msg)
 
     def archive(self):
