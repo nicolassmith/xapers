@@ -1,4 +1,0 @@
-#!/bin/bash
-x-terminal-emulator \
-    -title "xapers select" \
-    -e xapers select "$@"
