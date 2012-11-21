@@ -75,11 +75,11 @@ class Source():
         self.sid = path[index:].strip('/')
 
     def get_data(self):
-        url = self.gen_url()
-
         if 'file' in dir(self):
+            url = None
             f = open(self.file, 'r')
         else:
+            url = self.gen_url()
             f = urllib.urlopen(url)
         html = f.read()
         f.close()
@@ -100,10 +100,10 @@ class Source():
             'url':     self.gen_url(),
             }
 
-        return data
+        return data, url
 
     def get_bibtex(self):
-        data = self.get_data()
+        data, url = self.get_data()
         key = '%s:%s' % (self.source, self.sid)
         bibentry = bibparse.data2bib(data, key)
-        return bibentry.as_string()
+        return bibentry.as_string(), url

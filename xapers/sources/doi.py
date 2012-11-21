@@ -54,7 +54,7 @@ class Source():
         bibtex = f.read()
         f.close
         # FIXME: this is a doi hack
-        return self._clean_bibtex_key(bibtex)
+        return self._clean_bibtex_key(bibtex), url
 
     def _get_bib_doi_json(self):
         # http://www.crossref.org/CrossTech/2011/11/turning_dois_into_formatted_ci.html
@@ -66,20 +66,19 @@ class Source():
         f.close
         key = '%s:%s' % (self.source, self.sid)
         bibentry = bibparse.json2bib(json, key)
-        return bibentry.as_string()
+        return bibentry.as_string(), url
 
     def _get_bib_ads(self):
         req = 'http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=' + self.sid + '&data_type=BIBTEXPLUS'
         f = urllib2.urlopen(req)
         bibtex = f.read()
         f.close
-        return bibtex
+        return bibtex, req
 
     def get_bibtex(self):
         if 'file' in dir(self):
             bibtex = self._get_bib_file()
+            url = None
         else:
-            # bibtex = self._get_bib_ads()
-            # bibtex = self._get_bib_doi()
-            bibtex = self._get_bib_doi_json()
-        return bibtex
+            bibtex, url = self._get_bib_doi_json()
+        return bibtex, url

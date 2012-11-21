@@ -71,6 +71,7 @@ class Source():
 
         if 'file' in dir(self):
             f = open(self.file, 'r')
+            url = None
             xml = f.read()
             f.close()
         else:
@@ -84,8 +85,8 @@ class Source():
             raise
 
         data = {
-            'dcc':      self.sid,
-            'url':      self.gen_url()
+            'dcc': self.sid,
+            'url': self.gen_url()
             }
 
         if title:
@@ -103,12 +104,12 @@ class Source():
         #   number: DCC number
         #   month:
 
-        return data
+        return data, url
 
     def get_bibtex(self):
-        data = self.get_data()
+        data, url = self.get_data()
         if not data:
             return
         key = '%s:%s' % (self.source, self.sid)
         bibentry = bibparse.data2bib(data, key)
-        return bibentry.as_string()
+        return bibentry.as_string(), url
