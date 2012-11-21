@@ -232,10 +232,13 @@ if __name__ == '__main__':
     elif cmd in ['source2bib','s2b']:
         string = sys.argv[2]
         import xapers.source
-        bibtex = xapers.source.fetch_bibtex(string)
+        bibtex, url = xapers.source.fetch_bibtex(string)
+        if url:
+            print >>sys.stderr, url
         try:
             print xapers.bibtex.Bibentry(bibtex).as_string()
         except:
+            raise
             print >>sys.stderr, "Problem parsing bibtex.  Outputting raw bibtex..."
             print bibtex
 
