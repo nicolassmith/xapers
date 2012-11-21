@@ -1,4 +1,6 @@
 *~
 *.pyc
-test/docs/.xapers
-emacs
+test
+dist
+build
+xapers.egg-info
