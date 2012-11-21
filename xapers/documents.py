@@ -52,6 +52,9 @@ class Documents():
     def __iter__(self):
         return self
 
+    def __len__(self):
+        return self.max
+
     def next(self):
         self.index = self.index + 1
         if self.index == self.max:
