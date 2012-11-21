@@ -243,6 +243,15 @@ if __name__ == '__main__':
             print bibtex
 
     ########################################
+    elif cmd in ['scandoc','sd']:
+        infile = sys.argv[2]
+        import xapers.source
+
+        sources = xapers.source.scan_for_sources(infile)
+        for ss in sources:
+            print "%s" % (ss)
+
+    ########################################
     elif cmd == 'version':
         print "Ha!"
 
