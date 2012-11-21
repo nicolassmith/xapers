@@ -141,16 +141,19 @@ class Search(urwid.WidgetWrap):
     def nextEntry(self):
         # listbox.set_focus(listbox.get_next())
         pos = self.listbox.get_focus()[1]
+        if not pos: return
         self.listbox.set_focus(pos + 1)
         # self.listbox.keypress(1, 'down')
 
     def prevEntry(self):
         pos = self.listbox.get_focus()[1]
+        if not pos: return
         if pos == 0: return
         self.listbox.set_focus(pos - 1)
 
     def viewEntry(self):
         entry = self.listbox.get_focus()[0]
+        if not entry: return
         docid = entry.docid
         path = entry.doc.get_fullpaths()[0].replace(' ','\ ')
         if not path or not os.path.exists(path):
@@ -164,6 +167,7 @@ class Search(urwid.WidgetWrap):
 
     def viewURL(self):
         entry = self.listbox.get_focus()[0]
+        if not entry: return
         docid = entry.docid
         url = entry.doc.get_url()
         if not url:
@@ -177,6 +181,7 @@ class Search(urwid.WidgetWrap):
 
     def viewBibtex(self):
         entry = self.listbox.get_focus()[0]
+        if not entry: return
         docid = entry.docid
         bibtex = entry.doc.get_bibpath()
         if not bibtex:
@@ -191,6 +196,7 @@ class Search(urwid.WidgetWrap):
 
     def copyPath(self):
         entry = self.listbox.get_focus()[0]
+        if not entry: return
         docid = entry.docid
         path = entry.doc.get_fullpaths()[0]
         if not path:
@@ -201,6 +207,7 @@ class Search(urwid.WidgetWrap):
 
     def copyURL(self):
         entry = self.listbox.get_focus()[0]
+        if not entry: return
         docid = entry.docid
         url = entry.doc.get_url()
         if not url:
@@ -211,6 +218,7 @@ class Search(urwid.WidgetWrap):
 
     def copyBibtex(self):
         entry = self.listbox.get_focus()[0]
+        if not entry: return
         docid = entry.docid
         bibtex = entry.doc.get_bibpath()
         if not bibtex:
@@ -239,6 +247,8 @@ class Search(urwid.WidgetWrap):
         self.ui.mainloop.run()
 
     def tag(self, sign):
+        entry = self.listbox.get_focus()[0]
+        if not entry: return
         # focus = self.listbox.get_focus()[0]
         # tags = focus.tags
         if sign is '+':
@@ -268,16 +278,16 @@ class Search(urwid.WidgetWrap):
         self.ui.set_status(msg)
 
     def archive(self):
-        focus = self.listbox.get_focus()[0]
-        docid = focus.docid
+        entry = self.listbox.get_focus()[0]
+        if not entry: return
         db = Database(self.ui.xdir, writable=True)
-        doc = db.doc_for_docid(docid)
+        doc = db.doc_for_docid(entry.docid)
         tag = 'inbox'
         msg = "Removed tag '%s'" % (tag)
         doc.remove_tags([tag])
         doc.sync()
         tags = doc.get_tags()
-        focus.tags.set_text(' '.join(tags))
+        entry.tags.set_text(' '.join(tags))
         self.ui.set_status(msg)
 
     def setField(self, field):
