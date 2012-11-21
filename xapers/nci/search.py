@@ -20,6 +20,8 @@ def xclip(text, isfile=False):
     if f:
         f.close()
 
+############################################################
+
 class DocListItem(urwid.WidgetWrap):
     def __init__(self, doc):
         self.doc = doc
@@ -108,46 +110,40 @@ class DocListItem(urwid.WidgetWrap):
     def keypress(self, size, key):
         return key
 
-class CustomEdit(urwid.Edit):
-    __metaclass__ = urwid.signals.MetaSignals
-    signals = ['done']
-
-    def keypress(self, size, key):
-        if key == 'enter':
-            urwid.emit_signal(self, 'done', self.get_edit_text())
-            return
-        elif key == 'esc':
-            urwid.emit_signal(self, 'done', None)
-            return
-
-        urwid.Edit.keypress(self, size, key)
+############################################################
 
 class Search(urwid.WidgetWrap):
     def __init__(self, ui, query):
         self.ui = ui
         self.db = Database(self.ui.xdir, writable=False)
 
+        self.ui.set_header("search: " + query)
+        self.ui.set_status("enter to view document ('h' for help).")
+
+        docs = self.db.search(query, limit=20)
+        if len(docs) == 0:
+            self.ui.set_status('No documents found.')
+
         items = []
-        for doc in self.db.search(query, limit=20):
+        for doc in docs:
             items.append(DocListItem(doc))
 
         self.listwalker = urwid.SimpleListWalker(items)
         self.listbox = urwid.ListBox(self.listwalker)
-        #w = urwid.Frame(urwid.AttrWrap(self.listbox, 'body'))
-        #w = urwid.AttrWrap(self.listbox, 'body')
         w = self.listbox
+
         self.__super.__init__(w)
 
+    ##########
+
     def nextEntry(self):
-        # listbox.set_focus(listbox.get_next())
-        pos = self.listbox.get_focus()[1]
-        if not pos: return
+        entry, pos = self.listbox.get_focus()
+        if not entry: return
         self.listbox.set_focus(pos + 1)
-        # self.listbox.keypress(1, 'down')
 
     def prevEntry(self):
-        pos = self.listbox.get_focus()[1]
-        if not pos: return
+        entry, pos = self.listbox.get_focus()
+        if not entry: return
         if pos == 0: return
         self.listbox.set_focus(pos - 1)
 
@@ -186,7 +182,7 @@ class Search(urwid.WidgetWrap):
             return
         self.ui.set_status('viewing bibtex: %s...' % bibtex)
         # FIXME: we can do this better
-        subprocess.call(' '.join(["nohup", "xterm", "-e", "less", bibtex]) + ' &',
+        subprocess.call(' '.join(["nohup", "x-terminal-emulator", "-e", "less", bibtex]) + ' &',
                         shell=True,
                         stdout=open('/dev/null','w'),
                         stderr=open('/dev/null','w'))
@@ -221,50 +217,33 @@ class Search(urwid.WidgetWrap):
         xclip(bibtex, isfile=True)
         self.ui.set_status('bibtex yanked: %s' % bibtex)
 
-    def search(self):
-        msg = 'search: '
-        self.prompt = CustomEdit(msg)
-        self.ui.set_prompt(self.prompt)
-        urwid.connect_signal(self.prompt, 'done', self.search_done)
-
-    def search_done(self, query):
-        self.ui.view.set_focus('body')
-        urwid.disconnect_signal(self, self.prompt, 'done', self.search_done)
-        cmd = Search(self.ui, query)
-        self.ui.view = urwid.Frame(urwid.AttrWrap(cmd, 'body'))
-        self.ui.mainloop = urwid.MainLoop(
-            self.ui.view,
-            self.ui.palette,
-            unhandled_input=self.ui.keypress,
-            handle_mouse=False,
-            )
-        self.ui.mainloop.run()
-
-    def tag(self, sign):
+    def promptTag(self, sign):
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        # focus = self.listbox.get_focus()[0]
-        # tags = focus.tags
         if sign is '+':
-            msg = 'add tag: '
+            # FIXME: autocomplete to existing tags
+            prompt = 'add tags: '
         elif sign is '-':
-            msg = 'remove tag: '
-        self.prompt = CustomEdit(msg)
-        self.ui.set_prompt(self.prompt)
-        urwid.connect_signal(self.prompt, 'done', self.tag_done, sign)
+            # FIXME: autocomplete to doc tags only
+            prompt = 'remove tags: '
+        urwid.connect_signal(self.ui.prompt(prompt), 'done', self.promptTag_done, sign)
 
-    def tag_done(self, tag, sign):
+    def promptTag_done(self, tag_string, sign):
         self.ui.view.set_focus('body')
-        urwid.disconnect_signal(self, self.prompt, 'done', self.tag_done)
+        urwid.disconnect_signal(self, self.ui.prompt, 'done', self.promptTag_done)
+        if not tag_string:
+            self.ui.set_status('No tags set.')
+            return
         entry = self.listbox.get_focus()[0]
         db = Database(self.ui.xdir, writable=True)
         doc = db.doc_for_docid(entry.docid)
+        tags = tag_string.split()
         if sign is '+':
-            msg = "Added tag '%s'" % (tag)
-            doc.add_tags([tag])
+            doc.add_tags(tags)
+            msg = "Added tags: %s" % (tag_string)
         elif sign is '-':
-            msg = "Removed tag '%s'" % (tag)
-            doc.remove_tags([tag])
+            doc.remove_tags(tags)
+            msg = "Removed tags: %s" % (tag_string)
         doc.sync()
         tags = doc.get_tags()
         entry.tags.set_text(' '.join(tags))
@@ -276,7 +255,7 @@ class Search(urwid.WidgetWrap):
         db = Database(self.ui.xdir, writable=True)
         doc = db.doc_for_docid(entry.docid)
         tag = 'inbox'
-        msg = "Removed tag '%s'" % (tag)
+        msg = "Removed tag '%s'." % (tag)
         doc.remove_tags([tag])
         doc.sync()
         tags = doc.get_tags()
@@ -289,7 +268,7 @@ class Search(urwid.WidgetWrap):
         focus = self.listbox.get_focus()[0]
         element = eval('focus.' + field)
         value = element.get_text()[0]
-        self.prompt = CustomEdit(field + ': ', edit_text=value)
+        self.prompt = Prompt(field + ': ', edit_text=value)
         self.ui.set_prompt(self.prompt)
         urwid.connect_signal(self.prompt, 'done', self.setField_done, field)
 
@@ -313,15 +292,17 @@ class Search(urwid.WidgetWrap):
             msg = "Nothing done."
         self.ui.set_status(msg)
 
+    ##########
+
     def keypress(self, size, key):
         if key is 'n':
             self.nextEntry()
         elif key is 'p':
             self.prevEntry()
         elif key is '+':
-            self.tag('+')
+            self.promptTag('+')
         elif key is '-':
-            self.tag('-')
+            self.promptTag('-')
         elif key is 'a':
             self.archive()
         elif key is 'enter':
@@ -336,7 +317,5 @@ class Search(urwid.WidgetWrap):
             self.copyURL()
         elif key is 'B':
             self.copyBibtex()
-        elif key is 's':
-            self.search()
         else:
             self.ui.keypress(key)

@@ -2,8 +2,9 @@ import sys
 import subprocess
 import urwid
 
-from xapers.database import Database
-from xapers.documents import Document
+from xapers.nci.search import Search
+
+############################################################
 
 class UI():
 
@@ -19,29 +20,22 @@ class UI():
 
         ('header', 'white', 'dark blue'),
         ('footer', 'white', 'dark blue'),
-        ('prompt', 'white', 'dark red'),
+        ('prompt', 'black', 'light green'),
         ]
 
-    def __init__(self, xdir, cmd, args):
+    def __init__(self, xdir, cmd=None):
         self.xdir = xdir
+        self.header_string = "Xapers"
+        self.status_string = "'s' to search."
+
         self.view = urwid.Frame(urwid.SolidFill())
+        self.set_header()
+        self.set_status()
 
-        if cmd is 'search':
-            from .search import Search
-            self.cmd = Search(self, args)
-            self.title = "search: " + args
-        elif cmd is 'edit':
-            from .edit import Edit
-            self.cmd = Edit(self, args)
-            self.title = "edit: " + args
-        else:
-            print >>sys.stderr, "Unknown command:", cmd
-            sys.exit()
+        if cmd and cmd[0] == 'search':
+            query = ' '.join(cmd[1:])
+            self.view.body = urwid.AttrWrap(Search(self, query), 'body')
 
-        self.view = urwid.Frame(urwid.AttrWrap(self.cmd, 'body'))
-
-        self.set_header(self.title)
-        self.set_status("enter to view document, u to view url.")
         self.mainloop = urwid.MainLoop(
             self.view,
             self.palette,
@@ -51,26 +45,56 @@ class UI():
         self.mainloop.run()
 
     def set_header(self, text=None):
-        if not text:
-            message = 'Xapers'
-        else:
-            message = 'Xapers %s' % (text)
-        self.view.set_header(urwid.AttrWrap(urwid.Text(message), 'header'))
+        if text:
+            self.header_string = 'Xapers %s' % (text)
+        self.view.set_header(urwid.AttrWrap(urwid.Text(self.header_string), 'header'))
 
     def set_status(self, text=None):
-        if not text:
-            message = 'Xapers'
-        else:
-            message = '%s' % (text)
-        self.view.set_footer(urwid.AttrWrap(urwid.Text(message), 'footer'))
+        if text:
+            self.status_string = '%s' % (text)
+        self.view.set_footer(urwid.AttrWrap(urwid.Text(self.status_string), 'footer'))
 
-    def set_prompt(self, prompt):
-        # prompt is an Edit object
+    def prompt(self, string):
+        prompt = PromptEdit(string)
         self.view.set_footer(urwid.AttrWrap(prompt, 'prompt'))
         self.view.set_focus('footer')
+        return prompt
+
+    ##########
+
+    def promptSearch(self):
+        prompt = 'search: '
+        urwid.connect_signal(self.prompt(prompt), 'done', self.promptSearch_done)
+
+    def promptSearch_done(self, query):
+        self.view.set_focus('body')
+        urwid.disconnect_signal(self, self.prompt, 'done', self.promptSearch_done)
+        if query:
+            UI(self.xdir, ['search', query])
+        self.set_status()
+
+    ##########
 
     def keypress(self, key):
         if key is 's':
-            return
+            self.promptSearch()
         if key is 'q':
             raise urwid.ExitMainLoop()
+        if key is 'Q':
+            sys.exit()
+
+############################################################
+
+class PromptEdit(urwid.Edit):
+    __metaclass__ = urwid.signals.MetaSignals
+    signals = ['done']
+
+    def keypress(self, size, key):
+        if key == 'enter':
+            urwid.emit_signal(self, 'done', self.get_edit_text())
+            return
+        elif key == 'esc':
+            urwid.emit_signal(self, 'done', None)
+            return
+
+        urwid.Edit.keypress(self, size, key)

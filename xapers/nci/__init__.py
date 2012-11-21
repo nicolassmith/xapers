@@ -19,3 +19,4 @@ Jameson Rollins <jrollins@finestructure.net>
 """
 
 from .ui import UI
+from .search import Search

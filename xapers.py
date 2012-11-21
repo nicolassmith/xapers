@@ -182,12 +182,19 @@ if __name__ == '__main__':
             sys.exit()
 
     ########################################
-    elif cmd in ['select','view','v','show']:
+    elif cmd in ['view','v','show']:
         query = make_query_string(sys.argv[2:])
         if not query or query == '':
             query = 'tag:inbox'
         try:
-            xapers.nci.UI(xdir, 'search', query)
+            xapers.nci.UI(xdir, ['search', query])
+        except KeyboardInterrupt:
+            sys.exit()
+
+    ########################################
+    elif cmd in ['nci']:
+        try:
+            xapers.nci.UI(xdir, cmd=sys.argv[2:])
         except KeyboardInterrupt:
             sys.exit()
 
