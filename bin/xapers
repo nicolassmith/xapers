@@ -241,7 +241,10 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['count']:
-        query = make_query_string(sys.argv[2:])
+        if len(sys.argv) < 3:
+            query = '*'
+        else:
+            query = make_query_string(sys.argv[2:])
         cli.count(query)
 
     ########################################
