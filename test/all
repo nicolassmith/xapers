@@ -1,0 +1,170 @@
+#!/usr/bin/env bash
+
+test_description='xapers.'
+
+. ./test-lib.sh
+
+################################################################
+
+# FIXME: add test for source2bib
+# FIXME: add test for scandoc
+
+test_expect_success 'import file (foo)' \
+    'xapers import \
+    --file=$DOC_DIR/2007NJPh....9...17L.pdf \
+    --source=$DOC_DIR/2007NJPh....9...17L.bib \
+    --tags=new,foo'
+
+# FIXME: add with prompting
+test_expect_success 'import file (bar)' \
+    'xapers import \
+    --file=$DOC_DIR/josaa-29-10-2092-1.pdf \
+    --source=$DOC_DIR/josaa-29-10-2092-1.bib \
+    --tags=new,bar'
+
+test_expect_code 1 'import non-existant file' \
+    'xapers add --file=foo.pdf'
+
+# FIXME: add test for adding file already in db?
+
+test_begin_subtest 'count all'
+output=`xapers count`
+test_expect_equal $output 2
+
+test_begin_subtest 'count all (*)'
+output=`xapers count '*'`
+test_expect_equal $output 2
+
+test_begin_subtest 'search all'
+xapers search '*' >OUTPUT
+cat <<EOF >EXPECTED
+id:1 [] (foo new) "Creation of the universe with a stealth scalar field"
+id:2 [doi:10.1364/JOSAA.29.002092] (bar new) "Multicolor cavity metrology"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search all, limit 1'
+xapers search --limit=1 '*' >OUTPUT
+cat <<EOF >EXPECTED
+id:1 [] (foo new) "Creation of the universe with a stealth scalar field"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search by id:'
+xapers search id:2 >OUTPUT
+cat <<EOF >EXPECTED
+id:2 [doi:10.1364/JOSAA.29.002092] (bar new) "Multicolor cavity metrology"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search by tag:'
+xapers search tag:foo >OUTPUT
+cat <<EOF >EXPECTED
+id:1 [] (foo new) "Creation of the universe with a stealth scalar field"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search output tags'
+xapers search --output=tags tag:foo | sort >OUTPUT
+cat <<EOF >EXPECTED
+foo
+new
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search output tags (*)'
+xapers search --output=tags '*' | sort >OUTPUT
+cat <<EOF >EXPECTED
+bar
+foo
+new
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search output sources'
+xapers search --output=sources '*' >OUTPUT
+cat <<EOF >EXPECTED
+doi
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search output files'
+xapers search --output=files '*' >OUTPUT
+cat <<EOF >EXPECTED
+/home/jrollins/src/xapers/git/test2/tmp.all/docs/0000000001/2007NJPh....9...17L.pdf
+/home/jrollins/src/xapers/git/test2/tmp.all/docs/0000000002/josaa-29-10-2092-1.pdf
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'output bibtex (foo)'
+xapers search --output=bibtex tag:foo >OUTPUT
+cat <<EOF >EXPECTED
+@article{
+    arxiv:1234,
+    author = "Maeda, Hideki and Maeda, Kei-ichi",
+    source = "arxiv",
+    title = "Creation of the universe with a stealth scalar field",
+    year = "2012",
+    sid = "1234"
+}
+
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'output bibtex (new)'
+xapers search --output=bibtex tag:new >OUTPUT
+cat <<EOF >EXPECTED
+@article{
+    arxiv:1234,
+    author = "Maeda, Hideki and Maeda, Kei-ichi",
+    source = "arxiv",
+    title = "Creation of the universe with a stealth scalar field",
+    year = "2012",
+    sid = "1234"
+}
+
+@article{
+    Izumi_Arai_Barr_Betzwieser_Brooks_Dahl_Doravari_Driggers_Korth_Miao_et_al._2012,
+    author = "Izumi, Kiwamu and Arai, Koji and Barr, Bryan and Betzwieser, Joseph and Brooks, Aidan and Dahl, Katrin and Doravari, Suresh and Driggers, Jennifer C. and Korth, W. Zach and Miao, Haixing and et al.",
+    publisher = "Optical Society of America",
+    doi = "10.1364/JOSAA.29.002092",
+    title = "Multicolor cavity metrology",
+    url = "http://dx.doi.org/10.1364/JOSAA.29.002092",
+    journal = "Journal of the Optical Society of America A",
+    number = "10",
+    month = "Sep",
+    volume = "29",
+    year = "2012",
+    pages = "2092"
+}
+
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+# FIXME: add test for export
+
+test_begin_subtest 'add tag'
+xapers tag +qux -- tag:foo
+xapers search tag:qux >OUTPUT
+cat <<EOF >EXPECTED
+id:1 [] (foo new qux) "Creation of the universe with a stealth scalar field"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'remove tag'
+xapers tag -qux -- tag:qux
+xapers search tag:qux >OUTPUT
+cat <<EOF >EXPECTED
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+# FIXME: add test for update
+
+test_begin_subtest 'delete document'
+echo 'Y' | xapers delete id:1
+xapers search id:1 >OUTPUT
+cat <<EOF >EXPECTED
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_done

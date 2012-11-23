@@ -1,6 +1,5 @@
 *~
 *.pyc
-test
 dist
 build
 xapers.egg-info
