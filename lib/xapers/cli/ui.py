@@ -281,7 +281,7 @@ class UI():
             if fullpaths:
                 fullpath = doc.get_fullpaths()[0]
             else:
-                fullpath = None
+                fullpath = ''
 
             if oformat in ['file','files']:
                 print "%s" % (fullpath)
