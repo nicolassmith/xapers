@@ -20,6 +20,7 @@ Jameson Rollins <jrollins@finestructure.net>
 
 import os
 import sys
+import sets
 import shutil
 import readline
 from subprocess import call
@@ -273,6 +274,8 @@ class UI():
                 print source
             return
 
+        otags = set([])
+        osources = set([])
         for doc in self.db.search(query_string, limit=limit):
             docid = doc.get_docid()
 
@@ -289,6 +292,14 @@ class UI():
 
             tags = doc.get_tags()
             sources = doc.get_sources_list()
+
+            if oformat == 'tags':
+                otags = otags | set(tags)
+                continue
+            if oformat == 'sources':
+                osources = osources | set(sources)
+                continue
+
             title = doc.get_title()
             if not title:
                 title = ''
@@ -309,6 +320,15 @@ class UI():
                     print bibtex
                     print
                 continue
+
+        if oformat == 'tags':
+            for tag in otags:
+                print tag
+            return
+        if oformat == 'sources':
+            for source in osources:
+                print source
+            return
 
 ######################################################################
 
