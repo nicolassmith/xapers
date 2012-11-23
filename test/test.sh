@@ -1,13 +1,11 @@
 #!/bin/bash -e
 dir=$(cd $(dirname $0) && pwd)
 
-TEST_DOC_DIR="$dir"/docs.old
-
+export PATH="$dir"/../bin:$PATH
+export PYTHONPATH="$dir"/../lib
 export XAPERS_DIR="$dir"/tmp.test
 
-xapers() {
-    "$dir"/../xapers.py "$@"
-}
+TEST_DOC_DIR="$dir"/docs
 
 # purge previous database
 rm -rf "$XAPERS_DIR"
