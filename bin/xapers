@@ -17,43 +17,58 @@ def usage():
     prog = os.path.basename(sys.argv[0])
     print "Usage:", prog, "<command> [args...]"
     print """
-  add [options]                               add new document
-    --source=source                             specify source
-    --file=file                                 file to index
-    --tags=tag[,...]                            initial tags
-    --prompt                                    prompt for unspecified options
-    --view                                      view entry after adding
-  update [options] docid                      update document
-    --source=source                             specify source
-    --file=file                                 file to index
-  delete docid                                delete document from database
+Commands:
 
-  tag +tag|-tab [...] [--] search-terms...    add/remove tags
+  import [options]                    Import new document.
+    --source=<source>                   specify source
+    --file=<file>                       file to index
+    --tags=<tag>[,...]                  initial tags
+    --prompt                            prompt for unspecified options
+    --view                              view entry after adding
+  update [options] <docid>            Update document.
+    --source=<source>                   specify source
+    --file=<file>                       file to index
+  delete <docid>                      Delete document from database.
 
-  search [options] search-terms...            search the database
-    --output=[files|summary|bibtex|sources|tags] output format
-    --limit=N                                    limit number returned (20)
-  bibtex search-terms...                      search --output=bibtex
-  view search-terms...                        view search in selector UI
-  count search-terms...                       count matches
+  tag +<tag>|-<tag> [...] [--] <search-terms>...
+                                      Add/remove tags.
 
-  export dir search-terms...                  export documents to a directory,
-                                              docs named based on contents
+  search [options] <search-terms>...  Search for documents.
+    --output=[files|summary|bibtex|sources|tags]
+                                        output format
+    --limit=N                           limit number of results returned
+                                        (default is 20, 0 for all)
+  view <search-terms>...              View search in curses UI.
+  count <search-terms>...             Count matches.
 
-  source2bib source                           retrieve bibtex for source
+  export <dir> <search-terms>...      Export documents to a directory of
+                                      files named for document titles.
 
-  version
-  help                                        this help
+  source2bib <source>                 Retrieve bibtex for source and
+                                      print to stdout.
+  scandoc <file>                      Scan a file for source IDs.
 
-sources: sources can be either urls, or 'source:id' strings, or bibtex files.
-search-terms: terms to search for, included prefixed terms:
-  id:        document id
-  source:    source type
-  bib:       bibtex db entry key
-  author:    author string
-  title:     title string
-  tag:       user tags
+  version                             Print version number.
+  help                                This help.
+
+<docid>: Documents are assigned individual IDs.
+
+<source>: Sources can be either URLs, 'source:id' strings, or bibtex
+  files.  URLs and source:id strings will be parsed by the source
+  module to determine online sources to for downloading bibtex.
+
+<search-terms>: The following prefixes are used to match against
+  specific elements of a document:
+    id:<docid>               document id
+    source(s):<source>       source type
+    bib:<bibid>              bibtex db entry key
+    author(a):<string>       author string (a:)
+    title(t):<string>        title string
+    tag:<tag>                user tags
+  The string '*' will match all messages.
 """
+
+########################################################################
 
 if __name__ == '__main__':
 
@@ -78,7 +93,7 @@ if __name__ == '__main__':
     cli = xapers.cli.UI(xdir)
 
     ########################################
-    if cmd in ['add','a']:
+    if cmd in ['add','a','import','i']:
         tags = None
         infile = None
         source = None
@@ -132,15 +147,15 @@ if __name__ == '__main__':
         cli.add(docid, infile=infile, source=source)
 
     ########################################
-    elif cmd == 'update-all':
+    elif cmd in ['update-all']:
         cli.update_all()
 
     ########################################
-    elif cmd == 'delete':
+    elif cmd in ['delete']:
         cli.delete(make_query_string(sys.argv[2:]))
 
     ########################################
-    elif cmd == 'new':
+    elif cmd in ['new']:
         print >>sys.stderr, "not implemented."
 
     ########################################
@@ -220,17 +235,17 @@ if __name__ == '__main__':
         cli.tag(query, add_tags, remove_tags)
 
     ########################################
-    elif cmd == 'dumpterms':
+    elif cmd in ['dumpterms']:
         query = make_query_string(sys.argv[2:])
         cli.dumpterms(query)
 
     ########################################
-    elif cmd == 'count':
+    elif cmd in ['count']:
         query = make_query_string(sys.argv[2:])
         cli.count(query)
 
     ########################################
-    elif cmd == 'export':
+    elif cmd in ['export']:
         outdir = sys.argv[2]
         query = make_query_string(sys.argv[3:])
         cli.export(outdir, query)
@@ -259,7 +274,7 @@ if __name__ == '__main__':
             print "%s" % (ss)
 
     ########################################
-    elif cmd == 'version':
+    elif cmd in ['version']:
         print "Ha!"
 
     ########################################
