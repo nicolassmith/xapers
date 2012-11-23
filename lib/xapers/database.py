@@ -185,7 +185,7 @@ class Database():
 
     def count(self, query_string):
         """Count documents matching search terms."""
-        return self._search(query_string, count=0).get_matches_estimated()
+        return self._search(query_string).get_matches_estimated()
 
     def _doc_for_term(self, term):
         enquire = xapian.Enquire(self.xapian)
