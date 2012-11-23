@@ -49,8 +49,16 @@ class Completer:
 class UI():
     """Xapers command-line UI."""
 
-    def __init__(self, xdir):
-        self.xdir = xdir
+    def __init__(self):
+        try:
+            self.xdir = os.environ['XAPERS_DIR']
+        except:
+            print >>sys.stderr, "XAPERS_DIR environment variable not specified."
+            sys.exit(1)
+        if not os.path.isdir(self.xdir):
+            print >>sys.stderr, "XAPERS_DIR '%s' does not exist." % (self.xdir)
+            sys.exit(2)
+
         self.db = Database(self.xdir)
 
     def prompt_for_file(self, infile):

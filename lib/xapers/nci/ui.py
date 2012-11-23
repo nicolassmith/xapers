@@ -23,8 +23,16 @@ class UI():
         ('prompt', 'black', 'light green'),
         ]
 
-    def __init__(self, xdir, cmd=None):
-        self.xdir = xdir
+    def __init__(self, cmd=None):
+        try:
+            self.xdir = os.environ['XAPERS_DIR']
+        except:
+            print >>sys.stderr, "XAPERS_DIR environment variable not specified."
+            sys.exit(1)
+        if not os.path.isdir(self.xdir):
+            print >>sys.stderr, "XAPERS_DIR '%s' does not exist." % (self.xdir)
+            sys.exit(2)
+
         self.header_string = "Xapers"
         self.status_string = "'s' to search."
 
