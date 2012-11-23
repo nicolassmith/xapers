@@ -145,15 +145,15 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['search','s']:
-        if len(sys.argv) < 3:
-            print >>sys.stderr, "Must specify a search term."
-            sys.exit()
-
         oformat = 'simple'
         limit = 20
 
         argc = 2
         while True:
+            if len(sys.argv) < argc+1:
+                print >>sys.stderr, "Must specify a search term."
+                sys.exit()
+
             if '--output=' in sys.argv[argc]:
                 oformat = sys.argv[argc].split('=')[1]
             elif '--limit=' in sys.argv[argc]:
