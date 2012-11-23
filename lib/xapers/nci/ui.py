@@ -1,6 +1,7 @@
+import os
 import sys
-import subprocess
 import urwid
+import subprocess
 
 from xapers.nci.search import Search
 
@@ -40,6 +41,8 @@ class UI():
         self.set_header()
         self.set_status()
 
+        if not cmd:
+            cmd = ['search', '*']
         if cmd and cmd[0] == 'search':
             query = ' '.join(cmd[1:])
             self.view.body = urwid.AttrWrap(Search(self, query), 'body')

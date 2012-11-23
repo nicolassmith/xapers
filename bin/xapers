@@ -153,18 +153,16 @@ if __name__ == '__main__':
         cli.delete(make_query_string(sys.argv[2:]))
 
     ########################################
-    elif cmd in ['new']:
-        print >>sys.stderr, "not implemented."
-
-    ########################################
     elif cmd in ['search','s']:
         cli = xapers.cli.UI()
 
-        oformat = 'simple'
+        oformat = 'summary'
         limit = 20
 
         argc = 2
         while True:
+            if argc >= len(sys.argv):
+                break
             if '--output=' in sys.argv[argc]:
                 oformat = sys.argv[argc].split('=')[1]
             elif '--limit=' in sys.argv[argc]:
@@ -190,7 +188,7 @@ if __name__ == '__main__':
             sys.exit()
 
     ########################################
-    elif cmd in ['view','v','show']:
+    elif cmd in ['view','v','show','select']:
         query = make_query_string(sys.argv[2:], require=False)
         try:
             xapers.nci.UI(['search', query])
@@ -213,6 +211,8 @@ if __name__ == '__main__':
 
         argc = 2
         for arg in sys.argv[argc:]:
+            if argc >= len(sys.argv):
+                break
             if arg == '--':
                 argc += 1
                 continue
@@ -263,7 +263,6 @@ if __name__ == '__main__':
     elif cmd in ['scandoc','sd']:
         infile = sys.argv[2]
         import xapers.source
-
         sources = xapers.source.scan_for_sources(infile)
         for ss in sources:
             print "%s" % (ss)

@@ -312,7 +312,7 @@ class UI():
             if not title:
                 title = ''
 
-            if oformat in ['summary','simple']:
+            if oformat in ['summary']:
                 print "id:%s [%s] (%s) \"%s\"" % (docid,
                                                    ' '.join(sources),
                                                    ' '.join(tags),
