@@ -294,7 +294,7 @@ class UI():
                 title = ''
 
             if oformat in ['summary','simple']:
-                print "id:%s [%s] (%s) \"%s\" " % (docid,
+                print "id:%s [%s] (%s) \"%s\"" % (docid,
                                                    ' '.join(sources),
                                                    ' '.join(tags),
                                                    title,
