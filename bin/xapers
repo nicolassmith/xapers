@@ -58,20 +58,25 @@ Commands:
   version                             Print version number.
   help                                This help.
 
-<docid>: Documents are assigned individual IDs.
+The XAPERS_DIR environment should point to the directory where you
+want Xapers to store the documents.  Other definitions:
 
-<source>: Sources can be either URLs, 'source:id' strings, or bibtex
-  files.  URLs and source:id strings will be parsed by the source
-  module to determine online sources to for downloading bibtex.
+  <docid>: Documents are assigned unique integer IDs.
 
-<search-terms>: The following prefixes are used to match against
-  specific elements of a document:
-    id:<docid>               document id
-    source(s):<source>       source type
-    bib:<bibid>              bibtex db entry key
-    author(a):<string>       author string (a:)
-    title(t):<string>        title string
-    tag:<tag>                user tags
+  <source>: Sources can be either URLs, 'source:sid' strings, or
+    bibtex files.  URLs and source:id strings will be parsed by the
+    source module to determine online sources to for downloading
+    bibtex.
+
+  <search-terms>: The following prefixes are used to match against
+    specific elements of a document:
+      id:<docid>               document id
+      source:<source>          source type (also s:)
+      bib:<bibid>              bibtex db entry key
+      author:<string>          author string (also a:)
+      title:<string>           title string (also t:)
+      tag:<tag>                user tags
+
   The string '*' will match all messages.
 """
 
