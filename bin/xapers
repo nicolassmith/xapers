@@ -241,6 +241,7 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['export']:
+        cli = xapers.cli.UI()
         outdir = sys.argv[2]
         query = make_query_string(sys.argv[3:])
         cli.export(outdir, query)
