@@ -1,10 +1,8 @@
 import os
-import sys
 import subprocess
 import urwid
 
 from xapers.database import Database, DatabaseError
-from xapers.documents import Document
 
 ############################################################
 
@@ -120,7 +118,7 @@ class Search(urwid.WidgetWrap):
         self.ui = ui
 
         self.ui.set_header("search: " + query)
-        self.ui.set_status("enter to view document ('h' for help).")
+        self.ui.set_status("'enter' to view document ('h' for help).")
 
         docs = self.ui.db.search(query, limit=20)
         if len(docs) == 0:
