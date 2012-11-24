@@ -28,14 +28,11 @@ import xapers.bibtex
 
 class DocumentError(Exception):
     """Base class for Xapers document exceptions."""
-    pass
-
-class IllegalImportPath(DocumentError):
-    pass
-
-class ImportPathExists(DocumentError):
-    def __init__(self, docid):
-        self.docid = docid
+    def __init__(self, msg, code):
+        self.msg = msg
+        self.code = code
+    def __str__(self):
+        return self.msg
 
 ##################################################
 
@@ -43,7 +40,6 @@ class Documents():
     """Represents a set of Xapers documents given a Xapian mset."""
 
     def __init__(self, db, mset):
-        # Xapers db
         self.db = db
         self.mset = mset
         self.index = -1
@@ -207,15 +203,6 @@ class Document():
 
     def add_file(self, infile):
         """Add a file to document, copying into new xapers doc directory."""
-        # base, full = self.db._basename_for_path(path)
-        # if not base:
-        #     raise IllegalImportPath()
-
-        # FIXME: do we really need to do this check?
-        # doc = self.db.doc_for_path(base)
-        # if doc:
-        #     raise ImportPathExists(doc.get_docid())
-
         self._make_docdir()
         outfile = os.path.join(self.docdir, os.path.basename(infile))
         shutil.copyfile(infile, outfile)
