@@ -1,0 +1,36 @@
+Xapers
+------
+
+Xapers is a document indexing system.  You feed it a pdf file, and a
+source identifier to help it find bibliographic information, and it
+indexes the full document text and bib info in a Xapian database.  It
+has fast search, tagging, quick document retrieval, and can output
+bibtex.  There is a command line interface, and a ncurses based search
+interface.
+
+After install, run 'xapers help' for more info.
+
+Source
+------
+
+Clone the repo:
+
+$ git clone git://finestructure.net/xapers
+
+Tests
+-----
+
+Run the tests:
+
+$ ./test/xapers-test
+
+Debian
+------
+
+Make Debian/Ubuntu packages:
+
+$ cd xapers
+$ git checkout debian
+$ apt-get install git-buildpackage
+$ git buildpackage -uc -us
+$ dpkg -I ../xapers_0.0-1_amd64.deb
