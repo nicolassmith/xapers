@@ -66,16 +66,19 @@ want Xapers to store the documents.  Other definitions:
   <source>: Sources can be either URLs, 'source:sid' strings, or
     bibtex files.  URLs and source:id strings will be parsed by the
     source module to determine online sources to for downloading
-    bibtex.
+    bibtex.  The currently recognized source:sids are:
+      doi:<Digital Object Id>
+      arxiv:<arXiv Article Id>
+      ads:<SAO/NASA Astrophysics Data System Id>
+      dcc:<LIGO Document Control Center Id>
 
   <search-terms>: The following prefixes are used to match against
     specific elements of a document:
       id:<docid>               document id
-      source:<source>          source type (also s:)
-      bib:<bibid>              bibtex db entry key
-      author:<string>          author string (also a:)
-      title:<string>           title string (also t:)
+      author:<string>          string in authors (also a:)
+      title:<string>           string in title (also t:)
       tag:<tag>                user tags
+      source:<source>          source type (also s:)
 
   The string '*' will match all messages.
 """

@@ -336,6 +336,7 @@ class Document():
             self._set_authors(' '.join(authors))
 
         # FIXME: do this better for arbitrary source
+        # FIXME: is this even working?
         for source in ['doi', 'dcc', 'arxiv', 'ads']:
             if source in fields:
                 self.add_sources({source: fields[source]})
