@@ -76,7 +76,7 @@ class Database():
         # xapers db directory
         xapers_path = os.path.join(self.root, '.xapers')
 
-        # initial creation
+        # xapes directory initialization
         if not os.path.exists(xapers_path):
             if create:
                 if os.path.exists(self.root):
@@ -86,10 +86,13 @@ class Database():
                     except OSError:
                         # FIXME: this needs to raise an error
                         # root exists but it path
-                        raise DatabaseError('The Xapers root directory exists but is not empty.', 1)
+                        raise DatabaseError('Uninitialized Xapers root directory exists but is not empty.', 1)
                 os.makedirs(xapers_path)
             else:
-                raise DatabaseError('The Xapers database directory is missing.', 1)
+                if os.path.exists(self.root):
+                    raise DatabaseError("Xapers directory '%s' does not contain database." % (self.root), 1)
+                else:
+                    raise DatabaseError("Xapers directory '%s' not found." % (self.root), 1)
 
         # the Xapian db
         xapian_path = os.path.join(xapers_path, 'xapian')
