@@ -66,6 +66,10 @@ class UI():
             self.status_string = '%s' % (text)
         self.view.set_footer(urwid.AttrWrap(urwid.Text(self.status_string), 'footer'))
 
+    def newbuffer(self, cmd):
+        UI(self.xdir, db=self.db, cmd=cmd)
+        self.set_status()
+
     def prompt(self, string):
         prompt = PromptEdit(string)
         self.view.set_footer(urwid.AttrWrap(prompt, 'prompt'))
