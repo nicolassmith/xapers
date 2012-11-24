@@ -5,6 +5,7 @@ import subprocess
 
 from xapers.cli.ui import initdb
 from xapers.nci.search import Search
+from xapers.nci.bibview import Bibview
 
 ############################################################
 
@@ -42,9 +43,14 @@ class UI():
 
         if not cmd:
             cmd = ['search', '*']
-        if cmd and cmd[0] == 'search':
+        if cmd[0] == 'search':
             query = ' '.join(cmd[1:])
-            self.view.body = urwid.AttrWrap(Search(self, query), 'body')
+            widget = Search(self, query)
+        elif cmd[0] == 'bibview':
+            query = ' '.join(cmd[1:])
+            widget = Bibview(self, query)
+
+        self.view.body = urwid.AttrWrap(widget, 'body')
 
         self.mainloop = urwid.MainLoop(
             self.view,

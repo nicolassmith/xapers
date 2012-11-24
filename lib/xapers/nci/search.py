@@ -178,16 +178,7 @@ class Search(urwid.WidgetWrap):
     def viewBibtex(self):
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        bibtex = entry.doc.get_bibpath()
-        if not bibtex:
-            self.ui.set_status('ERROR: id:%s: bibtex not found.' % entry.docid)
-            return
-        self.ui.set_status('viewing bibtex: %s...' % bibtex)
-        # FIXME: we can do this better
-        subprocess.call(' '.join(["nohup", "x-terminal-emulator", "-e", "less", bibtex]) + ' &',
-                        shell=True,
-                        stdout=open('/dev/null','w'),
-                        stderr=open('/dev/null','w'))
+        self.ui.newbuffer(['bibview', 'id:' + entry.docid])
 
     def copyPath(self):
         entry = self.listbox.get_focus()[0]
