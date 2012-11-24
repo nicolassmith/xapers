@@ -27,24 +27,10 @@ from subprocess import call
 
 from xapers.database import Database
 from xapers.documents import Document
-from xapers.documents import IllegalImportPath, ImportPathExists
 import xapers.bibtex as bibparse
 import xapers.source
-import xapers.nci as nci
 
-# readline completion class
-class Completer:
-    def __init__(self, words):
-        self.words = words
-    def terms(self, prefix, index):
-        matching_words = [
-            w for w in self.words if w.startswith(prefix)
-            ]
-        try:
-            return matching_words[index]
-        except IndexError:
-            return None
-
+############################################################
 
 class UI():
     """Xapers command-line UI."""
@@ -60,6 +46,8 @@ class UI():
             sys.exit(2)
 
         self.db = Database(self.xdir)
+
+    ##########
 
     def prompt_for_file(self, infile):
         if infile:
@@ -108,7 +96,7 @@ class UI():
                 break
         return tags
 
-######################################################################
+    ##########
 
     def add(self, docid, infile=None, source=None, tags=None, prompt=False):
         if prompt:
@@ -237,8 +225,6 @@ class UI():
 
         return doc.docid
 
-######################################################################
-
     def delete(self, docid):
         self.db = Database(self.xdir, writable=True)
         if docid.find('id:') == 0:
@@ -267,7 +253,9 @@ class UI():
                 print >>sys.stderr, "\n"
                 raise
 
-######################################################################
+    ##########
+
+    ##########
 
     def search(self, query_string, oformat='simple', limit=None):
         # FIXME: writing needs to be in a try to catch IOError
@@ -338,8 +326,8 @@ class UI():
                 print source
             return
 
-######################################################################
 
+    ##########
     def tag(self, query_string, add_tags, remove_tags):
         self.db = Database(self.xdir, writable=True)
         for doc in self.db.search(query_string):
@@ -369,3 +357,18 @@ class UI():
             #print orig, outpath
             print outpath
             shutil.copyfile(orig, outpath)
+
+############################################################
+
+# readline completion class
+class Completer:
+    def __init__(self, words):
+        self.words = words
+    def terms(self, prefix, index):
+        matching_words = [
+            w for w in self.words if w.startswith(prefix)
+            ]
+        try:
+            return matching_words[index]
+        except IndexError:
+            return None
