@@ -8,4 +8,3 @@ export PYTHONPATH="$TEST_DIRECTORY"/../lib:$PYTHONPATH
 export DOC_DIR="$TEST_DIRECTORY/docs"
 
 export XAPERS_DIR="$TMP_DIRECTORY/docs"
-mkdir "$XAPERS_DIR"
