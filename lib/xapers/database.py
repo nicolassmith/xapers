@@ -10,7 +10,11 @@ from .documents import Documents, Document
 
 class DatabaseError(Exception):
     """Base class for Xapers database exceptions."""
-    pass
+    def __init__(self, msg, code):
+        self.msg = msg
+        self.code = code
+    def __str__(self):
+        return self.msg
 
 ##################################################
 
