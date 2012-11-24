@@ -155,7 +155,7 @@ class Search(urwid.WidgetWrap):
             self.ui.set_status('ERROR: id:%s: file not found.' % entry.docid)
             return
         self.ui.set_status('opening file: %s...' % path)
-        subprocess.call(' '.join(["nohup", "okular", path]) + ' &',
+        subprocess.call(' '.join(["nohup", "view", path]) + ' &',
                         shell=True,
                         stdout=open('/dev/null','w'),
                         stderr=open('/dev/null','w'))
@@ -168,7 +168,7 @@ class Search(urwid.WidgetWrap):
             self.ui.set_status('ERROR: id:%s: URL not found.' % entry.docid)
             return
         self.ui.set_status('opening url: %s...' % url)
-        subprocess.call(' '.join(["nohup", "jbrowser", url]) + ' &',
+        subprocess.call(' '.join(["nohup", "x-www-browser", "-new-window", url]) + ' &',
                         shell=True,
                         stdout=open('/dev/null','w'),
                         stderr=open('/dev/null','w'))
