@@ -1,8 +1,9 @@
 import os
+import sys
 import subprocess
 import urwid
 
-from xapers.database import Database
+from xapers.database import Database, DatabaseError
 from xapers.documents import Document
 
 ############################################################
@@ -117,7 +118,12 @@ class DocListItem(urwid.WidgetWrap):
 class Search(urwid.WidgetWrap):
     def __init__(self, ui, query):
         self.ui = ui
-        self.db = Database(self.ui.xdir, writable=False)
+
+        try:
+            self.db = Database(self.ui.xdir)
+        except DatabaseError as e:
+            print >>sys.stderr, 'Error:', e.msg
+            sys.exit(e.code)
 
         self.ui.set_header("search: " + query)
         self.ui.set_status("enter to view document ('h' for help).")

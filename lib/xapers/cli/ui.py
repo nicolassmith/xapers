@@ -25,7 +25,7 @@ import shutil
 import readline
 from subprocess import call
 
-from xapers.database import Database
+from xapers.database import Database, DatabaseError
 from xapers.documents import Document
 import xapers.bibtex as bibparse
 import xapers.source
@@ -41,11 +41,8 @@ class UI():
         except:
             print >>sys.stderr, "XAPERS_DIR environment variable not specified."
             sys.exit(1)
-        if not os.path.isdir(self.xdir):
-            print >>sys.stderr, "XAPERS_DIR '%s' does not exist." % (self.xdir)
-            sys.exit(2)
 
-        self.db = Database(self.xdir)
+        self.db = None
 
     ##########
 
@@ -148,7 +145,12 @@ class UI():
 
         # if docid provided, update that doc, otherwise create a new one
         # need a document from a writable db.
-        self.db = Database(self.xdir, writable=True, create=True)
+        try:
+            self.db = Database(self.xdir, writable=True, create=True)
+        except DatabaseError as e:
+            print >>sys.stderr, 'Error:', e.msg
+            sys.exit(e.code)
+
         if docid:
             if docid.find('id:') == 0:
                 docid = docid.split(':')[1]
@@ -255,11 +257,21 @@ class UI():
 
     ##########
 
+    def tag(self, query_string, add_tags, remove_tags):
+        self.db = Database(self.xdir, writable=True)
+        for doc in self.db.search(query_string):
+            doc.add_tags(add_tags)
+            doc.remove_tags(remove_tags)
+            doc.sync()
+
     ##########
 
     def search(self, query_string, oformat='simple', limit=None):
-        # FIXME: writing needs to be in a try to catch IOError
-        # exception
+        try:
+            self.db = Database(self.xdir)
+        except DatabaseError as e:
+            print >>sys.stderr, 'Error:', e.msg
+            sys.exit(e.code)
 
         if oformat == 'tags' and query_string == '*':
             for tag in self.db.get_terms('tag'):
@@ -326,25 +338,25 @@ class UI():
                 print source
             return
 
+    def count(self, query_string):
+        try:
+            self.db = Database(self.xdir)
+        except DatabaseError as e:
+            print >>sys.stderr, 'Error:', e.msg
+            sys.exit(e.code)
+        count = self.db.count(query_string)
+        print count
 
     ##########
-    def tag(self, query_string, add_tags, remove_tags):
-        self.db = Database(self.xdir, writable=True)
-        for doc in self.db.search(query_string):
-            doc.add_tags(add_tags)
-            doc.remove_tags(remove_tags)
-            doc.sync()
 
     def dumpterms(self, query_string):
+        self.db = Database(self.xdir)
         for doc in self.db.search(query_string):
             for term in doc.doc:
                 print term.term
 
-    def count(self, query_string):
-        count = self.db.count(query_string)
-        print count
-
     def export(self, outdir, query_string):
+        self.db = Database(self.xdir)
         try:
             os.makedirs(outdir)
         except:
