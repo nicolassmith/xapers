@@ -296,6 +296,7 @@ class Search(urwid.WidgetWrap):
 
     ##########
 
+    # FIXME: make this configurable
     def keypress(self, size, key):
         if key is 'n':
             self.nextEntry()

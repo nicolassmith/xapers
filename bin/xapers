@@ -27,15 +27,15 @@ def usage():
 Commands:
 
   import [options]                    Import new document.
-    --source=<source>                   specify source
+    --source=<source>                   source for bib data
     --file=<file>                       file to index
     --tags=<tag>[,...]                  initial tags
     --prompt                            prompt for unspecified options
     --view                              view entry after adding
-  update [options] <docid>            Update document.
-    --source=<source>                   specify source
+  update [options] [id:]<docid>       Update document.
+    --source=<source>                   source for bib data
     --file=<file>                       file to index
-  delete <docid>                      Delete document from database.
+  delete [id:]<docid>                 Delete a document from database.
 
   tag +<tag>|-<tag> [...] [--] <search-terms>...
                                       Add/remove tags.
@@ -58,8 +58,11 @@ Commands:
   version                             Print version number.
   help                                This help.
 
-The XAPERS_DIR environment should point to the directory where you
-want Xapers to store the documents.  Other definitions:
+The xapers document store is specified in the XAPERS_DIR environment
+variable, or defaults to '~/.xapers/docs' if not specified (the
+directory is allowed to be a symlink).
+
+Other definitions:
 
   <docid>: Documents are assigned unique integer IDs.
 
@@ -80,8 +83,7 @@ want Xapers to store the documents.  Other definitions:
       tag:<tag>                user tags
       source:<source>          source type (also s:)
 
-  The string '*' will match all messages.
-"""
+  The string '*' will match all messages."""
 
 ########################################################################
 
