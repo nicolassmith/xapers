@@ -85,9 +85,10 @@ class UI():
     def promptSearch_done(self, query):
         self.view.set_focus('body')
         urwid.disconnect_signal(self, self.prompt, 'done', self.promptSearch_done)
-        if query:
-            UI(self.xdir, db=self.db, cmd=['search', query])
-        self.set_status()
+        if not query:
+            self.set_status()
+            return
+        self.newbuffer(['search', query])
 
     ##########
 
