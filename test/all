@@ -9,31 +9,38 @@ test_description='xapers.'
 # FIXME: add test for source2bib
 # FIXME: add test for scandoc
 
-test_expect_success 'import file (foo)' \
+test_expect_code 1 'search error without database' \
+    'xapers search tag:foo'
+
+test_expect_success 'import file without source (foo)' \
     'xapers import \
     --file=$DOC_DIR/2007NJPh....9...17L.pdf \
-    --source=$DOC_DIR/2007NJPh....9...17L.bib \
     --tags=new,foo'
 
 # FIXME: add with prompting
-test_expect_success 'import file (bar)' \
+test_expect_success 'import file with source (bar)' \
     'xapers import \
     --file=$DOC_DIR/josaa-29-10-2092-1.pdf \
     --source=$DOC_DIR/josaa-29-10-2092-1.bib \
     --tags=new,bar'
 
+test_expect_success 'update doc with bib (foo)' \
+    'xapers update \
+    --source=$DOC_DIR/2007NJPh....9...17L.bib \
+    id:1'
+
 test_expect_code 1 'import non-existant file' \
-    'xapers add --file=foo.pdf'
+    'xapers import --file=foo.pdf'
 
 # FIXME: add test for adding file already in db?
 
 test_begin_subtest 'count all'
 output=`xapers count`
-test_expect_equal $output 2
+test_expect_equal "$output" 2
 
 test_begin_subtest 'count all (*)'
 output=`xapers count '*'`
-test_expect_equal $output 2
+test_expect_equal "$output" 2
 
 test_begin_subtest 'search all'
 xapers search '*' >OUTPUT
@@ -89,10 +96,10 @@ EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search output files'
-xapers search --output=files '*' >OUTPUT
+xapers search --output=files '*' | sed "s|$XAPERS_DIR|XAPERS_DIR|" >OUTPUT
 cat <<EOF >EXPECTED
-/home/jrollins/src/xapers/git/test2/tmp.all/docs/0000000001/2007NJPh....9...17L.pdf
-/home/jrollins/src/xapers/git/test2/tmp.all/docs/0000000002/josaa-29-10-2092-1.pdf
+XAPERS_DIR/0000000001/2007NJPh....9...17L.pdf
+XAPERS_DIR/0000000002/josaa-29-10-2092-1.pdf
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -141,8 +148,6 @@ cat <<EOF >EXPECTED
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-# FIXME: add test for export
-
 test_begin_subtest 'add tag'
 xapers tag +qux -- tag:foo
 xapers search tag:qux >OUTPUT
@@ -158,7 +163,14 @@ cat <<EOF >EXPECTED
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-# FIXME: add test for update
+test_begin_subtest 'export documents'
+xapers export "$TMP_DIRECTORY"/export '*'
+find "$TMP_DIRECTORY"/export -mindepth 1 | sed "s|$TMP_DIRECTORY|TMP_DIRECTORY|" >OUTPUT
+cat <<EOF >EXPECTED
+TMP_DIRECTORY/export/Creation_of_the_universe_with_a_stealth_scalar_field.pdf
+TMP_DIRECTORY/export/Multicolor_cavity_metrology.pdf
+EOF
+test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'delete document'
 echo 'Y' | xapers delete id:1
