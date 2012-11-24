@@ -35,13 +35,8 @@ import xapers.source
 class UI():
     """Xapers command-line UI."""
 
-    def __init__(self):
-        try:
-            self.xdir = os.environ['XAPERS_DIR']
-        except:
-            print >>sys.stderr, "XAPERS_DIR environment variable not specified."
-            sys.exit(1)
-
+    def __init__(self, xdir):
+        self.xdir = xdir
         self.db = None
 
     ##########

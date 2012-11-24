@@ -92,9 +92,12 @@ if __name__ == '__main__':
     else:
         cmd = []
 
+    xdir = os.getenv('XAPERS_DIR',
+                     os.path.expanduser(os.path.join('~','.xapers','docs')))
+
     ########################################
     if cmd in ['add','a','import','i']:
-        cli = xapers.cli.UI()
+        cli = xapers.cli.UI(xdir)
 
         tags = None
         infile = None
@@ -125,11 +128,11 @@ if __name__ == '__main__':
         # FIXME: is there a better way to handle this?
         cli = None
         if view and docid:
-            xapers.nci.UI(xdir, 'search', 'id:'+docid)
+            xapers.nci.UI(xdir, cmd=['search', 'id:'+docid])
 
     ########################################
     elif cmd in ['update','u']:
-        cli = xapers.cli.UI()
+        cli = xapers.cli.UI(xdir)
 
         infile = None
         source = None
@@ -152,17 +155,17 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['update-all']:
-        cli = xapers.cli.UI()
+        cli = xapers.cli.UI(xdir)
         cli.update_all()
 
     ########################################
     elif cmd in ['delete']:
-        cli = xapers.cli.UI()
+        cli = xapers.cli.UI(xdir)
         cli.delete(make_query_string(sys.argv[2:]))
 
     ########################################
     elif cmd in ['search','s']:
-        cli = xapers.cli.UI()
+        cli = xapers.cli.UI(xdir)
 
         oformat = 'summary'
         limit = 20
@@ -187,7 +190,7 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['bibtex','bib','b']:
-        cli = xapers.cli.UI()
+        cli = xapers.cli.UI(xdir)
         argc = 2
         query = make_query_string(sys.argv[argc:])
         try:
@@ -199,20 +202,20 @@ if __name__ == '__main__':
     elif cmd in ['view','v','show','select']:
         query = make_query_string(sys.argv[2:], require=False)
         try:
-            xapers.nci.UI(['search', query])
+            xapers.nci.UI(xdir, cmd=['search', query])
         except KeyboardInterrupt:
             sys.exit()
 
     ########################################
     elif cmd in ['nci']:
         try:
-            xapers.nci.UI(cmd=sys.argv[2:])
+            xapers.nci.UI(xdir, cmd=sys.argv[2:])
         except KeyboardInterrupt:
             sys.exit()
 
     ########################################
     elif cmd in ['tag','t']:
-        cli = xapers.cli.UI()
+        cli = xapers.cli.UI(xdir)
 
         add_tags = []
         remove_tags = []
@@ -237,19 +240,19 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['dumpterms']:
-        cli = xapers.cli.UI()
+        cli = xapers.cli.UI(xdir)
         query = make_query_string(sys.argv[2:], require=False)
         cli.dumpterms(query)
 
     ########################################
     elif cmd in ['count']:
-        cli = xapers.cli.UI()
+        cli = xapers.cli.UI(xdir)
         query = make_query_string(sys.argv[2:], require=False)
         cli.count(query)
 
     ########################################
     elif cmd in ['export']:
-        cli = xapers.cli.UI()
+        cli = xapers.cli.UI(xdir)
         outdir = sys.argv[2]
         query = make_query_string(sys.argv[3:])
         cli.export(outdir, query)
