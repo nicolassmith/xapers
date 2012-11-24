@@ -119,16 +119,10 @@ class Search(urwid.WidgetWrap):
     def __init__(self, ui, query):
         self.ui = ui
 
-        try:
-            self.db = Database(self.ui.xdir)
-        except DatabaseError as e:
-            print >>sys.stderr, 'Error:', e.msg
-            sys.exit(e.code)
-
         self.ui.set_header("search: " + query)
         self.ui.set_status("enter to view document ('h' for help).")
 
-        docs = self.db.search(query, limit=20)
+        docs = self.ui.db.search(query, limit=20)
         if len(docs) == 0:
             self.ui.set_status('No documents found.')
 

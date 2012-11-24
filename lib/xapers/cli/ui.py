@@ -32,6 +32,16 @@ import xapers.source
 
 ############################################################
 
+def initdb(xdir, writable=False, create=False):
+    try:
+        return Database(xdir, writable=writable, create=create)
+    except DatabaseError as e:
+        print >>sys.stderr, e.msg
+        print >>sys.stderr, 'Import a document to initialize.'
+        sys.exit(e.code)
+
+############################################################
+
 class UI():
     """Xapers command-line UI."""
 
@@ -140,11 +150,7 @@ class UI():
 
         # if docid provided, update that doc, otherwise create a new one
         # need a document from a writable db.
-        try:
-            self.db = Database(self.xdir, writable=True, create=True)
-        except DatabaseError as e:
-            print >>sys.stderr, 'Error:', e.msg
-            sys.exit(e.code)
+        self.db = initdb(self.xdir, writable=True, create=True)
 
         if docid:
             if docid.find('id:') == 0:
@@ -223,7 +229,8 @@ class UI():
         return doc.docid
 
     def delete(self, docid):
-        self.db = Database(self.xdir, writable=True)
+        self.db = initdb(self.xdir, writable=True)
+
         if docid.find('id:') == 0:
             docid = docid.split(':')[1]
         doc = self.db.doc_for_docid(docid)
@@ -239,7 +246,8 @@ class UI():
 
 
     def update_all(self):
-        self.db = Database(self.xdir, writable=True)
+        self.db = initdb(self.xdir, writable=True)
+
         for doc in self.db.search('*', limit=0):
             try:
                 print >>sys.stderr, "Updating %s..." % doc.docid,
@@ -253,7 +261,8 @@ class UI():
     ##########
 
     def tag(self, query_string, add_tags, remove_tags):
-        self.db = Database(self.xdir, writable=True)
+        self.db = initdb(self.xdir, writable=True)
+
         for doc in self.db.search(query_string):
             doc.add_tags(add_tags)
             doc.remove_tags(remove_tags)
@@ -262,11 +271,7 @@ class UI():
     ##########
 
     def search(self, query_string, oformat='simple', limit=None):
-        try:
-            self.db = Database(self.xdir)
-        except DatabaseError as e:
-            print >>sys.stderr, 'Error:', e.msg
-            sys.exit(e.code)
+        self.db = initdb(self.xdir)
 
         if oformat == 'tags' and query_string == '*':
             for tag in self.db.get_terms('tag'):
@@ -334,24 +339,25 @@ class UI():
             return
 
     def count(self, query_string):
-        try:
-            self.db = Database(self.xdir)
-        except DatabaseError as e:
-            print >>sys.stderr, 'Error:', e.msg
-            sys.exit(e.code)
+        self.db = initdb(self.xdir)
+
         count = self.db.count(query_string)
         print count
 
     ##########
 
     def dumpterms(self, query_string):
-        self.db = Database(self.xdir)
+        self.db = initdb(self.xdir)
+
         for doc in self.db.search(query_string):
             for term in doc.doc:
                 print term.term
 
+    ##########
+
     def export(self, outdir, query_string):
-        self.db = Database(self.xdir)
+        self.db = initdb(self.xdir)
+
         try:
             os.makedirs(outdir)
         except:
@@ -361,7 +367,6 @@ class UI():
             title = doc.get_title()
             name = '%s.pdf' % (title.replace(' ','_'))
             outpath = os.path.join(outdir,name)
-            #print orig, outpath
             print outpath
             shutil.copyfile(orig, outpath)
 

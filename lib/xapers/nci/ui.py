@@ -3,6 +3,7 @@ import sys
 import urwid
 import subprocess
 
+from xapers.cli.ui import initdb
 from xapers.nci.search import Search
 
 ############################################################
@@ -26,6 +27,11 @@ class UI():
 
     def __init__(self, xdir, db=None, cmd=None):
         self.xdir = xdir
+        if db:
+            # reuse db if provided
+            self.db = db
+        else:
+            self.db = initdb(self.xdir)
 
         self.header_string = "Xapers"
         self.status_string = "'s' to search."
@@ -47,6 +53,8 @@ class UI():
             handle_mouse=False,
             )
         self.mainloop.run()
+
+    ##########
 
     def set_header(self, text=None):
         if text:
@@ -74,7 +82,7 @@ class UI():
         self.view.set_focus('body')
         urwid.disconnect_signal(self, self.prompt, 'done', self.promptSearch_done)
         if query:
-            UI(self.xdir, ['search', query])
+            UI(self.xdir, db=self.db, cmd=['search', query])
         self.set_status()
 
     ##########
