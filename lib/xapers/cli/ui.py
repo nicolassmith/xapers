@@ -142,8 +142,9 @@ class UI():
             else:
                 try:
                     print >>sys.stderr, "Retrieving bibtex...",
-                    bibtex = smod.get_bibtex()
-                    print >>sys.stderr, "done."
+                    (bibtex, url) = smod.get_bibtex()
+                    print >>sys.stderr, "done: ",
+                    print >>sys.stderr, "%s" % (url)
                 except:
                     print >>sys.stderr, "\n"
                     raise
