@@ -1,3 +1,9 @@
+xapers (0.0.1-1) unstable; urgency=low
+
+  * Bugfix release.
+
+ -- Jameson Rollins <jrollins@finestructure.net>  Sat, 24 Nov 2012 17:48:16 -0800
+
 xapers (0.0-1) unstable; urgency=low
 
   * New packaging.
