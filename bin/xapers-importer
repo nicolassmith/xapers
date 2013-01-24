@@ -1,0 +1,16 @@
+#!/bin/bash -e
+
+infile="$1"
+
+if [ ! -e "$infile" ] ; then
+    echo "file '$infile' not found." >&2
+    exit 1
+fi
+
+see "$infile" &
+
+x-terminal-emulator \
+    -title "xapers-import" \
+    -e sh -c "
+xapers add --file=$infile --tags=inbox --prompt --view
+"
