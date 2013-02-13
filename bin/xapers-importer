@@ -13,4 +13,5 @@ x-terminal-emulator \
     -title "xapers-import" \
     -e sh -c "
 xapers add --file=$infile --tags=inbox --prompt --view
+read -p 'any key to quit:' OK
 "

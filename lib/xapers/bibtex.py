@@ -42,8 +42,9 @@ class Bibentry():
     def get_authors(self):
         """Return a list of authors."""
         authors = []
-        for p in self.entry.persons['author']:
-            authors.append(clean_bib_string(unicode(p)))
+        if 'author' in self.entry.persons:
+            for p in self.entry.persons['author']:
+                authors.append(clean_bib_string(unicode(p)))
         return authors
 
     def get_fields(self):
