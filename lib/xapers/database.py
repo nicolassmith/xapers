@@ -184,8 +184,10 @@ class Database():
         # FIXME: need to catch Xapian::Error when using enquire
         enquire.set_query(query)
 
-        # FIXME: can set how the mset is ordered
-        # FIXME: prefer newer entries to older
+        # set order of returned docs as newest first
+        # FIXME: make this user specifiable
+        enquire.set_docid_order(xapian.Enquire.DESCENDING)
+
         if limit:
             mset = enquire.get_mset(0, limit)
         else:
