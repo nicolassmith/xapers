@@ -45,15 +45,15 @@ test_expect_equal "$output" 2
 test_begin_subtest 'search all'
 xapers search '*' >OUTPUT
 cat <<EOF >EXPECTED
-id:1 [] (foo new) "Creation of the universe with a stealth scalar field"
 id:2 [doi:10.1364/JOSAA.29.002092] (bar new) "Multicolor cavity metrology"
+id:1 [] (foo new) "Creation of the universe with a stealth scalar field"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search all, limit 1'
 xapers search --limit=1 '*' >OUTPUT
 cat <<EOF >EXPECTED
-id:1 [] (foo new) "Creation of the universe with a stealth scalar field"
+id:2 [doi:10.1364/JOSAA.29.002092] (bar new) "Multicolor cavity metrology"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -98,8 +98,8 @@ test_expect_equal_file OUTPUT EXPECTED
 test_begin_subtest 'search output files'
 xapers search --output=files '*' | sed "s|$XAPERS_DIR|XAPERS_DIR|" >OUTPUT
 cat <<EOF >EXPECTED
-XAPERS_DIR/0000000001/2007NJPh....9...17L.pdf
 XAPERS_DIR/0000000002/josaa-29-10-2092-1.pdf
+XAPERS_DIR/0000000001/2007NJPh....9...17L.pdf
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -122,15 +122,6 @@ test_begin_subtest 'output bibtex (new)'
 xapers search --output=bibtex tag:new >OUTPUT
 cat <<EOF >EXPECTED
 @article{
-    arxiv:1234,
-    author = "Maeda, Hideki and Maeda, Kei-ichi",
-    source = "arxiv",
-    title = "Creation of the universe with a stealth scalar field",
-    year = "2012",
-    sid = "1234"
-}
-
-@article{
     Izumi_Arai_Barr_Betzwieser_Brooks_Dahl_Doravari_Driggers_Korth_Miao_et_al._2012,
     author = "Izumi, Kiwamu and Arai, Koji and Barr, Bryan and Betzwieser, Joseph and Brooks, Aidan and Dahl, Katrin and Doravari, Suresh and Driggers, Jennifer C. and Korth, W. Zach and Miao, Haixing and et al.",
     publisher = "Optical Society of America",
@@ -143,6 +134,15 @@ cat <<EOF >EXPECTED
     volume = "29",
     year = "2012",
     pages = "2092"
+}
+
+@article{
+    arxiv:1234,
+    author = "Maeda, Hideki and Maeda, Kei-ichi",
+    source = "arxiv",
+    title = "Creation of the universe with a stealth scalar field",
+    year = "2012",
+    sid = "1234"
 }
 
 EOF
