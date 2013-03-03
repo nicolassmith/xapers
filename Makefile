@@ -4,11 +4,6 @@ VERSION:=$(shell git describe --tags | sed -e s/_/~/ -e s/-/+/ -e s/-/~/)
 
 .PHONY: all
 all:
-	./setup.py build
-
-.PHONY: install
-install:
-	./setup.py install 
 
 .PHONY: debian-snapshot
 debian-snapshot:
