@@ -51,6 +51,7 @@ Commands:
   export <dir> <search-terms>...      Export documents to a directory of
                                       files named for document titles.
 
+  sources                             List available sources.
   source2bib <source>                 Retrieve bibtex for source and
                                       print to stdout.
   scandoc <file>                      Scan a file for source IDs.
@@ -258,6 +259,12 @@ if __name__ == '__main__':
         outdir = sys.argv[2]
         query = make_query_string(sys.argv[3:])
         cli.export(outdir, query)
+
+    ########################################
+    elif cmd in ['sources']:
+        import xapers.source
+        for source in xapers.source.list_sources():
+            print source
 
     ########################################
     elif cmd in ['source2bib','s2b']:
