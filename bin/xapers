@@ -45,6 +45,7 @@ Commands:
                                         output format
     --limit=N                           limit number of results returned
                                         (default is 20, 0 for all)
+  bibtex <search-terms>...            Short for \"search --output=bibtex\".
   view <search-terms>...              View search in curses UI.
   count <search-terms>...             Count matches.
 
