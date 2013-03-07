@@ -126,9 +126,8 @@ class UI():
             bibfile = source
             try:
                 print >>sys.stderr, "Reading bibtex...",
-                f = open(bibfile, 'r')
-                bibtex = f.read()
-                f.close()
+                with open(bibfile, 'r') as f:
+                    bibtex = f.read()
                 print >>sys.stderr, "done."
             except:
                 print >>sys.stderr, "\n"
