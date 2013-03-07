@@ -38,8 +38,8 @@ Commands:
                                       Add/remove tags.
 
   search [options] <search-terms>...  Search for documents.
-    --output=[files|summary|bibtex|sources|tags]
-                                        output format
+    --output=[summary|bibtex|files|sources|tags]
+                                        output format (default is 'summary')
     --limit=N                           limit number of results returned
                                         (default is 20, 0 for all)
   bibtex <search-terms>...            Short for \"search --output=bibtex\".
