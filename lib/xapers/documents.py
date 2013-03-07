@@ -315,7 +315,7 @@ class Document():
 
     def get_bibpath(self):
         """Return path to document bibtex file."""
-        return os.path.join(self.root, self.docdir, 'bibtex')
+        return os.path.join(self.docdir, 'bibtex')
 
     def _set_bibkey(self, key):
         prefix = self.db._find_prefix('bib')
