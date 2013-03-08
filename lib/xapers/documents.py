@@ -207,6 +207,8 @@ class Document():
     def add_file(self, infile):
         """Add a file to document, copying into new xapers doc directory."""
         self._make_docdir()
+
+        # FIXME: should files be renamed to something generic (0.pdf)?
         outfile = os.path.join(self.docdir, os.path.basename(infile))
 
         try:
@@ -221,8 +223,7 @@ class Document():
         self._add_path(base)
 
         # set data to be text sample
-        # FIXME: what should really be in here?  what if we have
-        # multiple files for the document?  what about bibtex?
+        # FIXME: is this the right thing to put in the data?
         self._set_data(summary)
 
         return full
