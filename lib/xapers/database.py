@@ -69,7 +69,7 @@ class Database():
     def _make_source_prefix(self, source):
         return 'X%s|' % (source.upper())
 
-    def __init__(self, root, writable=False, create=False):
+    def __init__(self, root, writable=False, create=False, force=False):
         # xapers root
         self.root = os.path.abspath(root)
 
@@ -80,12 +80,7 @@ class Database():
         if not os.path.exists(xapers_path):
             if create:
                 if os.path.exists(self.root):
-                    try:
-                        # this will fail if the directory is non-empty
-                        os.rmdir(self.root)
-                    except OSError:
-                        # FIXME: this needs to raise an error
-                        # root exists but it path
+                    if os.listdir(self.root) and not force:
                         raise DatabaseError('Uninitialized Xapers root directory exists but is not empty.', 1)
                 os.makedirs(xapers_path)
             else:
