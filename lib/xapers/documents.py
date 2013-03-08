@@ -208,7 +208,11 @@ class Document():
         """Add a file to document, copying into new xapers doc directory."""
         self._make_docdir()
         outfile = os.path.join(self.docdir, os.path.basename(infile))
-        shutil.copyfile(infile, outfile)
+
+        try:
+            shutil.copyfile(infile, outfile)
+        except shutil.Error:
+            pass
 
         base, full = self.db._basename_for_path(outfile)
 
