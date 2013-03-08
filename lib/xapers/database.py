@@ -231,3 +231,54 @@ class Database():
         """Delete document from database."""
         docid = int(docid)
         self.xapian.delete_document(docid)
+
+    ########################################
+
+    def restore(self, log=False):
+        """Restore a database from an existing root."""
+        docdirs = os.listdir(self.root)
+        docdirs.sort()
+        for ddir in docdirs:
+            if ddir == '.xapers':
+                continue
+            docdir = os.path.join(self.root, ddir)
+            if not os.path.isdir(docdir):
+                # skip things that aren't directories
+                continue
+            docdir = os.path.join(self.root, docdir)
+            docfiles = os.listdir(docdir)
+            if not docfiles:
+                # skip empty directories
+                continue
+
+            # if we can't convert the directory name into an integer,
+            # assume it's not relevant to us and continue
+            try:
+                docid = int(ddir)
+            except ValueError:
+                continue
+
+            if log:
+                print >>sys.stderr, docid
+
+            doc = Document(self, docid=docid)
+
+            for dfile in docfiles:
+                dpath = os.path.join(docdir, dfile)
+                if dfile == 'bibtex':
+                    if log:
+                        print >>sys.stderr, '  bibtex found'
+                    with open(dpath, 'r') as f:
+                        bibtex = f.read()
+                    doc.add_bibtex(bibtex)
+                elif os.path.splitext(dpath)[1] == '.pdf':
+                    if log:
+                        print >>sys.stderr, '  pdf found:', dfile
+                    doc.add_file(dpath)
+                elif dfile == 'tags':
+                    if log:
+                        print >>sys.stderr, '  tags found'
+                    with open(dpath, 'r') as f:
+                        tags = f.read().strip().split('\n')
+                    doc.add_tags(tags)
+            doc.sync()
