@@ -33,6 +33,7 @@ Commands:
     --prompt                            prompt for unspecified options
     --view                              view entry after adding
   delete [id:]<docid>                 Delete a document from database.
+  restore                             Restore database from xapers root.
 
   tag +<tag>|-<tag> [...] [--] <search-terms>...
                                       Add/remove tags.
@@ -57,7 +58,7 @@ Commands:
   version                             Print version number.
   help                                This help.
 
-The xapers document store is specified in the XAPERS_ROOT environment
+The xapers document store is specified by the XAPERS_ROOT environment
 variable, or defaults to '~/.xapers/docs' if not specified (the
 directory is allowed to be a symlink).
 
@@ -240,6 +241,11 @@ if __name__ == '__main__':
         outdir = sys.argv[2]
         query = make_query_string(sys.argv[3:])
         cli.export(outdir, query)
+
+    ########################################
+    elif cmd in ['restore']:
+        cli = xapers.cli.UI(xdir)
+        cli.restore()
 
     ########################################
     elif cmd in ['sources']:

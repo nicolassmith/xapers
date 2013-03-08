@@ -32,9 +32,9 @@ import xapers.source
 
 ############################################################
 
-def initdb(xdir, writable=False, create=False):
+def initdb(xdir, writable=False, create=False, force=False):
     try:
-        return Database(xdir, writable=writable, create=create)
+        return Database(xdir, writable=writable, create=create, force=force)
     except DatabaseError as e:
         print >>sys.stderr, e.msg
         print >>sys.stderr, 'Import a document to initialize.'
@@ -369,6 +369,12 @@ class UI():
             outpath = os.path.join(outdir,name)
             print outpath
             shutil.copyfile(orig, outpath)
+
+    ##########
+
+    def restore(self):
+        self.db = initdb(self.xdir, writable=True, create=True, force=True)
+        self.db.restore(log=True)
 
 ############################################################
 
