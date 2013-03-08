@@ -285,6 +285,13 @@ class Document():
         for tag in tags:
             self._remove_term(prefix, tag)
 
+    def dump_tags(self):
+        """Dump document tags to tag file in docdir."""
+        with open(os.path.join(self.docdir, 'tags'), 'w') as f:
+            for tag in self.get_tags():
+                f.write(tag)
+                f.write('\n')
+
     # TITLE
     def _set_title(self, title):
         pt = self.db._find_prefix('title')
