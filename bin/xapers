@@ -57,7 +57,7 @@ Commands:
   version                             Print version number.
   help                                This help.
 
-The xapers document store is specified in the XAPERS_DIR environment
+The xapers document store is specified in the XAPERS_ROOT environment
 variable, or defaults to '~/.xapers/docs' if not specified (the
 directory is allowed to be a symlink).
 
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     else:
         cmd = []
 
-    xdir = os.getenv('XAPERS_DIR',
+    xdir = os.getenv('XAPERS_ROOT',
                      os.path.expanduser(os.path.join('~','.xapers','docs')))
 
     ########################################

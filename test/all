@@ -96,10 +96,10 @@ EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search output files'
-xapers search --output=files '*' | sed "s|$XAPERS_DIR|XAPERS_DIR|" >OUTPUT
+xapers search --output=files '*' | sed "s|$XAPERS_ROOT|XAPERS_ROOT|" >OUTPUT
 cat <<EOF >EXPECTED
-XAPERS_DIR/0000000002/josaa-29-10-2092-1.pdf
-XAPERS_DIR/0000000001/2007NJPh....9...17L.pdf
+XAPERS_ROOT/0000000002/josaa-29-10-2092-1.pdf
+XAPERS_ROOT/0000000001/2007NJPh....9...17L.pdf
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
