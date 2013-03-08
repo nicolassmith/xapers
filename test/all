@@ -217,6 +217,25 @@ TMP_DIRECTORY/export/Multicolor_cavity_metrology.pdf
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
+test_begin_subtest 'restore to existing database'
+xapers restore
+xapers search '*' >OUTPUT
+cat <<EOF >EXPECTED
+id:2 [doi:10.1364/JOSAA.29.002092] (bar new) "Multicolor cavity metrology"
+id:1 [] (foo new) "Creation of the universe with a stealth scalar field"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'restore purged database'
+rm -rf "$XAPERS_ROOT"/.xapers
+xapers restore
+xapers search '*' >OUTPUT
+cat <<EOF >EXPECTED
+id:2 [doi:10.1364/JOSAA.29.002092] (bar new) "Multicolor cavity metrology"
+id:1 [] (foo new) "Creation of the universe with a stealth scalar field"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
 test_begin_subtest 'delete document'
 echo 'Y' | xapers delete id:1
 xapers search id:1 >OUTPUT
