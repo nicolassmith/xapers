@@ -101,9 +101,12 @@ class Document():
     def sync(self):
         """Sync document to database."""
         # FIXME: add value for modification time
+        # FIXME: catch db not writable errors
         self.db.replace_document(self.docid, self.doc)
 
     def purge(self):
+        """Purge document from database and root."""
+        # FIXME: catch db not writable errors
         try:
             self.db.delete_document(self.docid)
         except xapian.DocNotFoundError:
@@ -272,7 +275,6 @@ class Document():
         prefix = self.db._find_prefix('tag')
         for tag in tags:
             self._add_term(prefix, tag)
-            # FIXME: index tags so they're searchable
 
     def get_tags(self):
         """Return a list of tags associated with document."""
