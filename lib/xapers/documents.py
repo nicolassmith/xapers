@@ -275,6 +275,7 @@ class Document():
         prefix = self.db._find_prefix('tag')
         for tag in tags:
             self._add_term(prefix, tag)
+        self.dump_tags()
 
     def get_tags(self):
         """Return a list of tags associated with document."""
@@ -286,6 +287,7 @@ class Document():
         prefix = self.db._find_prefix('tag')
         for tag in tags:
             self._remove_term(prefix, tag)
+        self.dump_tags()
 
     def dump_tags(self):
         """Dump document tags to tag file in docdir."""
