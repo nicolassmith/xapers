@@ -65,7 +65,7 @@ class Documents():
 class Document():
     """Represents a single Xapers document."""
 
-    def __init__(self, db, doc=None):
+    def __init__(self, db, doc=None, docid=None):
         # Xapers db
         self.db = db
         self.root = self.db.root
@@ -80,7 +80,13 @@ class Document():
         # document won't be added to database until sync is called
         else:
             self.doc = xapian.Document()
-            self.docid = str(self.db._generate_docid())
+            # use specified docid if provided
+            if docid:
+                if self.db.doc_for_docid(docid):
+                    raise DocumentError('Document already exists for id %s.' % docid)
+                self.docid = docid
+            else:
+                self.docid = str(self.db._generate_docid())
             self._add_term(self.db._find_prefix('id'), self.docid)
 
         # specify a directory in the Xapers root for document data
