@@ -1,19 +1,27 @@
-* document bibtex command
-* import should be able to pull pdf
-* have update re-pull from source
-
-bib:
-* store bib as json instead of bibtex?
-* provide bib output in other formats
-* add file path to bib output
-* do something about "container-title" from doi
+* add publication date, creating time, mod time, as db values
+* import should be able to pull doc file
+* source id indexing isn't working quite right (quantify (test!))
+* command line parsing could be improved
+* cli internals needs simplification (script + module is clunky)
 
 source modules:
 * allow for user source modules 
-* add method to download pdf
+* add method to download document file
+
+bib:
+* include file path in bibtex
+* do something about "container-title" from doi
+* provide bib output in other formats
 
 curses UI:
-* asyncronously load results
 * help page
+* asyncronously load results
 * customizable keybindings
-* ability to update documents
+* add ability to update documents
+
+?
+* rename file when importing?
+* store bib in different form (json instead of bibtex)?
+* what should go in document "data"?
+* clear old indexed terms when importing new file/bib?
+* vcs integration?
