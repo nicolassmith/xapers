@@ -17,12 +17,42 @@ test_expect_success 'import file without source (foo)' \
     --file=$DOC_DIR/2007NJPh....9...17L.pdf \
     --tags=new,foo'
 
+test_expect_success 'docdir exists' \
+    'test -d $XAPERS_ROOT'
+
+test_begin_subtest 'tag file exists'
+cat <<EOF >EXPECTED
+foo
+new
+EOF
+test_expect_equal_file "$XAPERS_ROOT"/0000000001/tags EXPECTED
+
 # FIXME: add with prompting
 test_expect_success 'import file with source (bar)' \
     'xapers import \
     --file=$DOC_DIR/josaa-29-10-2092-1.pdf \
     --source=$DOC_DIR/josaa-29-10-2092-1.bib \
     --tags=new,bar'
+
+test_begin_subtest 'bib file exists'
+cat <<EOF >EXPECTED
+@article{
+    Izumi_Arai_Barr_Betzwieser_Brooks_Dahl_Doravari_Driggers_Korth_Miao_et_al._2012,
+    author = "Izumi, Kiwamu and Arai, Koji and Barr, Bryan and Betzwieser, Joseph and Brooks, Aidan and Dahl, Katrin and Doravari, Suresh and Driggers, Jennifer C. and Korth, W. Zach and Miao, Haixing and et al.",
+    publisher = "Optical Society of America",
+    doi = "10.1364/JOSAA.29.002092",
+    title = "Multicolor cavity metrology",
+    url = "http://dx.doi.org/10.1364/JOSAA.29.002092",
+    journal = "Journal of the Optical Society of America A",
+    number = "10",
+    month = "Sep",
+    volume = "29",
+    year = "2012",
+    pages = "2092"
+}
+
+EOF
+test_expect_equal_file "$XAPERS_ROOT"/0000000002/bibtex EXPECTED
 
 test_expect_success 'update doc with bib (foo)' \
     'xapers update \
@@ -156,12 +186,27 @@ id:1 [] (foo new qux) "Creation of the universe with a stealth scalar field"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
+test_begin_subtest 'check tags added to tag file'
+cat <<EOF >EXPECTED
+foo
+new
+qux
+EOF
+test_expect_equal_file "$XAPERS_ROOT"/0000000001/tags EXPECTED
+
 test_begin_subtest 'remove tag'
 xapers tag -qux -- tag:qux
 xapers search tag:qux >OUTPUT
 cat <<EOF >EXPECTED
 EOF
 test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'check tags removed from tag file'
+cat <<EOF >EXPECTED
+foo
+new
+EOF
+test_expect_equal_file "$XAPERS_ROOT"/0000000001/tags EXPECTED
 
 test_begin_subtest 'export documents'
 xapers export "$TMP_DIRECTORY"/export '*'
