@@ -74,7 +74,6 @@ class Document():
         if doc:
             self.doc = doc
             self.docid = str(doc.get_docid())
-            self.path = self._get_terms(self.db._find_prefix('file'))
 
         # else, create a new empty document
         # document won't be added to database until sync is called
