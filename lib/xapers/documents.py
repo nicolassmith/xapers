@@ -28,9 +28,8 @@ import xapers.bibtex
 
 class DocumentError(Exception):
     """Base class for Xapers document exceptions."""
-    def __init__(self, msg, code):
+    def __init__(self, msg):
         self.msg = msg
-        self.code = code
     def __str__(self):
         return self.msg
 
