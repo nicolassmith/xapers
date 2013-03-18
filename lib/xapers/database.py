@@ -69,6 +69,8 @@ class Database():
     def _make_source_prefix(self, source):
         return 'X%s|' % (source.upper())
 
+    ########################################
+
     def __init__(self, root, writable=False, create=False, force=False):
         # xapers root
         self.root = os.path.abspath(root)
@@ -116,6 +118,11 @@ class Database():
         # add probabalistic prefixes
         for name, prefix in self.PROBABILISTIC_PREFIX.iteritems():
             self.query_parser.add_prefix(name, prefix)
+
+    def __getitem__(self, docid):
+        return self.doc_for_docid(docid)
+
+    ########################################
 
     # generate a new doc id, based on the last availabe doc id
     def _generate_docid(self):
