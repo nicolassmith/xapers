@@ -126,7 +126,7 @@ class Database():
 
     # generate a new doc id, based on the last availabe doc id
     def _generate_docid(self):
-        return self.xapian.get_lastdocid() + 1
+        return str(self.xapian.get_lastdocid() + 1)
 
     # Return the xapers-relative path for a path
     # If the the specified path is not in the xapers root, return None.
