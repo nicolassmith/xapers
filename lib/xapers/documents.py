@@ -102,7 +102,7 @@ class Document():
             os.makedirs(self.docdir)
 
     def _rm_docdir(self):
-        if os.path.exists(self.docdir):
+        if os.path.exists(self.docdir) and os.path.isdir(self.docdir):
             shutil.rmtree(self.docdir)
 
     def sync(self):
