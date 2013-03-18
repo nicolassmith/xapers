@@ -95,7 +95,10 @@ class Document():
         return self.docid
 
     def _make_docdir(self):
-        if not os.path.exists(self.docdir):
+        if os.path.exists(self.docdir):
+            if not os.path.isdir(self.docdir):
+                raise DocumentError('File exists at intended docdir location: %s' % self.docdir)
+        else:
             os.makedirs(self.docdir)
 
     def _rm_docdir(self):
