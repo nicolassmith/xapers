@@ -26,13 +26,13 @@ def usage():
     print """
 Commands:
 
-  import [options] [[id:]<docid>      Import new document or update existing.
+  import [options] [[id:]<docid>]     Import new document or update existing.
     --source=<source>                   source for bib data
     --file=<file>                       file to index
     --tags=<tag>[,...]                  initial tags
     --prompt                            prompt for unspecified options
     --view                              view entry after adding
-  delete [id:]<docid>                 Delete a document from database.
+  delete [id:]<docid>                 Delete document from database.
   restore                             Restore database from xapers root.
 
   tag +<tag>|-<tag> [...] [--] <search-terms>...
