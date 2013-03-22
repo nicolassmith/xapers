@@ -218,11 +218,11 @@ class Search(urwid.WidgetWrap):
         elif sign is '-':
             # FIXME: autocomplete to doc tags only
             prompt = 'remove tags: '
-        urwid.connect_signal(self.ui.prompt(prompt), 'done', self.promptTag_done, sign)
+        urwid.connect_signal(self.ui.prompt(prompt), 'done', self._promptTag_done, sign)
 
-    def promptTag_done(self, tag_string, sign):
+    def _promptTag_done(self, tag_string, sign):
         self.ui.view.set_focus('body')
-        urwid.disconnect_signal(self, self.ui.prompt, 'done', self.promptTag_done)
+        urwid.disconnect_signal(self, self.ui.prompt, 'done', self._promptTag_done)
         if not tag_string:
             self.ui.set_status('No tags set.')
             return

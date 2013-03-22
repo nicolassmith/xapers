@@ -96,11 +96,11 @@ class UI():
 
     def promptSearch(self):
         prompt = 'search: '
-        urwid.connect_signal(self.prompt(prompt), 'done', self.promptSearch_done)
+        urwid.connect_signal(self.prompt(prompt), 'done', self._promptSearch_done)
 
-    def promptSearch_done(self, query):
+    def _promptSearch_done(self, query):
         self.view.set_focus('body')
-        urwid.disconnect_signal(self, self.prompt, 'done', self.promptSearch_done)
+        urwid.disconnect_signal(self, self.prompt, 'done', self._promptSearch_done)
         if not query:
             self.set_status()
             return
