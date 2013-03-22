@@ -243,7 +243,7 @@ class Search(urwid.WidgetWrap):
         if not entry: return
         db = Database(self.ui.xdir, writable=True)
         doc = db.doc_for_docid(entry.docid)
-        tag = 'inbox'
+        tag = 'new'
         msg = "Removed tag '%s'." % (tag)
         doc.remove_tags([tag])
         doc.sync()
