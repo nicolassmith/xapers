@@ -95,11 +95,11 @@ class DocListItem(urwid.WidgetWrap):
 ############################################################
 
 class Search(urwid.WidgetWrap):
+
     def __init__(self, ui, query):
         self.ui = ui
 
         self.ui.set_header("search: " + query)
-        self.ui.set_status("'enter' to view document ('h' for help).")
 
         docs = self.ui.db.search(query, limit=20)
         if len(docs) == 0:
@@ -130,7 +130,7 @@ class Search(urwid.WidgetWrap):
         if pos == 0: return
         self.listbox.set_focus(pos - 1)
 
-    def viewEntry(self):
+    def viewFile(self):
         """open document file"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
@@ -197,6 +197,14 @@ class Search(urwid.WidgetWrap):
         xclip(bibtex, isfile=True)
         self.ui.set_status('bibtex yanked: %s' % bibtex)
 
+    def addTags(self):
+        """add tags from document (space separated)"""
+        self.promptTag('+')
+
+    def removeTags(self):
+        """remove tags from document (space separated)"""
+        self.promptTag('-')
+
     def promptTag(self, sign):
         entry = self.listbox.get_focus()[0]
         if not entry: return
@@ -245,29 +253,23 @@ class Search(urwid.WidgetWrap):
 
     ##########
 
-    # FIXME: make this configurable
+    keys = {
+        'n': "nextEntry",
+        'p': "prevEntry",
+        'enter': "viewFile",
+        'u': "viewURL",
+        'b': "viewBibtex",
+        '+': "addTags",
+        '-': "removeTags",
+        'a': "archive",
+        'F': "copyPath",
+        'U': "copyURL",
+        'B': "copyBibtex",
+        }
+
     def keypress(self, size, key):
-        if key is 'n':
-            self.nextEntry()
-        elif key is 'p':
-            self.prevEntry()
-        elif key is '+':
-            self.promptTag('+')
-        elif key is '-':
-            self.promptTag('-')
-        elif key is 'a':
-            self.archive()
-        elif key is 'enter':
-            self.viewEntry()
-        elif key is 'u':
-            self.viewURL()
-        elif key is 'b':
-            self.viewBibtex()
-        elif key is 'F':
-            self.copyPath()
-        elif key is 'U':
-            self.copyURL()
-        elif key is 'B':
-            self.copyBibtex()
+        if key in self.keys:
+            cmd = "self.%s()" % (self.keys[key])
+            eval(cmd)
         else:
             self.ui.keypress(key)

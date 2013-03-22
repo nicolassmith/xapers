@@ -6,6 +6,7 @@ import subprocess
 from xapers.cli.ui import initdb
 from xapers.nci.search import Search
 from xapers.nci.bibview import Bibview
+from xapers.nci.help import Help
 
 ############################################################
 
@@ -41,7 +42,7 @@ class UI():
             self.db = initdb(self.xdir)
 
         self.header_string = "Xapers"
-        self.status_string = "'s' to search."
+        self.status_string = "'?' for help"
 
         self.view = urwid.Frame(urwid.SolidFill())
         self.set_header()
@@ -59,6 +60,8 @@ class UI():
         elif cmd[0] == 'bibview':
             query = ' '.join(cmd[1:])
             self.buffer = Bibview(self, query)
+        elif cmd[0] == 'help':
+            self.buffer = Help(self, cmd[1])
 
         self.view.body = urwid.AttrMap(self.buffer, 'body')
 
@@ -107,15 +110,32 @@ class UI():
             return
         self.newbuffer(['search', query])
 
+    def killBuffer(self):
+        """kill current buffer"""
+        raise urwid.ExitMainLoop()
+
+    def quit(self):
+        """quit Xapers"""
+        sys.exit()
+
+    def help(self):
+        """help"""
+        if hasattr(self.buffer, 'keys'):
+            self.newbuffer(['help', self.buffer])
+
     ##########
 
+    keys = {
+        '?': "help",
+        's': "promptSearch",
+        'q': "killBuffer",
+        'Q': "quit",
+        }
+
     def keypress(self, key):
-        if key is 's':
-            self.promptSearch()
-        if key is 'q':
-            raise urwid.ExitMainLoop()
-        if key is 'Q':
-            sys.exit()
+        if key in self.keys:
+            cmd = "self.%s()" % (self.keys[key])
+            eval(cmd)
 
 ############################################################
 
