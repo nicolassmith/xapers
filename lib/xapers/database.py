@@ -73,7 +73,7 @@ class Database():
 
     def __init__(self, root, writable=False, create=False, force=False):
         # xapers root
-        self.root = os.path.abspath(root)
+        self.root = os.path.abspath(os.path.expanduser(root))
 
         # xapers db directory
         xapers_path = os.path.join(self.root, '.xapers')
