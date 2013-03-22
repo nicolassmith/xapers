@@ -118,17 +118,20 @@ class Search(urwid.WidgetWrap):
     ##########
 
     def nextEntry(self):
+        """next entry"""
         entry, pos = self.listbox.get_focus()
         if not entry: return
         self.listbox.set_focus(pos + 1)
 
     def prevEntry(self):
+        """previous entry"""
         entry, pos = self.listbox.get_focus()
         if not entry: return
         if pos == 0: return
         self.listbox.set_focus(pos - 1)
 
     def viewEntry(self):
+        """open document file"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
         path = entry.doc.get_fullpaths()[0].replace(' ','\ ')
@@ -142,6 +145,7 @@ class Search(urwid.WidgetWrap):
                         stderr=open('/dev/null','w'))
 
     def viewURL(self):
+        """open document URL in browser"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
         url = entry.doc.get_url()
@@ -155,11 +159,13 @@ class Search(urwid.WidgetWrap):
                         stderr=open('/dev/null','w'))
 
     def viewBibtex(self):
+        """view document bibtex"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
         self.ui.newbuffer(['bibview', 'id:' + entry.docid])
 
     def copyPath(self):
+        """copy document file path to clipboard"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
         path = entry.doc.get_fullpaths()[0]
@@ -170,6 +176,7 @@ class Search(urwid.WidgetWrap):
         self.ui.set_status('path yanked: %s' % path)
 
     def copyURL(self):
+        """copy document URL to clipboard"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
         url = entry.doc.get_url()
@@ -180,6 +187,7 @@ class Search(urwid.WidgetWrap):
         self.ui.set_status('url yanked: %s' % url)
 
     def copyBibtex(self):
+        """copy document bibtext to clipboard"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
         bibtex = entry.doc.get_bibpath()
@@ -222,6 +230,7 @@ class Search(urwid.WidgetWrap):
         self.ui.set_status(msg)
 
     def archive(self):
+        """archive document (remove 'new' tag)"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
         db = Database(self.ui.xdir, writable=True)

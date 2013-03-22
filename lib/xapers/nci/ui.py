@@ -95,6 +95,7 @@ class UI():
     ##########
 
     def promptSearch(self):
+        """search database"""
         prompt = 'search: '
         urwid.connect_signal(self.prompt(prompt), 'done', self._promptSearch_done)
 
