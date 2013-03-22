@@ -51,15 +51,16 @@ class UI():
 
         if not cmd:
             cmd = ['search', '*']
+
         if cmd[0] == 'search':
             query = ' '.join(cmd[1:])
-            widget = Search(self, query)
+            self.buffer = Search(self, query)
             palette = list(set(self.palette) | set(self.palette_search))
         elif cmd[0] == 'bibview':
             query = ' '.join(cmd[1:])
-            widget = Bibview(self, query)
+            self.buffer = Bibview(self, query)
 
-        self.view.body = urwid.AttrWrap(widget, 'body')
+        self.view.body = urwid.AttrMap(self.buffer, 'body')
 
         self.mainloop = urwid.MainLoop(
             self.view,
