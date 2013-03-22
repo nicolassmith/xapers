@@ -75,12 +75,12 @@ class UI():
     def set_header(self, text=None):
         if text:
             self.header_string = 'Xapers %s' % (text)
-        self.view.set_header(urwid.AttrWrap(urwid.Text(self.header_string), 'header'))
+        self.view.set_header(urwid.AttrMap(urwid.Text(self.header_string), 'header'))
 
     def set_status(self, text=None):
         if text:
             self.status_string = '%s' % (text)
-        self.view.set_footer(urwid.AttrWrap(urwid.Text(self.status_string), 'footer'))
+        self.view.set_footer(urwid.AttrMap(urwid.Text(self.status_string), 'footer'))
 
     def newbuffer(self, cmd):
         UI(self.xdir, db=self.db, cmd=cmd)
@@ -88,7 +88,7 @@ class UI():
 
     def prompt(self, string):
         prompt = PromptEdit(string)
-        self.view.set_footer(urwid.AttrWrap(prompt, 'prompt'))
+        self.view.set_footer(urwid.AttrMap(prompt, 'prompt'))
         self.view.set_focus('footer')
         return prompt
 

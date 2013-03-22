@@ -54,7 +54,7 @@ class DocListItem(urwid.WidgetWrap):
 
         self.c1width = 10
 
-        self.rowHeader = urwid.AttrWrap(
+        self.rowHeader = urwid.AttrMap(
             urwid.Text('id:%s (%s)' % (self.docid, self.matchp)),
             'head', 'head_focus')
 
