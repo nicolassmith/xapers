@@ -29,34 +29,34 @@ class DocListItem(urwid.WidgetWrap):
         self.matchp = doc.matchp
         self.docid = self.doc.docid
 
-        self.sources = urwid.Text(' '.join(self.doc.get_sources_list()))
-        self.tags = urwid.Text(' '.join(self.doc.get_tags()))
-        self.title = urwid.Text('')
-        self.authors = urwid.Text('')
-        self.year = urwid.Text('')
-        self.summary = urwid.Text('')
+        # fill the default attributes for the fields
+        self.fields = {}
+        for field in ['sources', 'tags', 'title', 'authors', 'year', 'summary']:
+            self.fields[field] = urwid.Text('')
+
+        self.fields['sources'].set_text(' '.join(self.doc.get_sources_list()))
+        self.fields['tags'].set_text(' '.join(self.doc.get_tags()))
 
         data = self.doc.get_bibdata()
         if data:
             if 'title' in data:
-                self.title = urwid.Text(data['title'])
+                self.fields['title'].set_text(data['title'])
             if 'authors' in data:
                 # astring = ' and '.join(data['authors'])
                 astring = ' and '.join(data['authors'][:10])
                 if len(data['authors']) > 10:
                     astring = astring + ' et al.'
-                self.authors = urwid.Text(astring)
+                self.fields['authors'].set_text(astring)
             if 'year' in data:
-                self.year = urwid.Text(data['year'])
+                self.fields['year'].set_text(data['year'])
 
-        self.summary = urwid.Text(self.doc.get_data())
+        self.fields['summary'].set_text(self.doc.get_data())
 
         self.c1width = 10
 
         self.rowHeader = urwid.AttrWrap(
             urwid.Text('id:%s (%s)' % (self.docid, self.matchp)),
-            'head_id',
-            'focus_id')
+            'head', 'head_focus')
 
         # self.rowHeader = urwid.Columns(
         #     [('fixed', self.c1width,
@@ -81,9 +81,9 @@ class DocListItem(urwid.WidgetWrap):
             [
                 urwid.Divider('-'),
                 self.rowHeader,
-                self.docfield('sources', value_palette='search_sources'),
-                self.docfield('tags', value_palette='search_tags'),
-                self.docfield('title', value_palette='search_title'),
+                self.docfield('sources'),
+                self.docfield('tags'),
+                self.docfield('title'),
                 self.docfield('authors'),
                 self.docfield('year'),
                 self.docfield('summary'),
@@ -92,16 +92,17 @@ class DocListItem(urwid.WidgetWrap):
             focus_item=1)
         self.__super.__init__(w)
 
-    def docfield(self, field, field_palette=None, value_palette='search_value_default'):
+    def docfield(self, field):
+        attr_map = field
         return urwid.Columns(
             [
                 ('fixed', self.c1width,
-                 urwid.AttrWrap(
-                        urwid.Text(field + ':'),
-                        field_palette, 'focus')),
-                urwid.AttrWrap(
-                    eval('self.' + field),
-                    value_palette, 'focus')
+                 urwid.AttrMap(
+                     urwid.Text(('default', field + ':')),
+                     'field', 'field_focus')),
+                urwid.AttrMap(
+                    self.fields[field],
+                    attr_map)
                 ]
             )
 
@@ -237,7 +238,7 @@ class Search(urwid.WidgetWrap):
             msg = "Removed tags: %s" % (tag_string)
         doc.sync()
         tags = doc.get_tags()
-        entry.tags.set_text(' '.join(tags))
+        entry.fields['tags'].set_text(' '.join(tags))
         self.ui.set_status(msg)
 
     def archive(self):
@@ -250,6 +251,7 @@ class Search(urwid.WidgetWrap):
         doc.remove_tags([tag])
         doc.sync()
         tags = doc.get_tags()
+        entry.fields['tags'].set_text(' '.join(tags))
         entry.tags.set_text(' '.join(tags))
         self.ui.set_status(msg)
 
