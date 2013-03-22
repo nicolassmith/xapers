@@ -44,6 +44,12 @@ class Documents():
         self.index = -1
         self.max = len(mset)
 
+    def __getitem__(self, index):
+        m = self.mset[index]
+        doc = Document(self.db, m.document)
+        doc.matchp = m.percent
+        return doc
+
     def __iter__(self):
         return self
 
@@ -54,10 +60,7 @@ class Documents():
         self.index = self.index + 1
         if self.index == self.max:
             raise StopIteration
-        m = self.mset[self.index]
-        doc = Document(self.db, m.document)
-        doc.matchp = m.percent
-        return doc
+        return self[self.index]
 
 ##################################################
 
