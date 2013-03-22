@@ -12,18 +12,24 @@ from xapers.nci.bibview import Bibview
 class UI():
 
     palette = [
-        ('head_id', 'dark blue,bold', '', 'standout'),
-        ('focus_id', 'white,bold', 'dark blue', 'standout'),
-        ('search_sources', 'light magenta,bold', '', 'standout'),
-        ('search_tags', 'dark green,bold', '', 'standout'),
-        ('search_title', 'yellow,bold', '', 'standout'),
-        ('search_path', 'dark red', '', 'standout'),
-        ('search_value_default', 'dark cyan', ''),
-        ('focus', 'black', 'dark cyan'),
-
         ('header', 'white', 'dark blue'),
         ('footer', 'white', 'dark blue'),
         ('prompt', 'black', 'light green'),
+        ]
+
+    palette_search = [
+        ('field', 'dark cyan', ''),
+        ('field_focus', '', 'dark cyan'),
+        ('head', 'dark blue,bold', '', 'standout'),
+        ('head_focus', 'white,bold', 'dark blue', 'standout'),
+        ('sources', 'light magenta,bold', '', 'standout'),
+        ('sources_focus', 'light magenta,bold', '', 'standout'),
+        ('tags', 'dark green,bold', '', 'standout'),
+        ('tags_focus', 'dark green,bold', '', 'standout'),
+        ('title', 'yellow,bold', '', 'standout'),
+        ('title_focus', 'yellow,bold', '', 'standout'),
+        ('default', 'dark cyan', ''),
+        ('default_focus', '', 'dark cyan'),
         ]
 
     def __init__(self, xdir, db=None, cmd=None):
@@ -41,11 +47,14 @@ class UI():
         self.set_header()
         self.set_status()
 
+        palette = self.palette
+
         if not cmd:
             cmd = ['search', '*']
         if cmd[0] == 'search':
             query = ' '.join(cmd[1:])
             widget = Search(self, query)
+            palette = list(set(self.palette) | set(self.palette_search))
         elif cmd[0] == 'bibview':
             query = ' '.join(cmd[1:])
             widget = Bibview(self, query)
@@ -54,7 +63,7 @@ class UI():
 
         self.mainloop = urwid.MainLoop(
             self.view,
-            self.palette,
+            palette,
             unhandled_input=self.keypress,
             handle_mouse=False,
             )
