@@ -241,8 +241,6 @@ class Search(urwid.WidgetWrap):
         doc.sync()
         tags = doc.get_tags()
         entry.fields['tags'].set_text(' '.join(tags))
-        entry.tags.set_text(' '.join(tags))
-        self.ui.set_status(msg)
         self.ui.set_status(msg)
 
     ##########
