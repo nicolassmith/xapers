@@ -42,7 +42,6 @@ class DocListItem(urwid.WidgetWrap):
             if 'title' in data:
                 self.fields['title'].set_text(data['title'])
             if 'authors' in data:
-                # astring = ' and '.join(data['authors'])
                 astring = ' and '.join(data['authors'][:10])
                 if len(data['authors']) > 10:
                     astring = astring + ' et al.'
@@ -57,25 +56,6 @@ class DocListItem(urwid.WidgetWrap):
         self.rowHeader = urwid.AttrMap(
             urwid.Text('id:%s (%s)' % (self.docid, self.matchp)),
             'head', 'head_focus')
-
-        # self.rowHeader = urwid.Columns(
-        #     [('fixed', self.c1width,
-        #       urwid.AttrWrap(
-        #                 urwid.Text('id:%s (%s)' % (self.docid, self.matchp)),
-        #                 'head_id',
-        #                 'focus_id')),
-        #      # ('fixed', 5,
-        #      #  urwid.AttrWrap(
-        #      #            urwid.Text('%i%%' % (self.percent)),
-        #      #            'search_value_default',
-        #      #            'focus')),
-        #      # ('fixed', len(self.source_string),
-        #      #  urwid.AttrWrap(
-        #      #            urwid.Text('%s' % (self.source_string)),
-        #      #            'search_value_default',
-        #      #            'focus')),
-        #      ],
-        #     )
 
         w = urwid.Pile(
             [
@@ -254,35 +234,6 @@ class Search(urwid.WidgetWrap):
         entry.fields['tags'].set_text(' '.join(tags))
         entry.tags.set_text(' '.join(tags))
         self.ui.set_status(msg)
-
-    def setField(self, field):
-        self.ui.set_status('Not implemented')
-        return
-        focus = self.listbox.get_focus()[0]
-        element = eval('focus.' + field)
-        value = element.get_text()[0]
-        self.prompt = Prompt(field + ': ', edit_text=value)
-        self.ui.set_prompt(self.prompt)
-        urwid.connect_signal(self.prompt, 'done', self.setField_done, field)
-
-    def setField_done(self, new, field):
-        self.ui.view.set_focus('body')
-        urwid.disconnect_signal(self, self.prompt, 'done', self.setField_done)
-        if new is not None:
-            focus = self.listbox.get_focus()[0]
-            docid = focus.docid
-            # open the database writable and set the new field
-            db = Database(self.ui.xdir, writable=True)
-            doc = db.doc_for_docid(docid)
-            eval('doc.set_' + field + '("' + new + '")')
-            doc.sync()
-            # FIXME: update the in-place doc
-            # update the display
-            element = eval('focus.' + field)
-            element.set_text(new)
-            msg = "Document id:%s %s updated." % (focus.docid, field)
-        else:
-            msg = "Nothing done."
         self.ui.set_status(msg)
 
     ##########
