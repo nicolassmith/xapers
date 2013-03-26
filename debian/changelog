@@ -1,8 +1,9 @@
 xapers (1-2) unstable; urgency=low
 
   * New release.
+  * Include man page.
 
- -- Jameson Rollins <jrollins@finestructure.net>  Tue, 26 Mar 2013 00:52:23 -0700
+ -- Jameson Rollins <jrollins@finestructure.net>  Fri, 29 Mar 2013 00:59:48 -0700
 
 xapers (0.0.1-1) unstable; urgency=low
 
