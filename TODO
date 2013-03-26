@@ -1,27 +1,37 @@
-* add publication date, creating time, mod time, as db values
+* add publication date, entry creation time, mod time, etc. as db values
+* check for existing source id when importing
+* update should re-pull from existing source if available
 * import should be able to pull doc file
-* source id indexing isn't working quite right (quantify (test!))
-* command line parsing could be improved
-* cli internals needs simplification (script + module is clunky)
+
+* source id indexing isn't working quite right (quantify/test!)
+* create docdir, add files/bibtex only when syncing
 
 source modules:
-* allow for user source modules 
 * add method to download document file
+* allow for user source modules
 
 bib:
 * include file path in bibtex
 * do something about "container-title" from doi
 * provide bib output in other formats
 
+cli:
+* needs simplification (script + module is clunky)
+* improve command line parsing
+
 curses UI:
-* help page
+* add document updating
 * asyncronously load results
+* better entry highlighting (full entry)
 * customizable keybindings
-* add ability to update documents
+* customizable palette
+
+emacs UI
+* make emacs UI! (need json/sexp output)
 
 ?
 * rename file when importing?
 * store bib in different form (json instead of bibtex)?
 * what should go in document "data"?
 * clear old indexed terms when importing new file/bib?
-* vcs integration?
+* vcs integration (git of root)?

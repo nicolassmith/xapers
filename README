@@ -1,26 +1,26 @@
-# -*- mode: markdown -*-
-
 Xapers
 ======
 
 Xapers is a document indexing system, geared towards academic papers.
-It provides fast search of document text and bibliographic data synced
-from online libraries, and simple document retrieval for viewing.
+It provides fast search of document text and bibliographic data
+(synced from online libraries) and simple document and bibtex
+retrieval.
 
-Xapers takes as input document files and source identifiers.  These
-are then parsed and indexed into a Xapian database [0].  The document
-text is extracted and fully indexed, while the source identifier is
-used to download document metadata from the web, as bibtex [1], which
-is parsed and indexed to prefixed terms in the database.  Documents
-can be arbitrarily tagged.  Bibtex for groups of documents can be
-exported.
+Xapers takes as input document files (as pdf) and source identifiers.
+These are then parsed and indexed into a Xapian database [0].
+Document text is extracted from the pdf and fully indexed, while the
+source identifier is used to download document metadata from the web,
+as bibtex [1], which is parsed and indexed to prefixed terms in the
+database.  Documents can be arbitrarily tagged.  Bibtex for groups of
+documents can be exported.
 
-It provides source modules for some common online libraries:
+Xapers provides source modules for some common online libraries:
   * DOI        http://www.doi.org/
   * NASA ADS   http://www.adsabs.harvard.edu/
   * arXiv      http://arxiv.org/
-Source modules are extensible, so user-defined modules can be easily
-maintained.  Contributions are encouraged.
+Source modules are meant to be extensible, so hopefully we will be
+able to support user-defined modules in the futre.  Contributions are
+very much appreciated.
 
 See the included man page for usage information.
 
@@ -68,11 +68,30 @@ The resulting .deb will be in the 'build' directory.
 Using Xapers
 ============
 
-Included is a simple example of an import script ("xapers-importer")
-that can be used e.g. as pdf handler in your favorite browser.  It's
-display the pdf according to mailcap rules, then presents the user
-with a dialog to add source id and tags.  If the source id is know,
-bibtex is retrieved and the resulting xapers entry for the document is
-displayed.
+CLI
+---
 
-Development of more clever import methods is HIGHLY encouraged.
+See the included man page (xapers.1) for more information on the
+command line interface.
+
+Also included is a simple example of an import script
+("xapers-importer") that help in importing documents into the
+database.  It can be used e.g. as a pdf handler in your favorite
+browser.  It displays the pdf according to mailcap rules, then
+presents the user with prompts to import the document into Xapers, any
+source id to retrieve, and any initial tags to add.  If the source id
+is know, bibtex is retrieved and indexed.  The resulting xapers entry
+for the document is displayed.
+
+Development of more clever import methods is highly encouraged.
+
+Python library
+--------------
+
+>>> import xapers
+>>> db = xapers.Database('~/.xapers/docs')
+>>> docs = db.search('tag:new')
+>>> for doc in docs:
+        doc.add_tags(['foo'])
+        ...
+>>> 
