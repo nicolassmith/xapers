@@ -57,6 +57,7 @@ class DocListItem(urwid.WidgetWrap):
             urwid.Text('id:%s (%s)' % (self.docid, self.matchp)),
             'head', 'head_focus')
 
+        # FIXME: how do we hightlight everything in pile during focus?
         w = urwid.Pile(
             [
                 urwid.Divider('-'),
@@ -223,7 +224,7 @@ class Search(urwid.WidgetWrap):
             self.ui.set_status('No tags set.')
             return
         entry = self.listbox.get_focus()[0]
-        db = Database(self.ui.xdir, writable=True)
+        db = Database(self.ui.xroot, writable=True)
         doc = db.doc_for_docid(entry.docid)
         tags = tag_string.split()
         if sign is '+':
@@ -241,7 +242,7 @@ class Search(urwid.WidgetWrap):
         """archive document (remove 'new' tag)"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        db = Database(self.ui.xdir, writable=True)
+        db = Database(self.ui.xroot, writable=True)
         doc = db.doc_for_docid(entry.docid)
         tag = 'new'
         msg = "Removed tag '%s'." % (tag)

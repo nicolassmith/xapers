@@ -33,13 +33,13 @@ class UI():
         ('default_focus', '', 'dark cyan'),
         ]
 
-    def __init__(self, xdir, db=None, cmd=None):
-        self.xdir = xdir
+    def __init__(self, xroot, db=None, cmd=None):
+        self.xroot = xroot
         if db:
             # reuse db if provided
             self.db = db
         else:
-            self.db = initdb(self.xdir)
+            self.db = initdb(self.xroot)
 
         self.header_string = "Xapers"
         self.status_string = "'?' for help"
@@ -86,7 +86,7 @@ class UI():
         self.view.set_footer(urwid.AttrMap(urwid.Text(self.status_string), 'footer'))
 
     def newbuffer(self, cmd):
-        UI(self.xdir, db=self.db, cmd=cmd)
+        UI(self.xroot, db=self.db, cmd=cmd)
         self.set_status()
 
     def prompt(self, string):

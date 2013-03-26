@@ -32,9 +32,9 @@ import xapers.source
 
 ############################################################
 
-def initdb(xdir, writable=False, create=False, force=False):
+def initdb(xroot, writable=False, create=False, force=False):
     try:
-        return Database(xdir, writable=writable, create=create, force=force)
+        return Database(xroot, writable=writable, create=create, force=force)
     except DatabaseError as e:
         print >>sys.stderr, e.msg
         print >>sys.stderr, 'Import a document to initialize.'
@@ -45,8 +45,8 @@ def initdb(xdir, writable=False, create=False, force=False):
 class UI():
     """Xapers command-line UI."""
 
-    def __init__(self, xdir):
-        self.xdir = xdir
+    def __init__(self, xroot):
+        self.xroot = xroot
         self.db = None
 
     ##########
@@ -150,7 +150,7 @@ class UI():
 
         # if docid provided, update that doc, otherwise create a new one
         # need a document from a writable db.
-        self.db = initdb(self.xdir, writable=True, create=True)
+        self.db = initdb(self.xroot, writable=True, create=True)
 
         if docid:
             if docid.find('id:') == 0:
@@ -229,7 +229,7 @@ class UI():
         return doc.docid
 
     def delete(self, docid):
-        self.db = initdb(self.xdir, writable=True)
+        self.db = initdb(self.xroot, writable=True)
 
         if docid.find('id:') == 0:
             docid = docid.split(':')[1]
@@ -246,7 +246,7 @@ class UI():
 
 
     def update_all(self):
-        self.db = initdb(self.xdir, writable=True)
+        self.db = initdb(self.xroot, writable=True)
 
         for doc in self.db.search('*', limit=0):
             try:
@@ -261,7 +261,7 @@ class UI():
     ##########
 
     def tag(self, query_string, add_tags, remove_tags):
-        self.db = initdb(self.xdir, writable=True)
+        self.db = initdb(self.xroot, writable=True)
 
         for doc in self.db.search(query_string):
             doc.add_tags(add_tags)
@@ -271,7 +271,7 @@ class UI():
     ##########
 
     def search(self, query_string, oformat='simple', limit=None):
-        self.db = initdb(self.xdir)
+        self.db = initdb(self.xroot)
 
         if oformat == 'tags' and query_string == '*':
             for tag in self.db.get_terms('tag'):
@@ -339,7 +339,7 @@ class UI():
             return
 
     def count(self, query_string):
-        self.db = initdb(self.xdir)
+        self.db = initdb(self.xroot)
 
         count = self.db.count(query_string)
         print count
@@ -347,7 +347,7 @@ class UI():
     ##########
 
     def dumpterms(self, query_string):
-        self.db = initdb(self.xdir)
+        self.db = initdb(self.xroot)
 
         for doc in self.db.search(query_string):
             for term in doc.doc:
@@ -356,7 +356,7 @@ class UI():
     ##########
 
     def export(self, outdir, query_string):
-        self.db = initdb(self.xdir)
+        self.db = initdb(self.xroot)
 
         try:
             os.makedirs(outdir)
@@ -373,7 +373,7 @@ class UI():
     ##########
 
     def restore(self):
-        self.db = initdb(self.xdir, writable=True, create=True, force=True)
+        self.db = initdb(self.xroot, writable=True, create=True, force=True)
         self.db.restore(log=True)
 
 ############################################################
