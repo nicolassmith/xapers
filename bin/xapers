@@ -83,7 +83,7 @@ Other definitions:
       tag:<tag>                user tags
       source:<source>          source type (also s:)
 
-  The string '*' will match all messages."""
+  The string '*' will match all documents."""
 
 ########################################################################
 
