@@ -224,16 +224,16 @@ class Search(urwid.WidgetWrap):
             self.ui.set_status('No tags set.')
             return
         entry = self.listbox.get_focus()[0]
-        db = Database(self.ui.xroot, writable=True)
-        doc = db.doc_for_docid(entry.docid)
-        tags = tag_string.split()
-        if sign is '+':
-            doc.add_tags(tags)
-            msg = "Added tags: %s" % (tag_string)
-        elif sign is '-':
-            doc.remove_tags(tags)
-            msg = "Removed tags: %s" % (tag_string)
-        doc.sync()
+        with Database(self.ui.xroot, writable=True) as db:
+            doc = db.doc_for_docid(entry.docid)
+            tags = tag_string.split()
+            if sign is '+':
+                doc.add_tags(tags)
+                msg = "Added tags: %s" % (tag_string)
+            elif sign is '-':
+                doc.remove_tags(tags)
+                msg = "Removed tags: %s" % (tag_string)
+            doc.sync()
         tags = doc.get_tags()
         entry.fields['tags'].set_text(' '.join(tags))
         self.ui.set_status(msg)
@@ -242,12 +242,12 @@ class Search(urwid.WidgetWrap):
         """archive document (remove 'new' tag)"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        db = Database(self.ui.xroot, writable=True)
-        doc = db.doc_for_docid(entry.docid)
-        tag = 'new'
-        msg = "Removed tag '%s'." % (tag)
-        doc.remove_tags([tag])
-        doc.sync()
+        with Database(self.ui.xroot, writable=True) as db:
+            doc = db.doc_for_docid(entry.docid)
+            tag = 'new'
+            msg = "Removed tag '%s'." % (tag)
+            doc.remove_tags([tag])
+            doc.sync()
         tags = doc.get_tags()
         entry.fields['tags'].set_text(' '.join(tags))
         self.ui.set_status(msg)
