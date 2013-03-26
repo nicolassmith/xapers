@@ -119,6 +119,12 @@ class Database():
         for name, prefix in self.PROBABILISTIC_PREFIX.iteritems():
             self.query_parser.add_prefix(name, prefix)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+
     def __getitem__(self, docid):
         return self.doc_for_docid(docid)
 
