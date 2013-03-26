@@ -12,6 +12,6 @@ see "$infile" &
 x-terminal-emulator \
     -title "xapers-import" \
     -e sh -c "
-xapers add --file=$infile --tags=inbox --prompt --view
+xapers add --file=$infile --tags=new --prompt --view
 read -p 'any key to quit:' OK
 "
