@@ -241,8 +241,7 @@ class UI():
         if resp != 'Y':
             print >>sys.stderr, "Aborting."
             sys.exit(1)
-        doc._rm_docdir()
-        self.db.delete_document(docid)
+        doc.purge()
 
 
     def update_all(self):
