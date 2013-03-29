@@ -1,14 +1,33 @@
 Xapers
-------
+======
 
-Xapers is a document indexing system.  You feed it a pdf file, and a
-source identifier to help it find bibliographic information, and it
-indexes the full document text and bib info in a Xapian database.  It
-has fast search, tagging, quick document retrieval, and can output
-bibtex.  There is a command line interface, and a ncurses based search
-interface.
+Xapers is a document indexing system, geared towards academic journal
+articles.  Think of it as an online library cache.  It provides fast
+search of document text and bibliographic data and simple document and
+bibtex retrieval.
 
-After install, run 'xapers help' for more info.
+Document files (as pdf) and source identifiers (e.g. DOI) are parsed
+and indexed into a Xapian database [0].  Document text is extracted
+from the pdf and fully indexed.  Bibliographic information downloaded
+from online libraries is indexed as prefixed search terms.  Documents
+can be arbitrarily tagged.  Original document files are easily
+retrievable from a simple curses search UI.  The command line
+interface allows for exporting bibtex [1] from arbitrary searches,
+allowing seemless integration into LaTeX work flows.
+
+Xapers provides source modules for some common online libraries:
+  * DOI        http://www.doi.org/
+  * NASA ADS   http://www.adsabs.harvard.edu/
+  * arXiv      http://arxiv.org/
+Source modules are meant to be extensible, so hopefully we will be
+able to support user-defined modules in the futre.  Contributions are
+very much appreciated.
+
+Xapers is heavily inspired by the notmuch mail indexing system [0].
+
+[0] http://www.xapian.org/
+[1] http://www.bibtex.org/
+[2] http://notmuchmail.org/
 
 Source
 ------
@@ -16,6 +35,16 @@ Source
 Clone the repo:
 
 $ git clone git://finestructure.net/xapers
+
+Requirements
+------------
+
+Xapers requires:
+
+  * python (>= 2.6)
+  * python-xapian - Python Xapian bindings
+  * python-urwid - Python urwid curses library bindings
+  * pybtex - Python bibtex parser
 
 Tests
 -----
@@ -27,10 +56,43 @@ $ ./test/xapers-test
 Debian
 ------
 
-Make Debian/Ubuntu packages:
+Debian/Ubuntu snapshot packages can be easily made from the git
+source:
 
-$ cd xapers
-$ git checkout debian
-$ apt-get install git-buildpackage
-$ git buildpackage -uc -us
-$ dpkg -I ../xapers_0.0-1_amd64.deb
+$ make debian-snapshot
+
+The resulting .deb will be in the 'build' directory.
+
+
+Using Xapers
+============
+
+See the included man page for usage information.
+
+CLI
+---
+
+See the included man page (xapers.1) for more information on the
+command line interface.
+
+Also included is a simple example of an import script
+("xapers-importer") that help in importing documents into the
+database.  It can be used e.g. as a pdf handler in your favorite
+browser.  It displays the pdf according to mailcap rules, then
+presents the user with prompts to import the document into Xapers, any
+source id to retrieve, and any initial tags to add.  If the source id
+is know, bibtex is retrieved and indexed.  The resulting xapers entry
+for the document is displayed.
+
+Development of more clever import methods is highly encouraged.
+
+Python library
+--------------
+
+>>> import xapers
+>>> db = xapers.Database('~/.xapers/docs')
+>>> docs = db.search('tag:new')
+>>> for doc in docs:
+        doc.add_tags(['foo'])
+        ...
+>>> 

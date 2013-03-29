@@ -20,6 +20,11 @@ TESTS="
   basic
   all
 "
+if [ "$XAPERS_TEST_NET" ] ; then
+    TESTS="$TESTS
+  sources
+"
+fi
 #  setup
 TESTS=${XAPERS_TESTS:=$TESTS}
 

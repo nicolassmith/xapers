@@ -26,31 +26,31 @@ def usage():
     print """
 Commands:
 
-  import [options]                    Import new document.
+  import [options] [[id:]<docid>]     Import new document or update existing.
     --source=<source>                   source for bib data
     --file=<file>                       file to index
     --tags=<tag>[,...]                  initial tags
     --prompt                            prompt for unspecified options
     --view                              view entry after adding
-  update [options] [id:]<docid>       Update document.
-    --source=<source>                   source for bib data
-    --file=<file>                       file to index
-  delete [id:]<docid>                 Delete a document from database.
+  delete [id:]<docid>                 Delete document from database.
+  restore                             Restore database from xapers root.
 
   tag +<tag>|-<tag> [...] [--] <search-terms>...
                                       Add/remove tags.
 
   search [options] <search-terms>...  Search for documents.
-    --output=[files|summary|bibtex|sources|tags]
-                                        output format
+    --output=[summary|bibtex|files|sources|tags]
+                                        output format (default is 'summary')
     --limit=N                           limit number of results returned
                                         (default is 20, 0 for all)
+  bibtex <search-terms>...            Short for \"search --output=bibtex\".
   view <search-terms>...              View search in curses UI.
   count <search-terms>...             Count matches.
 
   export <dir> <search-terms>...      Export documents to a directory of
                                       files named for document titles.
 
+  sources                             List available sources.
   source2bib <source>                 Retrieve bibtex for source and
                                       print to stdout.
   scandoc <file>                      Scan a file for source IDs.
@@ -58,7 +58,7 @@ Commands:
   version                             Print version number.
   help                                This help.
 
-The xapers document store is specified in the XAPERS_DIR environment
+The xapers document store is specified by the XAPERS_ROOT environment
 variable, or defaults to '~/.xapers/docs' if not specified (the
 directory is allowed to be a symlink).
 
@@ -83,7 +83,7 @@ Other definitions:
       tag:<tag>                user tags
       source:<source>          source type (also s:)
 
-  The string '*' will match all messages."""
+  The string '*' will match all documents."""
 
 ########################################################################
 
@@ -94,18 +94,19 @@ if __name__ == '__main__':
     else:
         cmd = []
 
-    xdir = os.getenv('XAPERS_DIR',
-                     os.path.expanduser(os.path.join('~','.xapers','docs')))
+    xroot = os.getenv('XAPERS_ROOT',
+                      os.path.expanduser(os.path.join('~','.xapers','docs')))
 
     ########################################
-    if cmd in ['add','a','import','i']:
-        cli = xapers.cli.UI(xdir)
+    if cmd in ['add','a','import','i','update','u']:
+        cli = xapers.cli.UI(xroot)
 
         tags = None
         infile = None
         source = None
         prompt = False
         view = False
+        docid = None
 
         argc = 2
         while True:
@@ -125,49 +126,31 @@ if __name__ == '__main__':
                 break
             argc += 1
 
-        docid = cli.add(None, infile=infile, source=source, tags=tags, prompt=prompt)
+        if argc == (len(sys.argv) - 1):
+            docid = sys.argv[argc]
+
+        docid = cli.add(docid, infile=infile, source=source, tags=tags, prompt=prompt)
+
         # dereference the cli object so that the database is flushed
         # FIXME: is there a better way to handle this?
         cli = None
+
         if view and docid:
-            xapers.nci.UI(xdir, cmd=['search', 'id:'+docid])
-
-    ########################################
-    elif cmd in ['update','u']:
-        cli = xapers.cli.UI(xdir)
-
-        infile = None
-        source = None
-
-        argc = 2
-        while True:
-            if argc >= len(sys.argv):
-                break
-            elif '--source=' in sys.argv[argc]:
-                source = sys.argv[argc].split('=',1)[1]
-            elif '--file=' in sys.argv[argc]:
-                infile = sys.argv[argc].split('=',1)[1]
-            else:
-                break
-            argc += 1
-
-        docid = sys.argv[argc]
-
-        cli.add(docid, infile=infile, source=source)
+            xapers.nci.UI(xroot, cmd=['search', 'id:'+docid])
 
     ########################################
     elif cmd in ['update-all']:
-        cli = xapers.cli.UI(xdir)
+        cli = xapers.cli.UI(xroot)
         cli.update_all()
 
     ########################################
     elif cmd in ['delete']:
-        cli = xapers.cli.UI(xdir)
+        cli = xapers.cli.UI(xroot)
         cli.delete(make_query_string(sys.argv[2:]))
 
     ########################################
     elif cmd in ['search','s']:
-        cli = xapers.cli.UI(xdir)
+        cli = xapers.cli.UI(xroot)
 
         oformat = 'summary'
         limit = 20
@@ -192,7 +175,7 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['bibtex','bib','b']:
-        cli = xapers.cli.UI(xdir)
+        cli = xapers.cli.UI(xroot)
         argc = 2
         query = make_query_string(sys.argv[argc:])
         try:
@@ -204,20 +187,20 @@ if __name__ == '__main__':
     elif cmd in ['view','v','show','select']:
         query = make_query_string(sys.argv[2:], require=False)
         try:
-            xapers.nci.UI(xdir, cmd=['search', query])
+            xapers.nci.UI(xroot, cmd=['search', query])
         except KeyboardInterrupt:
             sys.exit()
 
     ########################################
     elif cmd in ['nci']:
         try:
-            xapers.nci.UI(xdir, cmd=sys.argv[2:])
+            xapers.nci.UI(xroot, cmd=sys.argv[2:])
         except KeyboardInterrupt:
             sys.exit()
 
     ########################################
     elif cmd in ['tag','t']:
-        cli = xapers.cli.UI(xdir)
+        cli = xapers.cli.UI(xroot)
 
         add_tags = []
         remove_tags = []
@@ -242,22 +225,33 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['dumpterms']:
-        cli = xapers.cli.UI(xdir)
+        cli = xapers.cli.UI(xroot)
         query = make_query_string(sys.argv[2:], require=False)
         cli.dumpterms(query)
 
     ########################################
     elif cmd in ['count']:
-        cli = xapers.cli.UI(xdir)
+        cli = xapers.cli.UI(xroot)
         query = make_query_string(sys.argv[2:], require=False)
         cli.count(query)
 
     ########################################
     elif cmd in ['export']:
-        cli = xapers.cli.UI(xdir)
+        cli = xapers.cli.UI(xroot)
         outdir = sys.argv[2]
         query = make_query_string(sys.argv[3:])
         cli.export(outdir, query)
+
+    ########################################
+    elif cmd in ['restore']:
+        cli = xapers.cli.UI(xroot)
+        cli.restore()
+
+    ########################################
+    elif cmd in ['sources']:
+        import xapers.source
+        for source in xapers.source.list_sources():
+            print source
 
     ########################################
     elif cmd in ['source2bib','s2b']:

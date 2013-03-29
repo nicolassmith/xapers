@@ -28,9 +28,8 @@ import xapers.bibtex
 
 class DocumentError(Exception):
     """Base class for Xapers document exceptions."""
-    def __init__(self, msg, code):
+    def __init__(self, msg):
         self.msg = msg
-        self.code = code
     def __str__(self):
         return self.msg
 
@@ -45,6 +44,12 @@ class Documents():
         self.index = -1
         self.max = len(mset)
 
+    def __getitem__(self, index):
+        m = self.mset[index]
+        doc = Document(self.db, m.document)
+        doc.matchp = m.percent
+        return doc
+
     def __iter__(self):
         return self
 
@@ -55,17 +60,14 @@ class Documents():
         self.index = self.index + 1
         if self.index == self.max:
             raise StopIteration
-        m = self.mset[self.index]
-        doc = Document(self.db, m.document)
-        doc.matchp = m.percent
-        return doc
+        return self[self.index]
 
 ##################################################
 
 class Document():
     """Represents a single Xapers document."""
 
-    def __init__(self, db, doc=None):
+    def __init__(self, db, doc=None, docid=None):
         # Xapers db
         self.db = db
         self.root = self.db.root
@@ -74,13 +76,18 @@ class Document():
         if doc:
             self.doc = doc
             self.docid = str(doc.get_docid())
-            self.path = self._get_terms(self.db._find_prefix('file'))
 
         # else, create a new empty document
         # document won't be added to database until sync is called
         else:
             self.doc = xapian.Document()
-            self.docid = str(self.db._generate_docid())
+            # use specified docid if provided
+            if docid:
+                if self.db.doc_for_docid(docid):
+                    raise DocumentError('Document already exists for id %s.' % docid)
+                self.docid = docid
+            else:
+                self.docid = str(self.db._generate_docid())
             self._add_term(self.db._find_prefix('id'), self.docid)
 
         # specify a directory in the Xapers root for document data
@@ -91,19 +98,25 @@ class Document():
         return self.docid
 
     def _make_docdir(self):
-        if not os.path.exists(self.docdir):
+        if os.path.exists(self.docdir):
+            if not os.path.isdir(self.docdir):
+                raise DocumentError('File exists at intended docdir location: %s' % self.docdir)
+        else:
             os.makedirs(self.docdir)
 
     def _rm_docdir(self):
-        if os.path.exists(self.docdir):
+        if os.path.exists(self.docdir) and os.path.isdir(self.docdir):
             shutil.rmtree(self.docdir)
 
     def sync(self):
         """Sync document to database."""
         # FIXME: add value for modification time
+        # FIXME: catch db not writable errors
         self.db.replace_document(self.docid, self.doc)
 
     def purge(self):
+        """Purge document from database and root."""
+        # FIXME: catch db not writable errors
         try:
             self.db.delete_document(self.docid)
         except xapian.DocNotFoundError:
@@ -204,8 +217,14 @@ class Document():
     def add_file(self, infile):
         """Add a file to document, copying into new xapers doc directory."""
         self._make_docdir()
+
+        # FIXME: should files be renamed to something generic (0.pdf)?
         outfile = os.path.join(self.docdir, os.path.basename(infile))
-        shutil.copyfile(infile, outfile)
+
+        try:
+            shutil.copyfile(infile, outfile)
+        except shutil.Error:
+            pass
 
         base, full = self.db._basename_for_path(outfile)
 
@@ -214,8 +233,7 @@ class Document():
         self._add_path(base)
 
         # set data to be text sample
-        # FIXME: what should really be in here?  what if we have
-        # multiple files for the document?  what about bibtex?
+        # FIXME: is this the right thing to put in the data?
         self._set_data(summary)
 
         return full
@@ -272,7 +290,7 @@ class Document():
         prefix = self.db._find_prefix('tag')
         for tag in tags:
             self._add_term(prefix, tag)
-            # FIXME: index tags so they're searchable
+        self.dump_tags()
 
     def get_tags(self):
         """Return a list of tags associated with document."""
@@ -284,6 +302,14 @@ class Document():
         prefix = self.db._find_prefix('tag')
         for tag in tags:
             self._remove_term(prefix, tag)
+        self.dump_tags()
+
+    def dump_tags(self):
+        """Dump document tags to tag file in docdir."""
+        with open(os.path.join(self.docdir, 'tags'), 'w') as f:
+            for tag in self.get_tags():
+                f.write(tag)
+                f.write('\n')
 
     # TITLE
     def _set_title(self, title):
@@ -315,7 +341,7 @@ class Document():
 
     def get_bibpath(self):
         """Return path to document bibtex file."""
-        return os.path.join(self.root, self.docdir, 'bibtex')
+        return os.path.join(self.docdir, 'bibtex')
 
     def _set_bibkey(self, key):
         prefix = self.db._find_prefix('bib')

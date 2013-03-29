@@ -1,0 +1,267 @@
+.\" xapers - journal article indexing system
+.\"
+.\" Copyright © 2013 Jameson Rollins
+.\"
+.\" Xapers is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" Xapers is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see http://www.gnu.org/licenses/ .
+.\"
+.\" Author: Jameson Rollins <jrollins@finestructure.net>
+.TH XAPERS 1
+.SH NAME
+xapers \- journal article indexing system
+.SH SYNOPSIS
+.B xapers
+.IR command " [" args " ...]"
+.SH DESCRIPTION
+Xapers is a document indexing system, geared towards academic journal
+articles.  It provides fast search of document text and bibliographic
+data (synced from online libraries) and simple document and bibtex
+retrieval.
+
+Xapers takes as input document files (as PDF) and source identifiers.
+Documents are copied into a local document store (~/.xapers/docs by
+default) and text is extracted from the PDF and fully indexed into a
+textual database.  Source identifiers are used to download document
+bibliographic data from the web (see \fBSOURCES\fR below), which is
+parsed and indexed to prefixed terms in the database.  The
+bibliographic data is also stored as bibtex in the document store for
+easy retrieval.  Documents can be arbitrarily tagged.
+
+A curses UI is provided for simple access to documents (see the
+\fBview\fR command below).  Xapers is ultimately a document indexing
+library, though, so development of alternate user interfaces is
+encouraged.
+
+Underlying Xapers is the wonderful Xapian database/search engine.  See
+http://xapian.org/ for more information.
+
+.SH MAIN COMMANDS
+
+The following are the main xapers commands.  See \fBSEARCH TERMS\fR
+below for details of the supported syntax for <search-terms>.
+ 
+.SS import [options] [[id:]<docid>]
+.SS add [options] [[id:]<docid>]
+.SS update [options] [[id:]<docid>]
+
+Import a document, or update an existing document.  Must specify one
+of --file or --source options when importing.  If an existing document
+id (<docid>) is specified as the last argument, the matching document
+is updated with newly provided information.  Available options:
+.RS 4
+.TP 4
+.BR \-\-source=<sid>
+Source identifier for document.  See \fBSOURCES\fR below.  This may
+also be a path to a file that contains a single bibtex entry.
+.RE
+.RS 4
+.TP 4
+.BR \-\-file=<path>
+Document file (as PDF) to import.  Text of document will be extracted
+from PDF and indexed.  A copy of the file will be placed in the Xapers
+document store.
+.RE
+.RS 4
+.TP 4
+.BR \-\-tags=<tag>[,...]
+Initial tags to apply to document.  Multiple tags can be specified,
+comma separated.
+.RE
+.RS 4
+.TP 4
+.BR \-\-prompt
+Prompt user for source/file/tags, if not specified.  When prompting
+for source information documents are automatically scanned for source
+IDs and found ids are displayed.
+.RE
+.RS 4
+.TP 4
+.BR \-\-view
+View resulting entry in curses UI when done.
+.RE
+
+.SS tag +<tag>|-<tag> [...] [--] <search-terms>...
+
+Add remove tags from documents.
+
+.SS search [options] <search-terms>...
+
+Search for documents in the database.  Document information is printed
+to stdout.
+.RS 4
+.TP 4
+.BR \-\-output=[summary|files|bibtex|sources|tags]
+
+Specify document information to be output:
+
+.B summary
+outputs a single-line summary of the document (default).
+
+.B files
+outputs the paths in the document store to all files associated with
+documents.
+
+.B bibtex
+outputs document bibliographic information (if available) as bibtex.
+
+.B sources
+outputs all sources associated with documents.
+
+.B tags
+outputs all tags associated with documents.
+
+Default is
+.B summary.
+.RE
+.RS 4
+.TP 4
+.BR \-\-limit=N
+
+Limit number of results returned.  Default is 20.  Use 0 to return all
+results.
+.RE
+
+.SS bibtex <search-terms>...
+
+Short for "search --output=bibtex <search-terms>...".
+
+.SS count <search-terms>...
+
+Return a simple count of search results.
+
+.SS show [<search-terms>...]
+.SS view [<search-terms>...]
+
+View search results in curses search UI.  This UI provides a
+convenient interface to browse search results.  It displays available
+document bibliographic, a short intro summary of document text, and
+provides access to the documents themselves (via mailcap rules) and
+document bibtex.  Initial search terms can be provided, but further
+searches can be performed from within the UI.  While in the UI type
+"?" for available commands.
+
+NOTE: At the moment only the top 20 search results are displayed, due
+to synchronous loading restrictions.  This obviously needs to be
+fixed.
+
+.SS export <directory> <search-terms>...
+
+Copy PDF files of resulting documents into <directory>, named with
+document titles when available.
+
+.SS delete [id:]<docid>
+
+Delete a document from the database.  All document files will purged
+from the document store.
+
+
+.SH SOURCE COMMANDS
+
+These commands provide access to some of the source module methods.  See
+\fBSOURCES\fR below.
+
+.SS sources
+
+List available sources.
+
+.SS source2bib <sid>
+
+Retrieve bibtex from source for a specified source id and print to
+stdout.
+
+.SS scandoc <file>
+
+Scan a document file for a source ID.
+
+.SH SOURCES
+
+Sources are online databases from which document bibliographic data
+can be retrieved.  In Xapers sources are plugin modules that can be
+used to retrieve bibliographic data for a given document.
+
+Online libraries are assigned unique prefixes, known internally as
+"sources".  Online libraries associate unique document identifiers
+("ids") to individual documents.  Xapers then recognizes document
+source ids, or \fBsid\fR, of the form "<source>:<id>".
+
+Xapers currently recognizes the following online sources:
+
+    doi:   Digital Object Identifier (DOI) (http://www.doi.org/)
+    arxiv: arXiv (http://arxiv.org/)
+    ads:   SAO/NASA Astrophysics Data System (http://www.adsabs.harvard.edu/)
+    dcc:   LIGO Document Control Center (http://dcc.ligo.org/)
+
+Xapers allows specifying document source ids as either URLs
+(e.g. "http://dx.doi.org/10.1364/JOSAA.29.002092") or sid strings
+(e.g. "doi:10.1364/JOSAA.29.002092").  URLs are parsed into sids when
+recognized.  The sids are then used to retrieve bibtex from the online
+library databases.  The sids for a given document are stored as
+indexed terms in the Xapers database.
+
+
+.SH SEARCH TERMS
+
+Search terms consist of free-form text (and quoted phrases) which will
+match all documents that contain all of the given terms/phrases.
+
+As a special case, a search string consisting of a single asterisk
+('*') will match all documents in the database.
+
+In addition to free text, the following prefixes can be used to match
+text against specific document metadata:
+
+    id:<docid>               document id
+    author:<string>          string in authors (also a:)
+    title:<string>           string in title (also t:)
+    tag:<tag>                user tags
+    source:<source>          source type (also s:)
+
+The
+.B id:
+prefix matches against unique internal integer document identifiers.
+
+The
+.B author:
+or
+.B a:
+prefix matches against strings in document author bibliographic data.
+
+The
+.B title:
+or
+.B t:
+prefix matches against strings in document title bibliographic data.
+
+The
+.B tag:
+prefix matches against specific document tags.
+
+The
+.B source:
+prefix can be used to return all documents from a specified source
+(see \fBSOURCES\fR above).
+
+
+.SH ENVIRONMENT
+The following environment variables can be used to control the
+behavior of xapers:
+
+.SS XAPERS_ROOT
+Location of the Xapers document store.  Defaults to "~/.xapers/docs"
+if not specified.
+
+
+.SH CONTACT
+Feel free to email the author:
+
+    Jameson Rollins <jrollins@finestructure.net>

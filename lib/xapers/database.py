@@ -69,9 +69,11 @@ class Database():
     def _make_source_prefix(self, source):
         return 'X%s|' % (source.upper())
 
-    def __init__(self, root, writable=False, create=False):
+    ########################################
+
+    def __init__(self, root, writable=False, create=False, force=False):
         # xapers root
-        self.root = os.path.abspath(root)
+        self.root = os.path.abspath(os.path.expanduser(root))
 
         # xapers db directory
         xapers_path = os.path.join(self.root, '.xapers')
@@ -80,12 +82,7 @@ class Database():
         if not os.path.exists(xapers_path):
             if create:
                 if os.path.exists(self.root):
-                    try:
-                        # this will fail if the directory is non-empty
-                        os.rmdir(self.root)
-                    except OSError:
-                        # FIXME: this needs to raise an error
-                        # root exists but it path
+                    if os.listdir(self.root) and not force:
                         raise DatabaseError('Uninitialized Xapers root directory exists but is not empty.', 1)
                 os.makedirs(xapers_path)
             else:
@@ -122,9 +119,20 @@ class Database():
         for name, prefix in self.PROBABILISTIC_PREFIX.iteritems():
             self.query_parser.add_prefix(name, prefix)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+
+    def __getitem__(self, docid):
+        return self.doc_for_docid(docid)
+
+    ########################################
+
     # generate a new doc id, based on the last availabe doc id
     def _generate_docid(self):
-        return self.xapian.get_lastdocid() + 1
+        return str(self.xapian.get_lastdocid() + 1)
 
     # Return the xapers-relative path for a path
     # If the the specified path is not in the xapers root, return None.
@@ -184,8 +192,10 @@ class Database():
         # FIXME: need to catch Xapian::Error when using enquire
         enquire.set_query(query)
 
-        # FIXME: can set how the mset is ordered
-        # FIXME: prefer newer entries to older
+        # set order of returned docs as newest first
+        # FIXME: make this user specifiable
+        enquire.set_docid_order(xapian.Enquire.DESCENDING)
+
         if limit:
             mset = enquire.get_mset(0, limit)
         else:
@@ -234,3 +244,54 @@ class Database():
         """Delete document from database."""
         docid = int(docid)
         self.xapian.delete_document(docid)
+
+    ########################################
+
+    def restore(self, log=False):
+        """Restore a database from an existing root."""
+        docdirs = os.listdir(self.root)
+        docdirs.sort()
+        for ddir in docdirs:
+            if ddir == '.xapers':
+                continue
+            docdir = os.path.join(self.root, ddir)
+            if not os.path.isdir(docdir):
+                # skip things that aren't directories
+                continue
+            docdir = os.path.join(self.root, docdir)
+            docfiles = os.listdir(docdir)
+            if not docfiles:
+                # skip empty directories
+                continue
+
+            # if we can't convert the directory name into an integer,
+            # assume it's not relevant to us and continue
+            try:
+                docid = int(ddir)
+            except ValueError:
+                continue
+
+            if log:
+                print >>sys.stderr, docid
+
+            doc = Document(self, docid=docid)
+
+            for dfile in docfiles:
+                dpath = os.path.join(docdir, dfile)
+                if dfile == 'bibtex':
+                    if log:
+                        print >>sys.stderr, '  bibtex found'
+                    with open(dpath, 'r') as f:
+                        bibtex = f.read()
+                    doc.add_bibtex(bibtex)
+                elif os.path.splitext(dpath)[1] == '.pdf':
+                    if log:
+                        print >>sys.stderr, '  pdf found:', dfile
+                    doc.add_file(dpath)
+                elif dfile == 'tags':
+                    if log:
+                        print >>sys.stderr, '  tags found'
+                    with open(dpath, 'r') as f:
+                        tags = f.read().strip().split('\n')
+                    doc.add_tags(tags)
+            doc.sync()
