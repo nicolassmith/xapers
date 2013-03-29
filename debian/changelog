@@ -3,8 +3,9 @@ xapers (0.1-1) unstable; urgency=low
   * New release.
   * Include man page.
   * Update compat (9)
+  * Update standards (3.9.4)
 
- -- Jameson Rollins <jrollins@finestructure.net>  Fri, 29 Mar 2013 01:00:57 -0700
+ -- Jameson Rollins <jrollins@finestructure.net>  Fri, 29 Mar 2013 01:26:23 -0700
 
 xapers (0.0.1-1) unstable; urgency=low
 

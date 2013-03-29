@@ -6,8 +6,8 @@ Build-Depends:
  pkg-config,
  python-all-dev (>= 2.6.6-3~),
  python-setuptools,
- debhelper (>= 8.0.0)
-Standards-Version: 3.9.3
+ debhelper (>= 9)
+Standards-Version: 3.9.4
 
 Package: xapers
 Architecture: any
