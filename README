@@ -1,18 +1,19 @@
 Xapers
 ======
 
-Xapers is a document indexing system, geared towards academic papers.
-It provides fast search of document text and bibliographic data
-(synced from online libraries) and simple document and bibtex
-retrieval.
+Xapers is a document indexing system, geared towards academic journal
+articles.  Think of it as an online library cache.  It provides fast
+search of document text and bibliographic data and simple document and
+bibtex retrieval.
 
-Xapers takes as input document files (as pdf) and source identifiers.
-These are then parsed and indexed into a Xapian database [0].
-Document text is extracted from the pdf and fully indexed, while the
-source identifier is used to download document metadata from the web,
-as bibtex [1], which is parsed and indexed to prefixed terms in the
-database.  Documents can be arbitrarily tagged.  Bibtex for groups of
-documents can be exported.
+Document files (as pdf) and source identifiers (e.g. DOI) are parsed
+and indexed into a Xapian database [0].  Document text is extracted
+from the pdf and fully indexed.  Bibliographic information downloaded
+from online libraries is indexed as prefixed search terms.  Documents
+can be arbitrarily tagged.  Original document files are easily
+retrievable from a simple curses search UI.  The command line
+interface allows for exporting bibtex [1] from arbitrary searches,
+allowing seemless integration into LaTeX work flows.
 
 Xapers provides source modules for some common online libraries:
   * DOI        http://www.doi.org/
@@ -21,8 +22,6 @@ Xapers provides source modules for some common online libraries:
 Source modules are meant to be extensible, so hopefully we will be
 able to support user-defined modules in the futre.  Contributions are
 very much appreciated.
-
-See the included man page for usage information.
 
 Xapers is heavily inspired by the notmuch mail indexing system [0].
 
@@ -67,6 +66,8 @@ The resulting .deb will be in the 'build' directory.
 
 Using Xapers
 ============
+
+See the included man page for usage information.
 
 CLI
 ---
