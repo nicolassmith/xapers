@@ -1,0 +1,18 @@
+[global]
+?: help
+s: promptSearch
+q: killBuffer
+Q: quit
+
+[search]
+n: nextEntry
+p: prevEntry]
+enter: viewFile
+u: viewURL
+b: viewBibtex
++: addTags
+-: removeTags
+a: archive
+F: copyPath
+U: copyURL
+B: copyBibtex
