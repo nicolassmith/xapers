@@ -23,7 +23,7 @@ Source modules are meant to be extensible, so hopefully we will be
 able to support user-defined modules in the futre.  Contributions are
 very much appreciated.
 
-Xapers is heavily inspired by the notmuch mail indexing system [0].
+Xapers is heavily inspired by the notmuch mail indexing system [2].
 
 [0] http://www.xapian.org/
 [1] http://www.bibtex.org/
@@ -81,7 +81,7 @@ database.  It can be used e.g. as a pdf handler in your favorite
 browser.  It displays the pdf according to mailcap rules, then
 presents the user with prompts to import the document into Xapers, any
 source id to retrieve, and any initial tags to add.  If the source id
-is know, bibtex is retrieved and indexed.  The resulting xapers entry
+is known, bibtex is retrieved and indexed.  The resulting xapers entry
 for the document is displayed.
 
 Development of more clever import methods is highly encouraged.
