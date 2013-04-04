@@ -43,7 +43,15 @@ class UI():
             query = ' '.join(cmd[1:])
             self.buffer = Bibview(self, query)
         elif cmd[0] == 'help':
-            self.buffer = Help(self, cmd[1])
+            target = None
+            if len(cmd) > 1:
+                target = cmd[1]
+            if isinstance(target, str):
+                target = None
+            self.buffer = Help(self, target)
+        else:
+            self.buffer = Help(self)
+            self.set_status("Unknown command '%s'." % (cmd[0]))
 
         self.merge_palette(self.buffer)
 
@@ -108,8 +116,7 @@ class UI():
 
     def help(self):
         """help"""
-        if hasattr(self.buffer, 'keys'):
-            self.newbuffer(['help', self.buffer])
+        self.newbuffer(['help', self.buffer])
 
     ##########
 
