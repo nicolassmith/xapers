@@ -1,7 +1,7 @@
 db:
+* fix source id indexing (quantify/test!)
 * add publication date, entry creation time, mod time, etc. as db values
 * create docdir, add files/bibtex only when syncing
-* source id indexing isn't working quite right (quantify/test!)
 
 sources:
 * add method to download document file
@@ -18,10 +18,11 @@ cli:
 * needs simplification (script + module is clunky)
 * improve command line parsing
 
-curses UI:
+nci:
 * asyncronously load search results
-* update/add command
+* add update/add command
 * better entry highlighting (full entry)
+* fail gracefully if db has changed
 * customizable keybindings
 * customizable palette
 
