@@ -150,8 +150,12 @@ class Search(urwid.WidgetWrap):
         """open document file"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        path = entry.doc.get_fullpaths()[0].replace(' ','\ ')
-        if not path or not os.path.exists(path):
+        path = entry.doc.get_fullpaths()
+        if not path:
+            self.ui.set_status('No file for document id:%s.' % entry.docid)
+            return
+        path = path[0].replace(' ','\ ')
+        if not os.path.exists(path):
             self.ui.set_status('ERROR: id:%s: file not found.' % entry.docid)
             return
         self.ui.set_status('opening file: %s...' % path)
