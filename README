@@ -2,9 +2,9 @@ Xapers
 ======
 
 Xapers is a document indexing system, geared towards academic journal
-articles.  Think of it as an online library cache.  It provides fast
-search of document text and bibliographic data and simple document and
-bibtex retrieval.
+articles.  Think of it as a local cache of online libraries.  It
+provides fast search of document text and bibliographic data and
+simple document and bibtex retrieval.
 
 Document files (as pdf) and source identifiers (e.g. DOI) are parsed
 and indexed into a Xapian database [0].  Document text is extracted
