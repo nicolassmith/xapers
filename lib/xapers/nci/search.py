@@ -184,6 +184,14 @@ class Search(urwid.WidgetWrap):
         if not entry: return
         self.ui.newbuffer(['bibview', 'id:' + entry.docid])
 
+    def copyID(self):
+        """copy document ID to clipboard"""
+        entry = self.listbox.get_focus()[0]
+        if not entry: return
+        docid = "id:%s" % entry.docid
+        xclip(docid)
+        self.ui.set_status('docid yanked: %s' % docid)
+
     def copyPath(self):
         """copy document file path to clipboard"""
         entry = self.listbox.get_focus()[0]
