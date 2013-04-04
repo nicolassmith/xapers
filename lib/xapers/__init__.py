@@ -17,8 +17,3 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright 2012
 Jameson Rollins <jrollins@finestructure.net>
 """
-
-from .database import Database
-from .documents import Documents, Document
-from .cli import UI
-from .nci import UI
