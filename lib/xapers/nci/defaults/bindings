@@ -1,6 +1,8 @@
 [global]
 ?: help
 s: promptSearch
+S: promptSearch
+A: promptAdd
 q: killBuffer
 Q: quit
 
@@ -12,7 +14,10 @@ u: viewURL
 b: viewBibtex
 +: addTags
 -: removeTags
+u: update
 a: archive
-F: copyPath
-U: copyURL
-B: copyBibtex
+meta i: copyID
+meta f: copyPath
+meta u: copyURL
+meta b: copyBibtex
+f: filterSearch
