@@ -18,21 +18,6 @@ class UI():
         ('prompt', 'black', 'light green'),
         ]
 
-    palette_search = [
-        ('field', 'dark cyan', ''),
-        ('field_focus', '', 'dark cyan'),
-        ('head', 'dark blue,bold', '', 'standout'),
-        ('head_focus', 'white,bold', 'dark blue', 'standout'),
-        ('sources', 'light magenta,bold', '', 'standout'),
-        ('sources_focus', 'light magenta,bold', '', 'standout'),
-        ('tags', 'dark green,bold', '', 'standout'),
-        ('tags_focus', 'dark green,bold', '', 'standout'),
-        ('title', 'yellow,bold', '', 'standout'),
-        ('title_focus', 'yellow,bold', '', 'standout'),
-        ('default', 'dark cyan', ''),
-        ('default_focus', '', 'dark cyan'),
-        ]
-
     def __init__(self, xroot, db=None, cmd=None):
         self.xroot = xroot
         if db:
@@ -48,32 +33,35 @@ class UI():
         self.set_header()
         self.set_status()
 
-        palette = self.palette
-
         if not cmd:
             cmd = ['search', '*']
 
         if cmd[0] == 'search':
             query = ' '.join(cmd[1:])
             self.buffer = Search(self, query)
-            palette = list(set(self.palette) | set(self.palette_search))
         elif cmd[0] == 'bibview':
             query = ' '.join(cmd[1:])
             self.buffer = Bibview(self, query)
         elif cmd[0] == 'help':
             self.buffer = Help(self, cmd[1])
 
+        self.merge_palette(self.buffer)
+
         self.view.body = urwid.AttrMap(self.buffer, 'body')
 
         self.mainloop = urwid.MainLoop(
             self.view,
-            palette,
+            self.palette,
             unhandled_input=self.keypress,
             handle_mouse=False,
             )
         self.mainloop.run()
 
     ##########
+
+    def merge_palette(self, buffer):
+        if hasattr(buffer, 'palette'):
+            self.palette = list(set(self.palette) | set(buffer.palette))
 
     def set_header(self, text=None):
         if text:

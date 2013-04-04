@@ -97,6 +97,21 @@ class DocListItem(urwid.WidgetWrap):
 
 class Search(urwid.WidgetWrap):
 
+    palette = [
+        ('field', 'dark cyan', ''),
+        ('field_focus', '', 'dark cyan'),
+        ('head', 'dark blue,bold', '', 'standout'),
+        ('head_focus', 'white,bold', 'dark blue', 'standout'),
+        ('sources', 'light magenta,bold', '', 'standout'),
+        ('sources_focus', 'light magenta,bold', '', 'standout'),
+        ('tags', 'dark green,bold', '', 'standout'),
+        ('tags_focus', 'dark green,bold', '', 'standout'),
+        ('title', 'yellow,bold', '', 'standout'),
+        ('title_focus', 'yellow,bold', '', 'standout'),
+        ('default', 'dark cyan', ''),
+        ('default_focus', '', 'dark cyan'),
+        ]
+
     def __init__(self, ui, query):
         self.ui = ui
 
