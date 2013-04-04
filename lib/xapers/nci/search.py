@@ -106,17 +106,31 @@ class Search(urwid.WidgetWrap):
         ('sources', 'light magenta,bold', '', 'standout'),
         ('sources_focus', 'light magenta,bold', '', 'standout'),
         ('tags', 'dark green,bold', '', 'standout'),
-        ('tags_focus', 'dark green,bold', '', 'standout'),
         ('title', 'yellow,bold', '', 'standout'),
-        ('title_focus', 'yellow,bold', '', 'standout'),
+        ('authors', 'white,bold', '', 'standout'),
         ('default', 'dark cyan', ''),
         ('default_focus', '', 'dark cyan'),
         ]
 
-    def __init__(self, ui, query):
+    keys = {
+        'n': "nextEntry",
+        'p': "prevEntry",
+        'enter': "viewFile",
+        'u': "viewURL",
+        'b': "viewBibtex",
+        '+': "addTags",
+        '-': "removeTags",
+        'a': "archive",
+        'meta i': "copyID",
+        'meta f': "copyPath",
+        'meta u': "copyURL",
+        'meta b': "copyBibtex",
+        }
+
+    def __init__(self, ui, query=None):
         self.ui = ui
 
-        self.ui.set_header("search: " + query)
+        self.ui.set_header("Search: " + query)
 
         docs = self.ui.db.search(query, limit=20)
         if len(docs) == 0:
@@ -279,23 +293,6 @@ class Search(urwid.WidgetWrap):
         tags = doc.get_tags()
         entry.fields['tags'].set_text(' '.join(tags))
         self.ui.set_status(msg)
-
-    ##########
-
-    keys = {
-        'n': "nextEntry",
-        'p': "prevEntry",
-        'enter': "viewFile",
-        'u': "viewURL",
-        'b': "viewBibtex",
-        '+': "addTags",
-        '-': "removeTags",
-        'a': "archive",
-        'meta i': "copyID",
-        'meta f': "copyPath",
-        'meta u': "copyURL",
-        'meta b': "copyBibtex",
-        }
 
     def keypress(self, size, key):
         if key in self.keys:

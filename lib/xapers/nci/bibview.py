@@ -7,7 +7,7 @@ class Bibview(urwid.WidgetWrap):
     def __init__(self, ui, query):
         self.ui = ui
 
-        self.ui.set_header("bibtex: " + query)
+        self.ui.set_header("Bibtex: " + query)
 
         docs = self.ui.db.search(query, limit=20)
         if len(docs) == 0:

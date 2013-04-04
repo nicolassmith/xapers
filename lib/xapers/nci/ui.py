@@ -18,6 +18,13 @@ class UI():
         ('prompt', 'black', 'light green'),
         ]
 
+    keys = {
+        '?': "help",
+        's': "promptSearch",
+        'q': "killBuffer",
+        'Q': "quit",
+        }
+
     def __init__(self, xroot, db=None, cmd=None):
         self.xroot = xroot
         if db:
@@ -117,15 +124,6 @@ class UI():
     def help(self):
         """help"""
         self.newbuffer(['help', self.buffer])
-
-    ##########
-
-    keys = {
-        '?': "help",
-        's': "promptSearch",
-        'q': "killBuffer",
-        'Q': "quit",
-        }
 
     def keypress(self, key):
         if key in self.keys:
