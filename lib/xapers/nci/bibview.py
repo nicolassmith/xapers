@@ -8,7 +8,6 @@ class Bibview(urwid.WidgetWrap):
         self.ui = ui
 
         self.ui.set_header("bibtex: " + query)
-        self.ui.set_status("'q' to close.")
 
         docs = self.ui.db.search(query, limit=20)
         if len(docs) == 0:

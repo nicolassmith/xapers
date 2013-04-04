@@ -27,7 +27,7 @@ class UI():
             self.db = initdb(self.xroot)
 
         self.header_string = "Xapers"
-        self.status_string = "'?' for help"
+        self.status_string = "q: quit buffer, Q: quit Xapers, ?: help"
 
         self.view = urwid.Frame(urwid.SolidFill())
         self.set_header()
