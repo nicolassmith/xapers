@@ -4,9 +4,9 @@ import urwid
 import subprocess
 
 from xapers.cli.ui import initdb
-from xapers.nci.search import Search
-from xapers.nci.bibview import Bibview
-from xapers.nci.help import Help
+from search import Search
+from bibview import Bibview
+from help import Help
 
 ############################################################
 
