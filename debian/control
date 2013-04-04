@@ -19,5 +19,17 @@ Depends:
 Recommends:
  python-urwid,
  mime-support
-Description: Xapian-based document indexing system
- Xapers!
+Description: Journal article management and indexing system.
+ Xapers is a document indexing system, geared towards academic journal
+ articles.  Think of it as a local cache of online libraries.  It
+ provides fast search of document text and bibliographic data and
+ simple document and bibtex retrieval.
+ .
+ Document files (as pdf) and source identifiers (e.g. DOI) are parsed
+ and indexed into a Xapian database.  Document text is extracted from
+ the pdf and fully indexed.  Bibliographic information downloaded from
+ online libraries is indexed as prefixed search terms.  Documents can
+ be arbitrarily tagged.  Original document files are easily
+ retrievable from a simple curses search UI.  The command line
+ interface allows for exporting bibtex from arbitrary searches,
+ allowing seemless integration into LaTeX work flows.
