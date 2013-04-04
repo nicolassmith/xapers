@@ -24,6 +24,7 @@ def xclip(text, isfile=False):
 ############################################################
 
 class DocListItem(urwid.WidgetWrap):
+
     def __init__(self, doc):
         self.doc = doc
         self.matchp = doc.matchp
@@ -215,7 +216,7 @@ class Search(urwid.WidgetWrap):
         self.ui.set_status('url yanked: %s' % url)
 
     def copyBibtex(self):
-        """copy document bibtext to clipboard"""
+        """copy document bibtex to clipboard"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
         bibtex = entry.doc.get_bibpath()

@@ -3,6 +3,7 @@ import urwid
 ############################################################
 
 class Help(urwid.WidgetWrap):
+
     def __init__(self, ui, widget):
         self.ui = ui
         self.widget = widget

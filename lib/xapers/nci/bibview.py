@@ -3,6 +3,7 @@ import urwid
 ############################################################
 
 class Bibview(urwid.WidgetWrap):
+
     def __init__(self, ui, query):
         self.ui = ui
 
