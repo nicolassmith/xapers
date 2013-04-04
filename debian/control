@@ -15,7 +15,9 @@ Depends:
  ${shlibs:Depends},
  ${misc:Depends},
  ${python:Depends},
- python-xapian,
+ python-xapian
+Recommends:
  python-urwid,
+ mime-support
 Description: Xapian-based document indexing system
  Xapers!
