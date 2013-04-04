@@ -23,6 +23,7 @@ import sys
 import shutil
 import xapian
 import xapers.bibtex
+import xapers.source
 
 ##################################################
 
@@ -242,7 +243,7 @@ class Document():
 
     # SOURCES
     def add_sources(self, sources):
-        """Add sources from dict (source:sid)."""
+        """Add sources from dict: {source: sid}."""
         p = self.db._find_prefix('source')
         for source,sid in sources.items():
             source = source.lower()
@@ -361,9 +362,7 @@ class Document():
             # FIXME: better way to do this?
             self._set_authors(' '.join(authors))
 
-        # FIXME: do this better for arbitrary source
-        # FIXME: is this even working?
-        for source in ['doi', 'dcc', 'arxiv', 'ads']:
+        for source in xapers.source.list_sources():
             if source in fields:
                 self.add_sources({source: fields[source]})
 
