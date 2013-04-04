@@ -291,9 +291,10 @@ class Search(urwid.WidgetWrap):
         '+': "addTags",
         '-': "removeTags",
         'a': "archive",
-        'F': "copyPath",
-        'U': "copyURL",
-        'B': "copyBibtex",
+        'meta i': "copyID",
+        'meta f': "copyPath",
+        'meta u': "copyURL",
+        'meta b': "copyBibtex",
         }
 
     def keypress(self, size, key):
