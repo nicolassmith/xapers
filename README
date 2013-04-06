@@ -17,7 +17,6 @@ allowing seemless integration into LaTeX work flows.
 
 Xapers provides source modules for some common online libraries:
   * DOI        http://www.doi.org/
-  * NASA ADS   http://www.adsabs.harvard.edu/
   * arXiv      http://arxiv.org/
 Source modules are meant to be extensible, so hopefully we will be
 able to support user-defined modules in the futre.  Contributions are
