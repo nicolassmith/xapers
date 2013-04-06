@@ -4,7 +4,6 @@ import os
 import sys
 import xapers
 import xapers.cli
-import xapers.nci
 
 ########################################################################
 
@@ -186,17 +185,22 @@ if __name__ == '__main__':
             sys.exit()
 
     ########################################
-    elif cmd in ['view','v','show','select']:
-        query = make_query_string(sys.argv[2:], require=False)
+    elif cmd in ['nci','view','v','show','select']:
         try:
-            xapers.nci.UI(xroot, cmd=['search', query])
-        except KeyboardInterrupt:
-            sys.exit()
+            import xapers.nci
+        except ImportError:
+            print >>sys.stderr, "The python-urwid package does not appear to be installed."
+            print >>sys.stderr, "Please install to be able to use the curses UI."
+            sys.exit(1)
 
-    ########################################
-    elif cmd in ['nci']:
+        if cmd == 'nci':
+            args = sys.argv[2:]
+        else:
+            query = make_query_string(sys.argv[2:], require=False)
+            args = ['search', query]
+
         try:
-            xapers.nci.UI(xroot, cmd=sys.argv[2:])
+            xapers.nci.UI(xroot, cmd=args)
         except KeyboardInterrupt:
             sys.exit()
 
