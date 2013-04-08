@@ -1,17 +1,24 @@
 #!/bin/bash -e
 
-infile="$1"
-
-if [ ! -e "$infile" ] ; then
-    echo "file '$infile' not found." >&2
+if [ -z "$1" ] || [[ "$1" == '--help' ]] || [[ "$1" == '-h' ]]; then
+    echo "usage: $(basename $0) <file.pdf>" >&2
     exit 1
 fi
 
+infile="$1"
+
+if [ ! -e "$infile" ] ;then
+    echo "File not found: $infile" >&2
+    exit 1
+fi
+
+# open the file with preferred application
 xdg-open "$infile" &
 
+# prompt for xapers import
 x-terminal-emulator \
     -title "xapers-import" \
     -e sh -c "
 xapers add --file=$infile --tags=new --prompt --view
-read -p 'any key to quit:' OK
+read -N1 -p 'any key to quit:' OK
 "
