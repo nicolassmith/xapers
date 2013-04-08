@@ -103,6 +103,12 @@ class UI():
     def add(self, docid, infile=None, source=None, tags=None, prompt=False):
         if prompt:
             infile = self.prompt_for_file(infile)
+
+        if infile and not os.path.exists(infile):
+            print >>sys.stderr, "Specified file '%s' not found." % infile
+            sys.exit(1)
+
+        if prompt:
             if infile:
                 # scan the file for source info
                 print >>sys.stderr, "Scanning document for source identifiers..."
