@@ -36,15 +36,15 @@ Clone the repo:
 
 $ git clone git://finestructure.net/xapers
 
-Requirements
-------------
-
-Xapers requires:
-
+Dependencies:
   * python (>= 2.6)
   * python-xapian - Python Xapian search engine bindings
   * pybtex - Python bibtex parser
+
+Recommends (for curses UI):
   * python-urwid - Python Urwid curses library
+  * xdg-utils - Desktop tools for opening files and URLs
+  * xclip - X clipboard support for copying document fields
 
 Tests
 -----
@@ -78,13 +78,13 @@ See the included xapers(1) man page for detailed usage and information
 on source modules and searching.
 
 Also included is a simple example of an import script
-("xapers-importer") that help in importing documents into the
-database.  It can be used e.g. as a PDF handler in your favorite
-browser.  It displays the PDF according to mailcap rules, then
-presents the user with prompts to import the document into Xapers, any
-source id to retrieve, and any initial tags to add.  If the source id
-is known, bibtex is retrieved and indexed.  The resulting xapers entry
-for the document is displayed.
+("xapers-importer") that helps in the importing of documents.  It can
+be used e.g. as a PDF handler in your favorite browser.  It displays
+the PDF then presents the user with the option to import the document
+into Xapers, followed by prompts for any source id to retrieve and any
+initial tags to add.  If the source id is known, bibtex is retrieved
+and indexed.  The resulting xapers entry for the document is
+displayed.
 
 Development of more clever import methods is highly encouraged.
 
