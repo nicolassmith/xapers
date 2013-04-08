@@ -81,8 +81,6 @@ Other definitions:
     bibtex.  The currently recognized source:sids are:
       doi:<Digital Object Id>
       arxiv:<arXiv Article Id>
-      ads:<SAO/NASA Astrophysics Data System Id>
-      dcc:<LIGO Document Control Center Id>
 
   <search-terms>: The following prefixes are used to match against
     specific elements of a document:
