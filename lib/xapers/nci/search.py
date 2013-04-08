@@ -80,7 +80,7 @@ class DocListItem(urwid.WidgetWrap):
             [
                 ('fixed', self.c1width,
                  urwid.AttrMap(
-                     urwid.Text(('default', field + ':')),
+                     urwid.Text(field + ':'),
                      'field', 'field_focus')),
                 urwid.AttrMap(
                     self.fields[field],
@@ -99,17 +99,15 @@ class DocListItem(urwid.WidgetWrap):
 class Search(urwid.WidgetWrap):
 
     palette = [
-        ('field', 'dark cyan', ''),
-        ('field_focus', '', 'dark cyan'),
-        ('head', 'dark blue,bold', '', 'standout'),
-        ('head_focus', 'white,bold', 'dark blue', 'standout'),
-        ('sources', 'light magenta,bold', '', 'standout'),
-        ('sources_focus', 'light magenta,bold', '', 'standout'),
-        ('tags', 'dark green,bold', '', 'standout'),
-        ('title', 'yellow,bold', '', 'standout'),
-        ('authors', 'white,bold', '', 'standout'),
-        ('default', 'dark cyan', ''),
-        ('default_focus', '', 'dark cyan'),
+        ('head', 'dark blue, bold', ''),
+        ('head_focus', 'white, bold', 'dark blue'),
+        ('field', 'dark gray', ''),
+        ('field_focus', '', 'dark gray'),
+        ('sources', 'light magenta, bold', ''),
+        ('tags', 'dark green, bold', ''),
+        ('title', 'yellow', ''),
+        ('authors', 'dark cyan, bold', ''),
+        ('year', 'dark red', '',),
         ]
 
     keys = {
