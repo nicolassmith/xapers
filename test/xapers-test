@@ -49,3 +49,6 @@ trap - HUP INT TERM
 
 # Report results
 ./test-aggregate-results test-results/*
+
+# Clean up
+rm -rf test-result
