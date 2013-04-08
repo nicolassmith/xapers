@@ -3,6 +3,7 @@
 import os
 import sys
 import xapers
+import xapers.cli
 
 ########################################################################
 
@@ -17,6 +18,14 @@ def make_query_string(terms, require=True):
         else:
             string = '*'
     return string
+
+def import_nci():
+    try:
+        import xapers.nci
+    except ImportError:
+        print >>sys.stderr, "The python-urwid package does not appear to be installed."
+        print >>sys.stderr, "Please install to be able to use the curses UI."
+        sys.exit(1)
 
 ########################################################################
 
@@ -72,8 +81,6 @@ Other definitions:
     bibtex.  The currently recognized source:sids are:
       doi:<Digital Object Id>
       arxiv:<arXiv Article Id>
-      ads:<SAO/NASA Astrophysics Data System Id>
-      dcc:<LIGO Document Control Center Id>
 
   <search-terms>: The following prefixes are used to match against
     specific elements of a document:
@@ -136,6 +143,7 @@ if __name__ == '__main__':
         cli = None
 
         if view and docid:
+            import_nci()
             xapers.nci.UI(xroot, cmd=['search', 'id:'+docid])
 
     ########################################
@@ -184,17 +192,17 @@ if __name__ == '__main__':
             sys.exit()
 
     ########################################
-    elif cmd in ['view','v','show','select']:
-        query = make_query_string(sys.argv[2:], require=False)
-        try:
-            xapers.nci.UI(xroot, cmd=['search', query])
-        except KeyboardInterrupt:
-            sys.exit()
+    elif cmd in ['nci','view','v','show','select']:
+        import_nci()
 
-    ########################################
-    elif cmd in ['nci']:
+        if cmd == 'nci':
+            args = sys.argv[2:]
+        else:
+            query = make_query_string(sys.argv[2:], require=False)
+            args = ['search', query]
+
         try:
-            xapers.nci.UI(xroot, cmd=sys.argv[2:])
+            xapers.nci.UI(xroot, cmd=args)
         except KeyboardInterrupt:
             sys.exit()
 

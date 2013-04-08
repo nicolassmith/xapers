@@ -24,6 +24,7 @@ def xclip(text, isfile=False):
 ############################################################
 
 class DocListItem(urwid.WidgetWrap):
+
     def __init__(self, doc):
         self.doc = doc
         self.matchp = doc.matchp
@@ -97,10 +98,39 @@ class DocListItem(urwid.WidgetWrap):
 
 class Search(urwid.WidgetWrap):
 
-    def __init__(self, ui, query):
+    palette = [
+        ('field', 'dark cyan', ''),
+        ('field_focus', '', 'dark cyan'),
+        ('head', 'dark blue,bold', '', 'standout'),
+        ('head_focus', 'white,bold', 'dark blue', 'standout'),
+        ('sources', 'light magenta,bold', '', 'standout'),
+        ('sources_focus', 'light magenta,bold', '', 'standout'),
+        ('tags', 'dark green,bold', '', 'standout'),
+        ('title', 'yellow,bold', '', 'standout'),
+        ('authors', 'white,bold', '', 'standout'),
+        ('default', 'dark cyan', ''),
+        ('default_focus', '', 'dark cyan'),
+        ]
+
+    keys = {
+        'n': "nextEntry",
+        'p': "prevEntry",
+        'enter': "viewFile",
+        'u': "viewURL",
+        'b': "viewBibtex",
+        '+': "addTags",
+        '-': "removeTags",
+        'a': "archive",
+        'meta i': "copyID",
+        'meta f': "copyPath",
+        'meta u': "copyURL",
+        'meta b': "copyBibtex",
+        }
+
+    def __init__(self, ui, query=None):
         self.ui = ui
 
-        self.ui.set_header("search: " + query)
+        self.ui.set_header("Search: " + query)
 
         docs = self.ui.db.search(query, limit=20)
         if len(docs) == 0:
@@ -135,12 +165,16 @@ class Search(urwid.WidgetWrap):
         """open document file"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        path = entry.doc.get_fullpaths()[0].replace(' ','\ ')
-        if not path or not os.path.exists(path):
+        path = entry.doc.get_fullpaths()
+        if not path:
+            self.ui.set_status('No file for document id:%s.' % entry.docid)
+            return
+        path = path[0].replace(' ','\ ')
+        if not os.path.exists(path):
             self.ui.set_status('ERROR: id:%s: file not found.' % entry.docid)
             return
         self.ui.set_status('opening file: %s...' % path)
-        subprocess.call(' '.join(["nohup", "view", path]) + ' &',
+        subprocess.call(' '.join(["xdg-open", path, '&']),
                         shell=True,
                         stdout=open('/dev/null','w'),
                         stderr=open('/dev/null','w'))
@@ -154,7 +188,7 @@ class Search(urwid.WidgetWrap):
             self.ui.set_status('ERROR: id:%s: URL not found.' % entry.docid)
             return
         self.ui.set_status('opening url: %s...' % url)
-        subprocess.call(' '.join(["nohup", "x-www-browser", "-new-window", url]) + ' &',
+        subprocess.call(' '.join(["xdg-open", url, '&']),
                         shell=True,
                         stdout=open('/dev/null','w'),
                         stderr=open('/dev/null','w'))
@@ -164,6 +198,14 @@ class Search(urwid.WidgetWrap):
         entry = self.listbox.get_focus()[0]
         if not entry: return
         self.ui.newbuffer(['bibview', 'id:' + entry.docid])
+
+    def copyID(self):
+        """copy document ID to clipboard"""
+        entry = self.listbox.get_focus()[0]
+        if not entry: return
+        docid = "id:%s" % entry.docid
+        xclip(docid)
+        self.ui.set_status('docid yanked: %s' % docid)
 
     def copyPath(self):
         """copy document file path to clipboard"""
@@ -188,7 +230,7 @@ class Search(urwid.WidgetWrap):
         self.ui.set_status('url yanked: %s' % url)
 
     def copyBibtex(self):
-        """copy document bibtext to clipboard"""
+        """copy document bibtex to clipboard"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
         bibtex = entry.doc.get_bibpath()
@@ -251,22 +293,6 @@ class Search(urwid.WidgetWrap):
         tags = doc.get_tags()
         entry.fields['tags'].set_text(' '.join(tags))
         self.ui.set_status(msg)
-
-    ##########
-
-    keys = {
-        'n': "nextEntry",
-        'p': "prevEntry",
-        'enter': "viewFile",
-        'u': "viewURL",
-        'b': "viewBibtex",
-        '+': "addTags",
-        '-': "removeTags",
-        'a': "archive",
-        'F': "copyPath",
-        'U': "copyURL",
-        'B': "copyBibtex",
-        }
 
     def keypress(self, size, key):
         if key in self.keys:

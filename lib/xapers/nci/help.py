@@ -3,27 +3,30 @@ import urwid
 ############################################################
 
 class Help(urwid.WidgetWrap):
-    def __init__(self, ui, widget):
+
+    def __init__(self, ui, target=None):
         self.ui = ui
-        self.widget = widget
+        self.target = target
 
-        wname = self.widget.__class__.__name__
-
-        self.ui.set_header("help: %s" % wname)
+        if self.target:
+            tname = self.target.__class__.__name__
+            self.ui.set_header("Help: " + tname)
+        else:
+            self.ui.set_header("Help")
 
         pile = []
 
-        pile.append(urwid.Text('%s commands:' % (wname)))
-        pile.append(urwid.Text(''))
 
-        for key, cmd in sorted(widget.keys.iteritems()):
-            pile.append(self.row('widget', cmd, key))
+        if self.target and hasattr(self.target, 'keys'):
+            pile.append(urwid.Text('%s commands:' % (tname)))
+            pile.append(urwid.Text(''))
+            for key, cmd in sorted(self.target.keys.iteritems()):
+                pile.append(self.row('target', cmd, key))
+            pile.append(urwid.Text(''))
+            pile.append(urwid.Text(''))
 
-        pile.append(urwid.Text(''))
-        pile.append(urwid.Text(''))
         pile.append(urwid.Text('Global commands:'))
         pile.append(urwid.Text(''))
-
         for key, cmd in sorted(self.ui.keys.iteritems()):
             pile.append(self.row('ui', cmd, key))
 

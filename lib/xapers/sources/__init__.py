@@ -1,3 +1,3 @@
-from . import arxiv
-from . import dcc
-from . import doi
+import doi
+import arxiv
+import dcc

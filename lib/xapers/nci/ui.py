@@ -4,9 +4,9 @@ import urwid
 import subprocess
 
 from xapers.cli.ui import initdb
-from xapers.nci.search import Search
-from xapers.nci.bibview import Bibview
-from xapers.nci.help import Help
+from search import Search
+from bibview import Bibview
+from help import Help
 
 ############################################################
 
@@ -18,20 +18,12 @@ class UI():
         ('prompt', 'black', 'light green'),
         ]
 
-    palette_search = [
-        ('field', 'dark cyan', ''),
-        ('field_focus', '', 'dark cyan'),
-        ('head', 'dark blue,bold', '', 'standout'),
-        ('head_focus', 'white,bold', 'dark blue', 'standout'),
-        ('sources', 'light magenta,bold', '', 'standout'),
-        ('sources_focus', 'light magenta,bold', '', 'standout'),
-        ('tags', 'dark green,bold', '', 'standout'),
-        ('tags_focus', 'dark green,bold', '', 'standout'),
-        ('title', 'yellow,bold', '', 'standout'),
-        ('title_focus', 'yellow,bold', '', 'standout'),
-        ('default', 'dark cyan', ''),
-        ('default_focus', '', 'dark cyan'),
-        ]
+    keys = {
+        '?': "help",
+        's': "promptSearch",
+        'q': "killBuffer",
+        'Q': "quit",
+        }
 
     def __init__(self, xroot, db=None, cmd=None):
         self.xroot = xroot
@@ -42,13 +34,11 @@ class UI():
             self.db = initdb(self.xroot)
 
         self.header_string = "Xapers"
-        self.status_string = "'?' for help"
+        self.status_string = "q: quit buffer, Q: quit Xapers, ?: help"
 
         self.view = urwid.Frame(urwid.SolidFill())
         self.set_header()
         self.set_status()
-
-        palette = self.palette
 
         if not cmd:
             cmd = ['search', '*']
@@ -56,24 +46,37 @@ class UI():
         if cmd[0] == 'search':
             query = ' '.join(cmd[1:])
             self.buffer = Search(self, query)
-            palette = list(set(self.palette) | set(self.palette_search))
         elif cmd[0] == 'bibview':
             query = ' '.join(cmd[1:])
             self.buffer = Bibview(self, query)
         elif cmd[0] == 'help':
-            self.buffer = Help(self, cmd[1])
+            target = None
+            if len(cmd) > 1:
+                target = cmd[1]
+            if isinstance(target, str):
+                target = None
+            self.buffer = Help(self, target)
+        else:
+            self.buffer = Help(self)
+            self.set_status("Unknown command '%s'." % (cmd[0]))
+
+        self.merge_palette(self.buffer)
 
         self.view.body = urwid.AttrMap(self.buffer, 'body')
 
         self.mainloop = urwid.MainLoop(
             self.view,
-            palette,
+            self.palette,
             unhandled_input=self.keypress,
             handle_mouse=False,
             )
         self.mainloop.run()
 
     ##########
+
+    def merge_palette(self, buffer):
+        if hasattr(buffer, 'palette'):
+            self.palette = list(set(self.palette) | set(buffer.palette))
 
     def set_header(self, text=None):
         if text:
@@ -120,17 +123,7 @@ class UI():
 
     def help(self):
         """help"""
-        if hasattr(self.buffer, 'keys'):
-            self.newbuffer(['help', self.buffer])
-
-    ##########
-
-    keys = {
-        '?': "help",
-        's': "promptSearch",
-        'q': "killBuffer",
-        'Q': "quit",
-        }
+        self.newbuffer(['help', self.buffer])
 
     def keypress(self, key):
         if key in self.keys:

@@ -2,28 +2,28 @@ Xapers
 ======
 
 Xapers is a document indexing system, geared towards academic journal
-articles.  Think of it as an online library cache.  It provides fast
-search of document text and bibliographic data and simple document and
-bibtex retrieval.
+articles.  Think of it as a local cache of online libraries.  It
+provides fast search of document text and bibliographic data and
+simple document and bibtex retrieval.
 
-Document files (as pdf) and source identifiers (e.g. DOI) are parsed
-and indexed into a Xapian database [0].  Document text is extracted
-from the pdf and fully indexed.  Bibliographic information downloaded
-from online libraries is indexed as prefixed search terms.  Documents
-can be arbitrarily tagged.  Original document files are easily
-retrievable from a simple curses search UI.  The command line
+Document files (in PDF format) and source identifiers (e.g. DOI) are
+parsed and indexed into a Xapian search engine [0].  Document text is
+extracted from the PDF and fully indexed.  Bibliographic information
+downloaded from online libraries is indexed as prefixed search terms.
+Documents can be arbitrarily tagged.  Original document files are
+easily retrievable from a simple curses search UI.  The command line
 interface allows for exporting bibtex [1] from arbitrary searches,
-allowing seemless integration into LaTeX work flows.
+allowing seamless integration into LaTeX work flows.
 
 Xapers provides source modules for some common online libraries:
-  * DOI        http://www.doi.org/
-  * NASA ADS   http://www.adsabs.harvard.edu/
-  * arXiv      http://arxiv.org/
-Source modules are meant to be extensible, so hopefully we will be
-able to support user-defined modules in the futre.  Contributions are
-very much appreciated.
 
-Xapers is heavily inspired by the notmuch mail indexing system [0].
+  * DOI        http://www.doi.org/
+  * arXiv      http://arxiv.org/
+
+Contributions of additional library interface modules is highly
+encouraged.
+
+Xapers is heavily inspired by the notmuch mail indexing system [2].
 
 [0] http://www.xapian.org/
 [1] http://www.bibtex.org/
@@ -36,15 +36,15 @@ Clone the repo:
 
 $ git clone git://finestructure.net/xapers
 
-Requirements
-------------
-
-Xapers requires:
-
+Dependencies:
   * python (>= 2.6)
-  * python-xapian - Python Xapian bindings
-  * python-urwid - Python urwid curses library bindings
+  * python-xapian - Python Xapian search engine bindings
   * pybtex - Python bibtex parser
+
+Recommends (for curses UI):
+  * python-urwid - Python Urwid curses library
+  * xdg-utils - Desktop tools for opening files and URLs
+  * xclip - X clipboard support for copying document fields
 
 Tests
 -----
@@ -59,35 +59,39 @@ Debian
 Debian/Ubuntu snapshot packages can be easily made from the git
 source:
 
+$ git branch debian origin/debian
+$ sudo apt-get install build-essential devscripts
 $ make debian-snapshot
-
-The resulting .deb will be in the 'build' directory.
+$ sudo dpkg -i build/xapers_0.1_amd64.deb
 
 
 Using Xapers
 ============
 
-See the included man page for usage information.
-
 CLI
 ---
 
-See the included man page (xapers.1) for more information on the
-command line interface.
+The main interface to Xapers is the xapers command line utility.  From
+this interface you can import documents, search, tag, etc.
+
+See the included xapers(1) man page for detailed usage and information
+on source modules and searching.
 
 Also included is a simple example of an import script
-("xapers-importer") that help in importing documents into the
-database.  It can be used e.g. as a pdf handler in your favorite
-browser.  It displays the pdf according to mailcap rules, then
-presents the user with prompts to import the document into Xapers, any
-source id to retrieve, and any initial tags to add.  If the source id
-is know, bibtex is retrieved and indexed.  The resulting xapers entry
-for the document is displayed.
+("xapers-importer") that helps in the importing of documents.  It can
+be used e.g. as a PDF handler in your favorite browser.  It displays
+the PDF then presents the user with the option to import the document
+into Xapers, followed by prompts for any source id to retrieve and any
+initial tags to add.  If the source id is known, bibtex is retrieved
+and indexed.  The resulting xapers entry for the document is
+displayed.
 
 Development of more clever import methods is highly encouraged.
 
 Python library
 --------------
+
+Xapers is really a python library interface under the hood:
 
 >>> import xapers
 >>> db = xapers.Database('~/.xapers/docs')
@@ -96,3 +100,6 @@ Python library
         doc.add_tags(['foo'])
         ...
 >>> 
+
+Development of new interfaces to the underlying library are
+highly encouraged.

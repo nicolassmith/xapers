@@ -87,7 +87,8 @@ IDs and found ids are displayed.
 .RS 4
 .TP 4
 .BR \-\-view
-View resulting entry in curses UI when done.
+View resulting entry in curses UI when done.  See the \fBviewP\fR
+command below for more info.
 .RE
 
 .SS tag +<tag>|-<tag> [...] [--] <search-terms>...
@@ -139,14 +140,15 @@ Short for "search --output=bibtex <search-terms>...".
 
 Return a simple count of search results.
 
-.SS show [<search-terms>...]
 .SS view [<search-terms>...]
+.SS show [<search-terms>...]
 
-View search results in curses search UI.  This UI provides a
-convenient interface to browse search results.  It displays available
-document bibliographic, a short intro summary of document text, and
-provides access to the documents themselves (via mailcap rules) and
-document bibtex.  Initial search terms can be provided, but further
+View search results in curses search UI.  Documents matching search
+are displayed with their bibliographic information and a short text
+summary.  It allows for manipulating document tags and for retrieved
+for document files and source URLs for viewing (see
+.B xdg-open(1)
+for more info).  Initial search terms can be provided, but further
 searches can be performed from within the UI.  While in the UI type
 "?" for available commands.
 
@@ -198,8 +200,6 @@ Xapers currently recognizes the following online sources:
 
     doi:   Digital Object Identifier (DOI) (http://www.doi.org/)
     arxiv: arXiv (http://arxiv.org/)
-    ads:   SAO/NASA Astrophysics Data System (http://www.adsabs.harvard.edu/)
-    dcc:   LIGO Document Control Center (http://dcc.ligo.org/)
 
 Xapers allows specifying document source ids as either URLs
 (e.g. "http://dx.doi.org/10.1364/JOSAA.29.002092") or sid strings

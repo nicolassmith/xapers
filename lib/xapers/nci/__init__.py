@@ -18,5 +18,4 @@ Copyright 2012
 Jameson Rollins <jrollins@finestructure.net>
 """
 
-from .ui import UI
-from .search import Search
+from ui import UI
