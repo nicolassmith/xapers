@@ -7,7 +7,7 @@ if [ ! -e "$infile" ] ; then
     exit 1
 fi
 
-see "$infile" &
+xdg-open "$infile" &
 
 x-terminal-emulator \
     -title "xapers-import" \
