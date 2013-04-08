@@ -19,6 +19,14 @@ def make_query_string(terms, require=True):
             string = '*'
     return string
 
+def import_nci():
+    try:
+        import xapers.nci
+    except ImportError:
+        print >>sys.stderr, "The python-urwid package does not appear to be installed."
+        print >>sys.stderr, "Please install to be able to use the curses UI."
+        sys.exit(1)
+
 ########################################################################
 
 def usage():
@@ -137,6 +145,7 @@ if __name__ == '__main__':
         cli = None
 
         if view and docid:
+            import_nci()
             xapers.nci.UI(xroot, cmd=['search', 'id:'+docid])
 
     ########################################
@@ -186,12 +195,7 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['nci','view','v','show','select']:
-        try:
-            import xapers.nci
-        except ImportError:
-            print >>sys.stderr, "The python-urwid package does not appear to be installed."
-            print >>sys.stderr, "Please install to be able to use the curses UI."
-            sys.exit(1)
+        import_nci()
 
         if cmd == 'nci':
             args = sys.argv[2:]
