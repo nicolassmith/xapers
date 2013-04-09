@@ -57,9 +57,13 @@ Debian
 ------
 
 Debian/Ubuntu snapshot packages can be easily made from the git
-source:
+source.  You can build the package from any branch but it requires an
+up-to-date local checkout of the origin/debian branch, e.g.:
 
 $ git branch debian origin/debian
+
+Then:
+
 $ sudo apt-get install build-essential devscripts
 $ make debian-snapshot
 $ sudo dpkg -i build/xapers_0.1_amd64.deb
