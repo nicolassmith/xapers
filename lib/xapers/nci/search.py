@@ -101,8 +101,8 @@ class Search(urwid.WidgetWrap):
     palette = [
         ('head', 'dark blue, bold', ''),
         ('head_focus', 'white, bold', 'dark blue'),
-        ('field', 'dark gray', ''),
-        ('field_focus', '', 'dark gray'),
+        ('field', 'light gray', ''),
+        ('field_focus', '', 'light gray'),
         ('sources', 'light magenta, bold', ''),
         ('tags', 'dark green, bold', ''),
         ('title', 'yellow', ''),
