@@ -113,6 +113,8 @@ class Search(urwid.WidgetWrap):
     keys = {
         'n': "nextEntry",
         'p': "prevEntry",
+        'down': "nextEntry",
+        'up': "prevEntry",
         'enter': "viewFile",
         'u': "viewURL",
         'b': "viewBibtex",
