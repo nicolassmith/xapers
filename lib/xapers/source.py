@@ -51,9 +51,10 @@ def list_sources():
 def get_source(source, sid=None):
     try:
         exec('from xapers.sources.' + source + ' import Source')
-        return Source(sid)
-    except:
-        return None
+    except ImportError:
+        raise SourceError("Unknown source '%s'." % source)
+    return Source(sid)
+
 
 def scan_for_sources(file):
     from .parsers import pdf as parser
@@ -72,42 +73,44 @@ def scan_for_sources(file):
                 sources.append('%s:%s' % (smod.source.lower(), match))
     return sources
 
-def source_from_url(url):
-    source = None
-    sid = None
 
-    if os.path.exists(url):
-        name = os.path.basename(url)
-    
-    for ss in list_sources():
-        print >>sys.stderr, 'trying %s...' % ss,
+def source_from_string(string, log=False):
+    """Return Source class for string identifier.  A SourceError is
+    raised in case string can not be parsed into a known source."""
 
-        smod = get_source(ss)
-
-        if os.path.exists(url):
-            base, ext = os.path.splitext(os.path.basename(url))
-            if base == ss:
-                smod.sid = '1234'
-                smod.file = url
-        else:
-            o = urlparse(url)
-            smod.parse_url(o)
-
-        if smod.sid:
-            print >>sys.stderr, 'match!'
-            break
-        else:
-            smod = None
-            print >>sys.stderr, ''
-
-    return smod
-
-def source_from_string(string):
     o = urlparse(string)
+
+    # if the scheme is http, look for source match
     if o.scheme in ['http', 'https']:
-        source = source_from_url(string)
+        if log:
+            print >>sys.stderr, 'Matching source from URL:'
+
+        for ss in list_sources():
+            if log:
+                print >>sys.stderr, ' trying %s...' % ss,
+
+            source = get_source(ss)
+
+            if source.match(o.netloc, o.path):
+                if log:
+                    print >>sys.stderr, 'match!'
+                break
+            else:
+                if log:
+                    print >>sys.stderr, ''
+                source = None
+
+        if not source:
+            raise SourceError('URL matches no known source.')
+
+    # otherwise, assume scheme is source
     else:
         source = get_source(o.scheme, o.path)
+
+    if log:
+        print >>sys.stderr, "Source: %s:%s" % (source.source, source.sid)
+        print >>sys.stderr, "URL: %s" % (source.gen_url())
+
     return source
 
 def fetch_bibtex(string):
