@@ -349,7 +349,7 @@ class Document():
             self._remove_term(prefix, term)
         self._add_term(prefix, key)
 
-    def _index_bib(self, bibentry):
+    def _index_bibentry(self, bibentry):
         authors = bibentry.get_authors()
         fields = bibentry.get_fields()
         if 'title' in fields:
@@ -381,6 +381,7 @@ class Document():
         self._index_bib(bibentry)
         bibfile = self._write_bibfile(bibentry)
         return bibfile
+        self._index_bibentry(self.bibentry)
 
     def _load_bib(self):
         if 'bibentry' in dir(self):
