@@ -105,6 +105,14 @@ class Document():
         else:
             os.makedirs(self.docdir)
 
+    def _write_files(self):
+        if '_infiles' in dir(self):
+            for infile, outfile in self._infiles.iteritems():
+                try:
+                    shutil.copyfile(infile, outfile)
+                except shutil.Error:
+                    pass
+
     def _write_bibfile(self):
         bibpath = self.get_bibpath()
         if 'bibentry' in dir(self):
@@ -126,6 +134,7 @@ class Document():
         # FIXME: catch db not writable errors
         self.db.replace_document(self.docid, self.doc)
         self._make_docdir()
+        self._write_files()
         self._write_bibfile()
         self._write_tagfile()
 
@@ -189,17 +198,12 @@ class Document():
     ########################################
     # files
 
-    # index/add a new file for the document
-    # file should be relative to xapian.root
-    # FIXME: codify this more
+    # index file for the document
     def _index_file(self, path):
-        base, full = self.db._basename_for_path(path)
-
         # FIXME: pick parser based on mime type
         from .parsers import pdf as parser
-        text = parser.parse_file(full)
 
-        # FIXME: set mime type term
+        text = parser.parse_file(path)
 
         self._gen_terms(None, text)
 
@@ -230,28 +234,32 @@ class Document():
         return list
 
     def add_file(self, infile):
-        """Add a file to document, copying into new xapers doc directory."""
-        self._make_docdir()
+        """Add a file to document.
+File will not copied in to docdir until sync()."""
 
-        # FIXME: should files be renamed to something generic (0.pdf)?
-        outfile = os.path.join(self.docdir, os.path.basename(infile))
+        # FIXME: should load entire file into {name: file} to be
+        # written as file>docdir/name
 
-        try:
-            shutil.copyfile(infile, outfile)
-        except shutil.Error:
-            pass
+        # FIXME: set mime type term
 
-        base, full = self.db._basename_for_path(outfile)
-
-        summary = self._index_file(full)
-
-        self._add_path(base)
+        summary = self._index_file(infile)
 
         # set data to be text sample
         # FIXME: is this the right thing to put in the data?
         self._set_data(summary)
 
-        return full
+        # FIXME: should files be renamed to something generic (0.pdf)?
+        outfile = os.path.join(self.docdir, os.path.basename(infile))
+
+        base, full = self.db._basename_for_path(outfile)
+
+        self._add_path(base)
+
+        # add it to the cache to be written at sync()
+        if '_infiles' not in dir(self):
+            self._infiles = {}
+        self._infiles[infile] = outfile
+
 
     ########################################
 
