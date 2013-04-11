@@ -127,7 +127,8 @@ class UI():
             sys.exit(1)
 
         bibtex = None
-        smod = None
+
+        # check if source is a file and load bibtex from file
         if source and os.path.exists(source):
             bibfile = source
             try:
@@ -140,19 +141,12 @@ class UI():
                 raise
 
         elif source:
-            print >>sys.stderr, "Parsing source: %s" % source
-            smod = xapers.source.source_from_string(source)
-            if not smod:
-                print >>sys.stderr, 'No matching source module found.'
-            else:
-                try:
-                    print >>sys.stderr, "Retrieving bibtex...",
-                    (bibtex, url) = smod.get_bibtex()
-                    print >>sys.stderr, "done: ",
-                    print >>sys.stderr, "%s" % (url)
-                except:
-                    print >>sys.stderr, "\n"
-                    raise
+            try:
+                bibtex = xapers.source.parse_and_fetch(source)
+            except xapers.source.SourceError as e:
+                print >>sys.stderr, e
+                sys.exit(1)
+
 
         # if docid provided, update that doc, otherwise create a new one
         # need a document from a writable db.

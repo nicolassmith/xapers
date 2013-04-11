@@ -265,15 +265,21 @@ if __name__ == '__main__':
     elif cmd in ['source2bib','s2b']:
         string = sys.argv[2]
         import xapers.source
-        bibtex, url = xapers.source.fetch_bibtex(string)
-        if url:
-            print >>sys.stderr, url
+
+        try:
+            bibtex = xapers.source.parse_and_fetch(string)
+        except xapers.source.SourceError as e:
+            print >>sys.stderr, e
+            sys.exit(1)
+
         try:
             print xapers.bibtex.Bibentry(bibtex).as_string()
-        except:
-            raise
-            print >>sys.stderr, "Problem parsing bibtex.  Outputting raw bibtex..."
+        except Exception, e:
+            print >>sys.stderr, "Error parsing bibtex:"
+            print >>sys.stderr, e
+            print >>sys.stderr, "Outputting raw..."
             print bibtex
+            sys.exit(1)
 
     ########################################
     elif cmd in ['scandoc','sd']:
