@@ -17,6 +17,27 @@ class SourceError(Exception):
 
 ##################################################
 
+class Source():
+    source = None
+    netloc = None
+    scan_regex = None
+
+    def __init__(self, sid=None):
+        self.sid = sid
+
+    def gen_url(self):
+        """Return url string for source ID."""
+        if self.netloc and self.sid:
+            return 'http://%s/%s' % (self.netloc, self.sid)
+
+    def match(self, netloc, path):
+        """Return True if netloc/path belongs to this source and a sid can be determined."""
+
+    def get_bibtex(self):
+        """Download source bibtex, and return as string."""
+
+##################################################
+
 def list_sources():
     sources = []
     for s in dir(xapers.sources):
