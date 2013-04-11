@@ -6,9 +6,6 @@ test_description='xapers.'
 
 ################################################################
 
-# FIXME: add test for source2bib
-# FIXME: add test for scandoc
-
 test_expect_code 1 'search error without database' \
     'xapers search tag:foo'
 

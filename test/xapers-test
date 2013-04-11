@@ -20,9 +20,12 @@ TESTS="
   basic
   all
 "
+TESTS_NET="
+  sources
+"
 if [ "$XAPERS_TEST_NET" ] ; then
     TESTS="$TESTS
-  sources
+  $TESTS_NET
 "
 fi
 #  setup
