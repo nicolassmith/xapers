@@ -6,6 +6,17 @@ from urlparse import urlparse
 import xapers.sources
 import xapers.bibtex
 
+##################################################
+
+class SourceError(Exception):
+    """Base class for Xapers source exceptions."""
+    def __init__(self, msg):
+        self.msg = msg
+    def __str__(self):
+        return self.msg
+
+##################################################
+
 def list_sources():
     sources = []
     for s in dir(xapers.sources):
