@@ -113,6 +113,16 @@ def source_from_string(string, log=False):
 
     return source
 
-def fetch_bibtex(string):
-    source = source_from_string(string)
-    return source.get_bibtex()
+##################################################
+
+def parse_and_fetch(string):
+    """Convenience function to download bibtex for a source string."""
+    source = source_from_string(string, log=True)
+    print >>sys.stderr, "Retrieving bibtex...",
+    try:
+        bibtex = source.get_bibtex()
+        print >>sys.stderr, "done."
+    except Exception, e:
+        print >>sys.stderr, ""
+        raise SourceError('Could not retrieve bibtex: %s.' % e)
+    return bibtex
