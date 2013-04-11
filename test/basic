@@ -8,7 +8,7 @@ test_description='the test framework itself.'
 . ./test-lib.sh
 
 ################################################################
-# Test harness
+
 test_expect_success 'success is reported like this' '
     :
 '
@@ -70,5 +70,7 @@ expected=$(cat $EXPECTED/test-verbose-yes | suppress_diff_date)
 rm $TEST_DIRECTORY/test-results/test-verbose-*
 rm -r $TEST_DIRECTORY/tmp.test-verbose
 test_expect_equal "$output" "$expected"
+
+################################################################
 
 test_done
