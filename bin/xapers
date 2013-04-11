@@ -4,6 +4,7 @@ import os
 import sys
 import xapers
 import xapers.cli
+import xapers.source
 
 ########################################################################
 
@@ -257,14 +258,12 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['sources']:
-        import xapers.source
         for source in xapers.source.list_sources():
             print source
 
     ########################################
     elif cmd in ['source2bib','s2b']:
         string = sys.argv[2]
-        import xapers.source
 
         try:
             bibtex = xapers.source.parse_and_fetch(string)
@@ -284,7 +283,6 @@ if __name__ == '__main__':
     ########################################
     elif cmd in ['scandoc','sd']:
         infile = sys.argv[2]
-        import xapers.source
         sources = xapers.source.scan_for_sources(infile)
         for ss in sources:
             print "%s" % (ss)
