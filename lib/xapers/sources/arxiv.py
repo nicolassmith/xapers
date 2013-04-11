@@ -61,11 +61,9 @@ class Source():
     def gen_url(self):
         return 'http://%s/abs/%s' % (self.netloc, self.sid)
 
-    def parse_url(self, parsedurl):
-        loc = parsedurl.netloc
-        path = parsedurl.path
-        if loc.find(self.netloc) < 0:
-            return
+    def match(self, netloc, path):
+        if netloc.find(self.netloc) < 0:
+            return False
         for prefix in ['/abs/', '/pdf/', '/format/']:
             index = path.find(prefix)
             if index == 0:
@@ -73,6 +71,7 @@ class Source():
         index = len(prefix)
         # FIXME: strip anything else?
         self.sid = path[index:].strip('/')
+        return True
 
     def get_data(self):
         if 'file' in dir(self):
@@ -100,10 +99,10 @@ class Source():
             'url':     self.gen_url(),
             }
 
-        return data, url
+        return data
 
     def get_bibtex(self):
         data, url = self.get_data()
         key = '%s:%s' % (self.source, self.sid)
         bibentry = bibparse.data2bib(data, key)
-        return bibentry.as_string(), url
+        return bibentry.as_string()

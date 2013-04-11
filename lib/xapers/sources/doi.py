@@ -17,17 +17,12 @@ class Source():
     def gen_url(self):
         return 'http://%s/%s' % (self.netloc, self.sid)
 
-    def parse_url(self, parsedurl):
-        loc = parsedurl.netloc
-        path = parsedurl.path
-        if loc.find(self.netloc) >= 0:
+    def match(self, netloc, path):
+        if netloc.find(self.netloc) >= 0:
             self.sid = path.strip('/')
-
-    def _get_bib_file(self):
-        f = open(self.file, 'r')
-        bibtex = f.read()
-        f.close
-        return bibtex
+            return True
+        else:
+            return False
 
     def _clean_bibtex_key(self, bibtex):
         # FIXME: there must be a better way of doing this
@@ -54,7 +49,7 @@ class Source():
         bibtex = f.read()
         f.close
         # FIXME: this is a doi hack
-        return self._clean_bibtex_key(bibtex), url
+        return self._clean_bibtex_key(bibtex)
 
     def _get_bib_doi_json(self):
         # http://www.crossref.org/CrossTech/2011/11/turning_dois_into_formatted_ci.html
@@ -66,19 +61,14 @@ class Source():
         f.close
         key = '%s:%s' % (self.source, self.sid)
         bibentry = bibparse.json2bib(json, key)
-        return bibentry.as_string(), url
+        return bibentry.as_string()
 
     def _get_bib_ads(self):
         req = 'http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=' + self.sid + '&data_type=BIBTEXPLUS'
         f = urllib2.urlopen(req)
         bibtex = f.read()
         f.close
-        return bibtex, req
+        return bibtex
 
     def get_bibtex(self):
-        if 'file' in dir(self):
-            bibtex = self._get_bib_file()
-            url = None
-        else:
-            bibtex, url = self._get_bib_doi_json()
-        return bibtex, url
+        return self._get_bib_doi_json()

@@ -56,14 +56,15 @@ class Source():
     def gen_url(self):
         return 'http://%s/cgi-bin/private/DocDB/ShowDocument?docid=%s' % (self.netloc, self.sid)
 
-    def parse_url(self, parsedurl):
-        loc = parsedurl.netloc
-        path = parsedurl.path
-        if loc.find(self.netloc) >= 0:
+    def match(self, netloc, path):
+        if netloc.find(self.netloc) >= 0:
             for query in parsedurl.query.split('&'):
                 if 'docid=' in query:
                     field, self.sid = query.split('=')
-                    break
+                    return True
+            return False
+        else:
+            return False
 
     def get_data(self):
         # url = 'http://%s/cgi-bin/private/DocDB/RetrieveFile?docid=' % (self.netloc, self.sid)
@@ -104,7 +105,7 @@ class Source():
         #   number: DCC number
         #   month:
 
-        return data, url
+        return data
 
     def get_bibtex(self):
         data, url = self.get_data()
@@ -112,4 +113,4 @@ class Source():
             return
         key = '%s:%s' % (self.source, self.sid)
         bibentry = bibparse.data2bib(data, key)
-        return bibentry.as_string(), url
+        return bibentry.as_string()
