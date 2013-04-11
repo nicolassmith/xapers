@@ -2,7 +2,8 @@ import os
 import sys
 import xapian
 
-from .documents import Documents, Document
+from source import list_sources
+from documents import Documents, Document
 
 # FIXME: add db schema documentation
 
@@ -52,8 +53,6 @@ class Database():
     # publication date
     # added date
     # modified date
-
-    # FIXME: add prefixes for all sources
 
     # FIXME: need database version
 
@@ -118,6 +117,13 @@ class Database():
         # add probabalistic prefixes
         for name, prefix in self.PROBABILISTIC_PREFIX.iteritems():
             self.query_parser.add_prefix(name, prefix)
+
+        # register known source prefixes
+        # FIXME: can we do this by just finding all XSOURCE terms in
+        #        db?  Would elliminate dependence on source modules at
+        #        search time.
+        for source in list_sources():
+            self.query_parser.add_boolean_prefix(source, self._make_source_prefix(source))
 
     def __enter__(self):
         return self
