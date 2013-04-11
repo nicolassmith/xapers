@@ -239,6 +239,14 @@ if __name__ == '__main__':
         cli.dumpterms(query)
 
     ########################################
+    elif cmd in ['maxid']:
+        db = xapers.cli.initdb(xroot)
+        docid = 0
+        for doc in db.search('*'):
+            docid = max(docid, int(doc.docid))
+        print 'id:%d' % docid
+
+    ########################################
     elif cmd in ['count']:
         cli = xapers.cli.UI(xroot)
         query = make_query_string(sys.argv[2:], require=False)
