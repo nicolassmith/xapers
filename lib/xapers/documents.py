@@ -382,24 +382,25 @@ class Document():
         bibfile = self._write_bibfile(bibentry)
         return bibfile
 
-    def _get_bibentry(self):
+    def _load_bib(self):
+        if 'bibentry' in dir(self):
+            return
         bibpath = self.get_bibpath()
+        self.bibentry = None
         if os.path.exists(bibpath):
-            return xapers.bibtex.Bibentry(bibpath)
-        else:
-            return None
+            self.bibentry = xapers.bibtex.Bibentry(bibpath)
 
     def get_bibtex(self):
         """Get the bib for document as a bibtex string."""
-        bibentry = self._get_bibentry()
-        if bibentry:
-            return bibentry.as_string()
+        self._load_bib()
+        if self.bibentry:
+            return self.bibentry.as_string()
         else:
             return None
 
     def get_bibdata(self):
-        bibentry = self._get_bibentry()
-        if bibentry:
+        self._load_bib()
+        if self.bibentry:
             data = bibentry.get_fields()
             data['authors'] = bibentry.get_authors()
             return data
@@ -408,27 +409,27 @@ class Document():
 
     def update_from_bibtex(self):
         """Update document metadata from document bibtex."""
-        bibentry = self._get_bibentry()
-        self._index_bib(bibentry)
+        self._load_bib()
+        self._index_bibentry(self.bibentry)
 
     ########################################
 
     def get_title(self):
         """Get the title from document bibtex."""
-        bibentry = self._get_bibentry()
-        if not bibentry:
+        self._load_bib()
+        if not self.bibentry:
             return None
-        fields = bibentry.get_fields()
+        fields = self.bibentry.get_fields()
         if 'title' in fields:
             return fields['title']
         return None
 
     def get_url(self):
         """Get the URL from document bibtex."""
-        bibentry = self._get_bibentry()
-        if not bibentry:
+        self._load_bib()
+        if not self.bibentry:
             return None
-        fields = bibentry.get_fields()
+        fields = self.bibentry.get_fields()
         if 'url' in fields:
             return fields['url']
         if 'adsurl' in fields:
