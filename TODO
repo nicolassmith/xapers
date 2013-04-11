@@ -1,5 +1,4 @@
 db:
-* fix source id indexing (quantify/test!)
 * add publication date, entry creation time, mod time, etc. as db values
 
 sources:
