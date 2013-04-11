@@ -1,7 +1,6 @@
 db:
 * fix source id indexing (quantify/test!)
 * add publication date, entry creation time, mod time, etc. as db values
-* create docdir, add files/bibtex only when syncing
 
 sources:
 * add method to download document file
@@ -35,3 +34,6 @@ emacs UI
 * should something other than summary go in document "data"?
 * clear old indexed terms when importing new file/bib?
 * vcs integration (git of root)?
+
+packaging:
+* set version in setup.py
