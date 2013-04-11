@@ -409,8 +409,8 @@ File will not copied in to docdir until sync()."""
     def get_bibdata(self):
         self._load_bib()
         if self.bibentry:
-            data = bibentry.get_fields()
-            data['authors'] = bibentry.get_authors()
+            data = self.bibentry.get_fields()
+            data['authors'] = self.bibentry.get_authors()
             return data
         else:
             return None
