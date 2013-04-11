@@ -105,6 +105,12 @@ class Document():
         else:
             os.makedirs(self.docdir)
 
+    def _write_tagfile(self):
+        with open(os.path.join(self.docdir, 'tags'), 'w') as f:
+            for tag in self.get_tags():
+                f.write(tag)
+                f.write('\n')
+
     def _rm_docdir(self):
         if os.path.exists(self.docdir) and os.path.isdir(self.docdir):
             shutil.rmtree(self.docdir)
@@ -114,6 +120,8 @@ class Document():
         # FIXME: add value for modification time
         # FIXME: catch db not writable errors
         self.db.replace_document(self.docid, self.doc)
+        self._make_docdir()
+        self._write_tagfile()
 
     def purge(self):
         """Purge document from database and root."""
@@ -291,7 +299,6 @@ class Document():
         prefix = self.db._find_prefix('tag')
         for tag in tags:
             self._add_term(prefix, tag)
-        self.dump_tags()
 
     def get_tags(self):
         """Return a list of tags associated with document."""
@@ -303,14 +310,6 @@ class Document():
         prefix = self.db._find_prefix('tag')
         for tag in tags:
             self._remove_term(prefix, tag)
-        self.dump_tags()
-
-    def dump_tags(self):
-        """Dump document tags to tag file in docdir."""
-        with open(os.path.join(self.docdir, 'tags'), 'w') as f:
-            for tag in self.get_tags():
-                f.write(tag)
-                f.write('\n')
 
     # TITLE
     def _set_title(self, title):
