@@ -105,6 +105,11 @@ class Document():
         else:
             os.makedirs(self.docdir)
 
+    def _write_bibfile(self):
+        bibpath = self.get_bibpath()
+        if 'bibentry' in dir(self):
+            self.bibentry.to_file(bibpath)
+
     def _write_tagfile(self):
         with open(os.path.join(self.docdir, 'tags'), 'w') as f:
             for tag in self.get_tags():
@@ -121,6 +126,7 @@ class Document():
         # FIXME: catch db not writable errors
         self.db.replace_document(self.docid, self.doc)
         self._make_docdir()
+        self._write_bibfile()
         self._write_tagfile()
 
     def purge(self):
@@ -370,17 +376,9 @@ class Document():
 
         self._set_bibkey(bibentry.key)
 
-    def _write_bibfile(self, bibentry):
-        bibpath = self.get_bibpath()
-        bibentry.to_file(bibpath)
-
     def add_bibtex(self, bibtex):
         """Add bibtex to document."""
-        self._make_docdir()
-        bibentry = xapers.bibtex.Bibentry(bibtex)
-        self._index_bib(bibentry)
-        bibfile = self._write_bibfile(bibentry)
-        return bibfile
+        self.bibentry = xapers.bibtex.Bibentry(bibtex)
         self._index_bibentry(self.bibentry)
 
     def _load_bib(self):
