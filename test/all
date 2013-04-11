@@ -243,4 +243,9 @@ cat <<EOF >EXPECTED
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
+test_expect_success 'check for deleted docdir' \
+    "! test -d $XAPERS_ROOT/0000000001"
+
+################################################################
+
 test_done
