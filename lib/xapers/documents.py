@@ -22,6 +22,7 @@ import os
 import sys
 import shutil
 import xapian
+
 import xapers.bibtex
 import xapers.source
 

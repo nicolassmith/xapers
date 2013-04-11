@@ -39,6 +39,7 @@ class Source():
 ##################################################
 
 def list_sources():
+    """List all available source modules."""
     sources = []
     for s in dir(xapers.sources):
         # skip the __init__ file when finding sources
@@ -49,6 +50,8 @@ def list_sources():
 
 
 def get_source(source, sid=None):
+    """Return Source class for a given source type string.  An sid may
+    be provided to initiate in Source class."""
     try:
         exec('from xapers.sources.' + source + ' import Source')
     except ImportError:
@@ -57,6 +60,8 @@ def get_source(source, sid=None):
 
 
 def scan_for_sources(file):
+    """Scan document file and return a list of source strings found
+    therein."""
     from .parsers import pdf as parser
     text = parser.parse_file(file)
     sources = []
