@@ -94,6 +94,13 @@ id:2 [doi:10.1364/JOSAA.29.002092] (bar new) "Multicolor cavity metrology"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
+test_begin_subtest 'search by source'
+xapers search doi:10.1364/JOSAA.29.002092 >OUTPUT
+cat <<EOF >EXPECTED
+id:2 [doi:10.1364/JOSAA.29.002092] (bar new) "Multicolor cavity metrology"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
 test_begin_subtest 'search by tag:'
 xapers search tag:foo >OUTPUT
 cat <<EOF >EXPECTED
