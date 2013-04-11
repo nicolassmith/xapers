@@ -183,9 +183,6 @@ class UI():
             #     sys.exit(1)
             except:
                 print >>sys.stderr, "\n"
-                if not docid:
-                    print >>sys.stderr, "error, purging..."
-                    doc.purge()
                 raise
 
         if bibtex:
@@ -195,9 +192,6 @@ class UI():
                 print >>sys.stderr, "done."
             except:
                 print >>sys.stderr, "\n"
-                if not docid:
-                    print >>sys.stderr, "error, purging..."
-                    doc.purge()
                 raise
         elif docid:
             try:
@@ -215,23 +209,17 @@ class UI():
                 print >>sys.stderr, "done."
             except:
                 print >>sys.stderr, "\n"
-                if not docid:
-                    print >>sys.stderr, "error, purging..."
-                    doc.purge()
                 raise
 
         try:
             print >>sys.stderr, "Syncing document...",
             doc.sync()
-            print >>sys.stderr, "done: ",
-            print "id:%s" % doc.docid
+            print >>sys.stderr, "done.\n",
         except:
             print >>sys.stderr, "\n"
-            if not docid:
-                print >>sys.stderr, "error, purging..."
-                doc.purge()
             raise
 
+        print "id:%s" % doc.docid
         return doc.docid
 
     def delete(self, docid):
