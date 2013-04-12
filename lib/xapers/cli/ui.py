@@ -195,14 +195,6 @@ class UI():
             except:
                 print >>sys.stderr, "\n"
                 raise
-        elif docid:
-            try:
-                print >>sys.stderr, "Updating from bibtex...",
-                doc.update_from_bibtex()
-                print >>sys.stderr, "done."
-            except:
-                print >>sys.stderr, "\n"
-                raise
 
         if tags:
             try:
