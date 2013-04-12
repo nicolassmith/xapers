@@ -98,9 +98,18 @@ class UI():
                 break
         return tags
 
-    ##########
+    ############################################
 
     def add(self, docid, infile=None, source=None, tags=None, prompt=False):
+
+        # no bibtex initiallly.  we expect to fill this with a bibtex
+        # string if a source was provided and the bibtex could be
+        # retrieved.
+        bibtex = None
+
+        ##################################
+        # do fancy option prompting
+
         if prompt:
             infile = self.prompt_for_file(infile)
 
@@ -126,7 +135,8 @@ class UI():
             print >>sys.stderr, "Must specify file or source to import, or docid to update."
             sys.exit(1)
 
-        bibtex = None
+        ##################################
+        # processing sources/bibtex
 
         # check if source is a file and load bibtex from file
         if source and os.path.exists(source):
@@ -147,11 +157,12 @@ class UI():
                 print >>sys.stderr, e
                 sys.exit(1)
 
+        ##################################
+        # open db and get doc
 
-        # if docid provided, update that doc, otherwise create a new one
-        # need a document from a writable db.
         self.db = initdb(self.xroot, writable=True, create=True)
 
+        # if docid provided, update that doc, otherwise create a new one
         if docid:
             if docid.find('id:') == 0:
                 docid = docid.split(':')[1]
@@ -162,19 +173,16 @@ class UI():
         else:
             doc = Document(self.db)
 
+        ##################################
+        # add stuff to the doc
+
         if infile:
             path = os.path.abspath(infile)
             try:
                 print >>sys.stderr, "Adding file '%s'..." % (path),
-                # FIXME: what to do if file already exists for document?
+                # FIXME: check if file already exists?
                 doc.add_file(path)
                 print >>sys.stderr, "done."
-            # except IllegalImportPath:
-            #     print >>sys.stderr, "\nFile path not in Xapers directory."
-            #     sys.exit(1)
-            # except ImportPathExists as e:
-            #     print >>sys.stderr, "\nFile already indexed as %s." % (e.docid)
-            #     sys.exit(1)
             except:
                 print >>sys.stderr, "\n"
                 raise
@@ -205,6 +213,9 @@ class UI():
                 print >>sys.stderr, "\n"
                 raise
 
+        ##################################
+        # sync the doc to db and disk
+
         try:
             print >>sys.stderr, "Syncing document...",
             doc.sync()
@@ -215,6 +226,8 @@ class UI():
 
         print "id:%s" % doc.docid
         return doc.docid
+
+    ############################################
 
     def delete(self, docid):
         self.db = initdb(self.xroot, writable=True)
@@ -245,7 +258,7 @@ class UI():
                 print >>sys.stderr, "\n"
                 raise
 
-    ##########
+    ############################################
 
     def tag(self, query_string, add_tags, remove_tags):
         self.db = initdb(self.xroot, writable=True)
@@ -255,7 +268,7 @@ class UI():
             doc.remove_tags(remove_tags)
             doc.sync()
 
-    ##########
+    ############################################
 
     def search(self, query_string, oformat='simple', limit=None):
         self.db = initdb(self.xroot)
@@ -325,13 +338,15 @@ class UI():
                 print source
             return
 
+    ############################################
+
     def count(self, query_string):
         self.db = initdb(self.xroot)
 
         count = self.db.count(query_string)
         print count
 
-    ##########
+    ############################################
 
     def dumpterms(self, query_string):
         self.db = initdb(self.xroot)
@@ -340,7 +355,7 @@ class UI():
             for term in doc.doc:
                 print term.term
 
-    ##########
+    ############################################
 
     def export(self, outdir, query_string):
         self.db = initdb(self.xroot)
@@ -357,7 +372,7 @@ class UI():
             print outpath
             shutil.copyfile(orig, outpath)
 
-    ##########
+    ############################################
 
     def restore(self):
         self.db = initdb(self.xroot, writable=True, create=True, force=True)
