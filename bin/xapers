@@ -37,8 +37,8 @@ def usage():
 Commands:
 
   import [options] [[id:]<docid>]     Import new document or update existing.
-    --source=<source>                   source for bib data
-    --file=<file>                       file to index
+    --source=<source>                   source, for retrieving bibtex
+    --file=<file>                       file to index and archive
     --tags=<tag>[,...]                  initial tags
     --prompt                            prompt for unspecified options
     --view                              view entry after adding
@@ -49,7 +49,7 @@ Commands:
                                       Add/remove tags.
 
   search [options] <search-terms>...  Search for documents.
-    --output=[summary|bibtex|files|sources|tags]
+    --output=[summary|bibtex|tags|sources|files]
                                         output format (default is 'summary')
     --limit=N                           limit number of results returned
                                         (default is 20, 0 for all)
@@ -76,20 +76,20 @@ Other definitions:
 
   <docid>: Documents are assigned unique integer IDs.
 
-  <source>: Sources can be either URLs, 'source:sid' strings, or
-    bibtex files.  URLs and source:id strings will be parsed by the
-    source module to determine online sources to for downloading
-    bibtex.  The currently recognized source:sids are:
+  <source>: A source can be either a URL, a source ID string of the
+    form '<source>:<id>', or a bibtex file.  Currently recognized
+    sources:
       doi:<Digital Object Id>
       arxiv:<arXiv Article Id>
 
   <search-terms>: The following prefixes are used to match against
-    specific elements of a document:
-      id:<docid>               document id
+    specific document metadata:
+      id:<docid>               Xapers document id
       author:<string>          string in authors (also a:)
       title:<string>           string in title (also t:)
-      tag:<tag>                user tags
-      source:<source>          source type (also s:)
+      tag:<tag>                specific user tags
+      <source>:<id>            specific sid string
+      source:<lib>             specific source
 
   The string '*' will match all documents."""
 
