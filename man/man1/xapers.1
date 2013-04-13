@@ -18,24 +18,25 @@
 .\" Author: Jameson Rollins <jrollins@finestructure.net>
 .TH XAPERS 1
 .SH NAME
-xapers \- journal article indexing system
+xapers \- personal journal article indexing system
 .SH SYNOPSIS
 .B xapers
 .IR command " [" args " ...]"
 .SH DESCRIPTION
-Xapers is a document indexing system, geared towards academic journal
-articles.  It provides fast search of document text and bibliographic
-data (synced from online libraries) and simple document and bibtex
-retrieval.
+Xapers is a personal document indexing system, geared towards academic
+journal articles.  It provides fast search of document text and
+bibliographic data (synced from online libraries) and simple document
+and bibtex retrieval.
 
 Xapers takes as input document files (as PDF) and source identifiers.
 Documents are copied into a local document store (~/.xapers/docs by
 default) and text is extracted from the PDF and fully indexed into a
-textual database.  Source identifiers are used to download document
-bibliographic data from the web (see \fBSOURCES\fR below), which is
-parsed and indexed to prefixed terms in the database.  The
-bibliographic data is also stored as bibtex in the document store for
-easy retrieval.  Documents can be arbitrarily tagged.
+Xapian database.  Source identifiers are used to download document
+bibliographic data from online digital libraries (see \fBSOURCES\fR
+below), which are then parsed and indexed to prefixed terms in the
+database.  The bibliographic data is also stored as bibtex in the
+document store for easy retrieval.  Documents can be arbitrarily
+tagged.
 
 A curses UI is provided for simple access to documents (see the
 \fBview\fR command below).  Xapers is ultimately a document indexing
@@ -54,13 +55,14 @@ below for details of the supported syntax for <search-terms>.
 .SS add [options] [[id:]<docid>]
 .SS update [options] [[id:]<docid>]
 
-Import a document, or update an existing document.  Must specify one
-of --file or --source options when importing.  If an existing document
-id (<docid>) is specified as the last argument, the matching document
-is updated with newly provided information.  Available options:
+Import a document, or update an existing document.  Must specify at
+least one of --file or --source options when importing.  If an
+existing document id (<docid>) is specified as the last argument, the
+matching document is updated with newly provided information.
+Available options:
 .RS 4
 .TP 4
-.BR \-\-source=<sid>
+.BR \-\-source=<source>
 Source identifier for document.  See \fBSOURCES\fR below.  This may
 also be a path to a file that contains a single bibtex entry.
 .RE
@@ -81,8 +83,8 @@ comma separated.
 .TP 4
 .BR \-\-prompt
 Prompt user for source/file/tags, if not specified.  When prompting
-for source information documents are automatically scanned for source
-IDs and found ids are displayed.
+for source information input files are automatically scanned for
+source IDs and found ids are displayed.
 .RE
 .RS 4
 .TP 4
@@ -101,25 +103,24 @@ Search for documents in the database.  Document information is printed
 to stdout.
 .RS 4
 .TP 4
-.BR \-\-output=[summary|files|bibtex|sources|tags]
+.BR \-\-output=[summary|bibtex|tags|sources|files]
 
 Specify document information to be output:
 
 .B summary
-outputs a single-line summary of the document (default).
-
-.B files
-outputs the paths in the document store to all files associated with
-documents.
+outputs a single-line summary of the documents (default).
 
 .B bibtex
-outputs document bibliographic information (if available) as bibtex.
+outputs bibtex for all documents (if available).
+
+.B tags
+outputs all tags associated with documents.
 
 .B sources
 outputs all sources associated with documents.
 
-.B tags
-outputs all tags associated with documents.
+.B files
+outputs the full paths to all files associated with documents.
 
 Default is
 .B summary.
@@ -176,10 +177,10 @@ These commands provide access to some of the source module methods.  See
 
 List available sources.
 
-.SS source2bib <sid>
+.SS source2bib <source>
 
-Retrieve bibtex from source for a specified source id and print to
-stdout.
+Retrieve bibtex from source for a specified URL or source id, and
+print to stdout.
 
 .SS scandoc <file>
 
@@ -188,25 +189,22 @@ Scan a document file for a source ID.
 .SH SOURCES
 
 Sources are online databases from which document bibliographic data
-can be retrieved.  In Xapers sources are plugin modules that can be
-used to retrieve bibliographic data for a given document.
-
-Online libraries are assigned unique prefixes, known internally as
-"sources".  Online libraries associate unique document identifiers
-("ids") to individual documents.  Xapers then recognizes document
-source ids, or \fBsid\fR, of the form "<source>:<id>".
-
-Xapers currently recognizes the following online sources:
+can be retrieved.  In Xapers, online libraries are assigned unique
+prefixes.  The online libraries associate unique document identifiers
+to individual documents.  Xapers then recognizes document source
+information with \fBsid\fR of the form "<prefix>:<id>".  Xapers
+currently recognizes the following online sources:
 
     doi:   Digital Object Identifier (DOI) (http://www.doi.org/)
     arxiv: arXiv (http://arxiv.org/)
 
-Xapers allows specifying document source ids as either URLs
-(e.g. "http://dx.doi.org/10.1364/JOSAA.29.002092") or sid strings
-(e.g. "doi:10.1364/JOSAA.29.002092").  URLs are parsed into sids when
-recognized.  The sids are then used to retrieve bibtex from the online
-library databases.  The sids for a given document are stored as
-indexed terms in the Xapers database.
+When importing documents into Xapers sources may be specified as
+either full URLs (e.g. "http://dx.doi.org/10.1364/JOSAA.29.002092") or
+sid strings (e.g. "doi:10.1364/JOSAA.29.002092").  URLs are parsed
+into sources and source ids when recognized, and this information is
+used to retrieve bibtex from the online library databases.  The
+sources and sids for a given document are stored as prefixed terms in
+the Xapers database (see below).
 
 
 .SH SEARCH TERMS
@@ -220,37 +218,12 @@ As a special case, a search string consisting of a single asterisk
 In addition to free text, the following prefixes can be used to match
 text against specific document metadata:
 
-    id:<docid>               document id
+    id:<docid>               Xapers document ID
     author:<string>          string in authors (also a:)
     title:<string>           string in title (also t:)
-    tag:<tag>                user tags
-    source:<source>          source type (also s:)
-
-The
-.B id:
-prefix matches against unique internal integer document identifiers.
-
-The
-.B author:
-or
-.B a:
-prefix matches against strings in document author bibliographic data.
-
-The
-.B title:
-or
-.B t:
-prefix matches against strings in document title bibliographic data.
-
-The
-.B tag:
-prefix matches against specific document tags.
-
-The
-.B source:
-prefix can be used to return all documents from a specified source
-(see \fBSOURCES\fR above).
-
+    tag:<tag>                specific user tag
+    <source>:<id>            specific sid string
+    source:<source>          specific source
 
 .SH ENVIRONMENT
 The following environment variables can be used to control the
