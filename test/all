@@ -231,6 +231,9 @@ id:1 [] (foo new) "Creation of the universe with a stealth scalar field"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
+test_expect_code 1 'fail delete with no query' \
+    "xapers delete"
+
 test_begin_subtest 'restore purged database'
 rm -rf "$XAPERS_ROOT"/.xapers
 xapers restore
@@ -241,15 +244,24 @@ id:1 [] (foo new) "Creation of the universe with a stealth scalar field"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_begin_subtest 'delete document'
-echo 'Y' | xapers delete id:1
+test_begin_subtest 'delete document noprompt'
+xapers delete --noprompt id:1
 xapers search id:1 >OUTPUT
 cat <<EOF >EXPECTED
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_expect_success 'check for deleted docdir' \
-    "! test -d $XAPERS_ROOT/0000000001"
+test_begin_subtest 'delete document w/ prompt'
+echo 'yes' | xapers delete id:2
+xapers search id:2 >OUTPUT
+cat <<EOF >EXPECTED
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_expect_code 1 'check for deleted docdir' \
+    "test -d $XAPERS_ROOT/0000000001"
+
+# FIXME: test for multi delete
 
 ################################################################
 

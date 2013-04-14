@@ -254,25 +254,24 @@ class UI():
 
     ############################################
 
-    def delete(self, docid):
+    def delete(self, query_string, prompt=True):
         self.db = initdb(self.xroot, writable=True)
-
-        if docid.find('id:') == 0:
-            docid = docid.split(':')[1]
-        doc = self.db.doc_for_docid(docid)
-        if not doc:
-            print >>sys.stderr, "No document id:%s." % (docid)
+        count = self.db.count(query_string)
+        if count == 0:
+            print >>sys.stderr, "No documents found for query."
             sys.exit(1)
-        resp = raw_input('Are you sure you want to delete document id:%s?: ' % docid)
-        if resp != 'Y':
-            print >>sys.stderr, "Aborting."
-            sys.exit(1)
-        doc.purge()
+        if prompt:
+            resp = raw_input("Type 'yes' to delete %d documents: " % count)
+            if resp != 'yes':
+                print >>sys.stderr, "Aborting."
+                sys.exit(1)
+        for doc in self.db.search(query_string):
+            doc.purge()
 
+    ############################################
 
     def update_all(self):
         self.db = initdb(self.xroot, writable=True)
-
         for doc in self.db.search('*', limit=0):
             try:
                 print >>sys.stderr, "Updating %s..." % doc.docid,

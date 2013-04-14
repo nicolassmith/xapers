@@ -44,7 +44,8 @@ Commands:
     --tags=<tag>[,...]                  initial tags
     --prompt                            prompt for unspecified options
     --view                              view entry after adding
-  delete [id:]<docid>                 Delete document from database.
+  delete <search-terms>               Delete documents from database.
+    --noprompt                          do not prompt to confirm deletion
   restore                             Restore database from xapers root.
 
   tag +<tag>|-<tag> [...] [--] <search-terms>...
@@ -156,8 +157,20 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['delete']:
+        prompt = True
+
+        argc = 2
+        while True:
+            if argc >= len(sys.argv):
+                break
+            elif '--noprompt' in sys.argv[argc]:
+                prompt = False
+            else:
+                break
+            argc += 1
+
         cli = xapers.cli.UI(xroot)
-        cli.delete(make_query_string(sys.argv[2:]))
+        cli.delete(make_query_string(sys.argv[argc:]), prompt=prompt)
 
     ########################################
     elif cmd in ['search','s']:
