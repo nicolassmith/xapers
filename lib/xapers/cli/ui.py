@@ -126,9 +126,11 @@ class UI():
         if prompt:
             infile = self.prompt_for_file(infile)
 
-        if infile and not os.path.exists(infile):
-            print >>sys.stderr, "Specified file '%s' not found." % infile
-            sys.exit(1)
+        if infile:
+            infile = os.path.expanduser(infile)
+            if not os.path.exists(infile):
+                print >>sys.stderr, "Specified file '%s' not found." % infile
+                sys.exit(1)
 
         if prompt:
             sources = []
@@ -157,7 +159,7 @@ class UI():
         if source and os.path.exists(source):
             try:
                 print >>sys.stderr, "Reading bibtex...",
-                with open(source, 'r') as f:
+                with open(os.path.expanduser(source), 'r') as f:
                     bibtex = f.read()
                 print >>sys.stderr, "done."
             except:

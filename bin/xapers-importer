@@ -18,7 +18,7 @@ xdg-open "$infile" &
 # prompt for xapers import
 x-terminal-emulator \
     -title "xapers-import" \
-    -e sh -c "
+    -e bash -c "
 xapers add --file=$infile --tags=new --prompt --view
 read -N1 -p 'any key to quit:' OK
 "

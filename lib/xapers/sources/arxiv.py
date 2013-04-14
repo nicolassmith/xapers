@@ -107,6 +107,6 @@ class Source():
         return data
 
     def get_bibtex(self):
-        data, url = self.get_data()
+        data = self.get_data()
         bibentry = bibparse.data2bib(data, self.get_sid())
         return bibentry.as_string()
