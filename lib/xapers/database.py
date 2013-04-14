@@ -285,7 +285,9 @@ class Database():
             if log:
                 print >>sys.stderr, docid
 
-            doc = Document(self, docid=docid)
+            doc = self.__getitem__(docid)
+            if not doc:
+                doc = Document(self, docid=docid)
 
             for dfile in docfiles:
                 dpath = os.path.join(docdir, dfile)
