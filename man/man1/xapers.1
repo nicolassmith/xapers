@@ -93,11 +93,11 @@ View resulting entry in curses UI when done.  See the \fBviewP\fR
 command below for more info.
 .RE
 
-.SS tag +<tag>|-<tag> [...] [--] <search-terms>...
+.SS tag +<tag>|-<tag> [...] [--] <search-terms>
 
 Add remove tags from documents.
 
-.SS search [options] <search-terms>...
+.SS search [options] <search-terms>
 
 Search for documents in the database.  Document information is printed
 to stdout.
@@ -133,16 +133,16 @@ Limit number of results returned.  Default is 20.  Use 0 to return all
 results.
 .RE
 
-.SS bibtex <search-terms>...
+.SS bibtex <search-terms>
 
-Short for "search --output=bibtex <search-terms>...".
+Short for "search --output=bibtex <search-terms>".
 
-.SS count <search-terms>...
+.SS count <search-terms>
 
 Return a simple count of search results.
 
-.SS view [<search-terms>...]
-.SS show [<search-terms>...]
+.SS view [<search-terms>]
+.SS show [<search-terms>]
 
 View search results in curses search UI.  Documents matching search
 are displayed with their bibliographic information and a short text
@@ -157,15 +157,20 @@ NOTE: At the moment only the top 20 search results are displayed, due
 to synchronous loading restrictions.  This obviously needs to be
 fixed.
 
-.SS export <directory> <search-terms>...
+.SS export <directory> <search-terms>
 
 Copy PDF files of resulting documents into <directory>, named with
 document titles when available.
 
-.SS delete [id:]<docid>
+.SS delete <search-terms>
 
-Delete a document from the database.  All document files will purged
+Delete documents from the database.  All document files will purged
 from the document store.
+.RS 4
+.TP 4
+.BR \-\-noprompt
+Do not prompt to confirm deletion of documents.
+.RE
 
 
 .SH SOURCE COMMANDS

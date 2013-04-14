@@ -48,19 +48,19 @@ Commands:
     --noprompt                          do not prompt to confirm deletion
   restore                             Restore database from xapers root.
 
-  tag +<tag>|-<tag> [...] [--] <search-terms>...
+  tag +<tag>|-<tag> [...] [--] <search-terms>
                                       Add/remove tags.
 
-  search [options] <search-terms>...  Search for documents.
+  search [options] <search-terms>     Search for documents.
     --output=[summary|bibtex|tags|sources|files]
                                         output format (default is 'summary')
     --limit=N                           limit number of results returned
                                         (default is 20, 0 for all)
-  bibtex <search-terms>...            Short for \"search --output=bibtex\".
-  view <search-terms>...              View search in curses UI.
-  count <search-terms>...             Count matches.
+  bibtex <search-terms>               Short for \"search --output=bibtex\".
+  view <search-terms>                 View search in curses UI.
+  count <search-terms>                Count matches.
 
-  export <dir> <search-terms>...      Export documents to a directory of
+  export <dir> <search-terms>         Export documents to a directory of
                                       files named for document titles.
 
   sources                             List available sources.
@@ -85,7 +85,8 @@ Other definitions:
       doi:<Digital Object Id>
       arxiv:<arXiv Article Id>
 
-  <search-terms>: The following prefixes are used to match against
+  <search-terms>: Free-form text to match against indexed document
+    text, or the following prefixes can be used to match against
     specific document metadata:
       id:<docid>               Xapers document id
       author:<string>          string in authors (also a:)
