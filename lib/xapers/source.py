@@ -68,13 +68,12 @@ def get_source(string):
     # if the scheme is http, look for source match
     if o.scheme in ['http', 'https']:
         for source in list_sources():
-            smod = get_source(source)
+            smod = _load_source(source)()
             # if matches, id will be set
             if smod.match(o.netloc, o.path):
                 break
             else:
                 smod = None
-
         if not smod:
             raise SourceError('URL matches no known source.')
 
