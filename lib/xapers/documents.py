@@ -183,7 +183,7 @@ class Document():
     def _get_terms(self, prefix):
         list = []
         for term in self.doc:
-            if term.term.find(prefix) == 0:
+            if term.term.find(prefix.encode("utf-8")) == 0:
                 index = len(prefix)
                 list.append(term.term[index:])
         return list
