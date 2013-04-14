@@ -85,7 +85,7 @@ class Document():
             self.doc = xapian.Document()
             # use specified docid if provided
             if docid:
-                if self.db.doc_for_docid(docid):
+                if self.db[docid]:
                     raise DocumentError('Document already exists for id %s.' % docid)
                 self.docid = docid
             else:

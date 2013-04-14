@@ -131,7 +131,10 @@ class Database():
         pass
 
     def __getitem__(self, docid):
-        return self.doc_for_docid(docid)
+        if docid.find('id:') == 0:
+            docid = docid.split(':')[1]
+        term = self._find_prefix('id') + str(docid)
+        return self._doc_for_term(term)
 
     ########################################
 
@@ -228,11 +231,6 @@ class Database():
         else:
             return None
 
-    def doc_for_docid(self, docid):
-        """Return document for specified docid."""
-        term = self._find_prefix('id') + str(docid)
-        return self._doc_for_term(term)
-
     def doc_for_path(self, path):
         """Return document for specified path."""
         term = self._find_prefix('file') + path
@@ -272,7 +270,7 @@ class Database():
             # if we can't convert the directory name into an integer,
             # assume it's not relevant to us and continue
             try:
-                docid = int(ddir)
+                docid = str(int(ddir))
             except ValueError:
                 continue
 
