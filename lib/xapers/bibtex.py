@@ -25,7 +25,7 @@ class Bibentry():
             if os.path.exists(bibtex):
                 self.bibdata = parser.parse_file(bibtex)
             else:
-                stream = io.StringIO(unicode(bibtex))
+                stream = io.StringIO(unicode(bibtex.decode('utf-8')))
                 self.bibdata = parser.parse_stream(stream)
                 stream.close()
             self.key = self.bibdata.entries.keys()[0]
