@@ -19,6 +19,10 @@ sources:
 * allow for user source modules
 * add method to download document file
 
+parser:
+* better pdf parser
+* parsers for other document types
+
 bib:
 * include file path in bibtex
 * do something about "container-title" from doi
