@@ -50,23 +50,29 @@ class Source():
     source = 'dcc'
     netloc = 'dcc.ligo.org'
 
-    def __init__(self, sid=None):
-        self.sid = sid
+    def __init__(self, id=None):
+        self.id = id
+
+    def get_sid(self):
+        if self.id:
+            return '%s:%s' % (self.source, self.id)
 
     def gen_url(self):
-        return 'http://%s/cgi-bin/private/DocDB/ShowDocument?docid=%s' % (self.netloc, self.sid)
+        if self.id:
+            return 'http://%s/cgi-bin/private/DocDB/ShowDocument?docid=%s' % (self.netloc, self.id)
 
-    def parse_url(self, parsedurl):
-        loc = parsedurl.netloc
-        path = parsedurl.path
-        if loc.find(self.netloc) >= 0:
+    def match(self, netloc, path):
+        if netloc.find(self.netloc) >= 0:
             for query in parsedurl.query.split('&'):
                 if 'docid=' in query:
-                    field, self.sid = query.split('=')
-                    break
+                    field, self.id = query.split('=')
+                    return True
+            return False
+        else:
+            return False
 
     def get_data(self):
-        # url = 'http://%s/cgi-bin/private/DocDB/RetrieveFile?docid=' % (self.netloc, self.sid)
+        # url = 'http://%s/cgi-bin/private/DocDB/RetrieveFile?docid=' % (self.netloc, self.id)
         # pdf = dccRetrieve(url)
 
         if 'file' in dir(self):
@@ -85,7 +91,7 @@ class Source():
             raise
 
         data = {
-            'dcc': self.sid,
+            'dcc': self.id,
             'url': self.gen_url()
             }
 
@@ -104,12 +110,11 @@ class Source():
         #   number: DCC number
         #   month:
 
-        return data, url
+        return data
 
     def get_bibtex(self):
         data, url = self.get_data()
         if not data:
             return
-        key = '%s:%s' % (self.source, self.sid)
-        bibentry = bibparse.data2bib(data, key)
-        return bibentry.as_string(), url
+        bibentry = bibparse.data2bib(data, self.get_sid())
+        return bibentry.as_string()

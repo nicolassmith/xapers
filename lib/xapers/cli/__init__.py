@@ -18,4 +18,4 @@ Copyright 2012
 Jameson Rollins <jrollins@finestructure.net>
 """
 
-from ui import UI
+from ui import UI, initdb

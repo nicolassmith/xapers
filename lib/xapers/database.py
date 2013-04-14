@@ -2,7 +2,8 @@ import os
 import sys
 import xapian
 
-from .documents import Documents, Document
+from source import list_sources
+from documents import Documents, Document
 
 # FIXME: add db schema documentation
 
@@ -35,7 +36,6 @@ class Database():
         'id': 'Q',
         'bib': 'XBIB|',
         'source': 'XSOURCE|',
-        's': 'XSOURCE|',
         'tag': 'K',
 
         'year': 'Y',
@@ -52,8 +52,6 @@ class Database():
     # publication date
     # added date
     # modified date
-
-    # FIXME: add prefixes for all sources
 
     # FIXME: need database version
 
@@ -119,6 +117,13 @@ class Database():
         for name, prefix in self.PROBABILISTIC_PREFIX.iteritems():
             self.query_parser.add_prefix(name, prefix)
 
+        # register known source prefixes
+        # FIXME: can we do this by just finding all XSOURCE terms in
+        #        db?  Would elliminate dependence on source modules at
+        #        search time.
+        for source in list_sources():
+            self.query_parser.add_boolean_prefix(source, self._make_source_prefix(source))
+
     def __enter__(self):
         return self
 
@@ -126,7 +131,10 @@ class Database():
         pass
 
     def __getitem__(self, docid):
-        return self.doc_for_docid(docid)
+        if docid.find('id:') == 0:
+            docid = docid.split(':')[1]
+        term = self._find_prefix('id') + str(docid)
+        return self._doc_for_term(term)
 
     ########################################
 
@@ -177,6 +185,14 @@ class Database():
         prefix = self._find_prefix(name)
         return self._get_terms(prefix)
 
+    def get_sids(self):
+        """Get all sources in database."""
+        sids = []
+        for source in self._get_terms(self._find_prefix('source')):
+            for oid in self._get_terms(self._make_source_prefix(source)):
+                sids.append('%s:%s' % (source, oid))
+        return sids
+
     ########################################
 
     # search for documents based on query string
@@ -223,11 +239,6 @@ class Database():
         else:
             return None
 
-    def doc_for_docid(self, docid):
-        """Return document for specified docid."""
-        term = self._find_prefix('id') + str(docid)
-        return self._doc_for_term(term)
-
     def doc_for_path(self, path):
         """Return document for specified path."""
         term = self._find_prefix('file') + path
@@ -267,14 +278,16 @@ class Database():
             # if we can't convert the directory name into an integer,
             # assume it's not relevant to us and continue
             try:
-                docid = int(ddir)
+                docid = str(int(ddir))
             except ValueError:
                 continue
 
             if log:
                 print >>sys.stderr, docid
 
-            doc = Document(self, docid=docid)
+            doc = self.__getitem__(docid)
+            if not doc:
+                doc = Document(self, docid=docid)
 
             for dfile in docfiles:
                 dpath = os.path.join(docdir, dfile)

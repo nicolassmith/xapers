@@ -5,6 +5,10 @@ VERSION:=$(shell git describe --tags | sed -e s/_/~/ -e s/-/+/ -e s/-/~/)
 .PHONY: all
 all:
 
+.PHONY: test
+test:
+	./test/xapers-test
+
 .PHONY: debian-snapshot
 debian-snapshot:
 	rm -rf build/snapshot

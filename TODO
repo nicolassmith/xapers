@@ -1,19 +1,8 @@
 db:
-* fix source id indexing (quantify/test!)
-* add publication date, entry creation time, mod time, etc. as db values
-* create docdir, add files/bibtex only when syncing
-
-sources:
-* add method to download document file
-* allow for user source modules
-
-bib:
-* include file path in bibtex
-* do something about "container-title" from doi
-* provide bib output in other formats
+* add values: publication date, entry creation time, mod time, etc.
 
 cli:
-* check for existing source id when importing
+* --output=sids
 * update should re-pull from existing source if available
 * needs simplification (script + module is clunky)
 * improve command line parsing
@@ -26,6 +15,15 @@ nci:
 * customizable keybindings
 * customizable palette
 
+sources:
+* allow for user source modules
+* add method to download document file
+
+bib:
+* include file path in bibtex
+* do something about "container-title" from doi
+* provide bib output in other formats
+
 emacs UI
 * make emacs UI! (need json/sexp output)
 
@@ -35,3 +33,6 @@ emacs UI
 * should something other than summary go in document "data"?
 * clear old indexed terms when importing new file/bib?
 * vcs integration (git of root)?
+
+packaging:
+* set version in setup.py

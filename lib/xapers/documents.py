@@ -22,6 +22,7 @@ import os
 import sys
 import shutil
 import xapian
+
 import xapers.bibtex
 import xapers.source
 
@@ -84,7 +85,7 @@ class Document():
             self.doc = xapian.Document()
             # use specified docid if provided
             if docid:
-                if self.db.doc_for_docid(docid):
+                if self.db[docid]:
                     raise DocumentError('Document already exists for id %s.' % docid)
                 self.docid = docid
             else:
@@ -105,6 +106,25 @@ class Document():
         else:
             os.makedirs(self.docdir)
 
+    def _write_files(self):
+        if '_infiles' in dir(self):
+            for infile, outfile in self._infiles.iteritems():
+                try:
+                    shutil.copyfile(infile, outfile)
+                except shutil.Error:
+                    pass
+
+    def _write_bibfile(self):
+        bibpath = self.get_bibpath()
+        if 'bibentry' in dir(self):
+            self.bibentry.to_file(bibpath)
+
+    def _write_tagfile(self):
+        with open(os.path.join(self.docdir, 'tags'), 'w') as f:
+            for tag in self.get_tags():
+                f.write(tag)
+                f.write('\n')
+
     def _rm_docdir(self):
         if os.path.exists(self.docdir) and os.path.isdir(self.docdir):
             shutil.rmtree(self.docdir)
@@ -114,6 +134,10 @@ class Document():
         # FIXME: add value for modification time
         # FIXME: catch db not writable errors
         self.db.replace_document(self.docid, self.doc)
+        self._make_docdir()
+        self._write_files()
+        self._write_bibfile()
+        self._write_tagfile()
 
     def purge(self):
         """Purge document from database and root."""
@@ -175,17 +199,12 @@ class Document():
     ########################################
     # files
 
-    # index/add a new file for the document
-    # file should be relative to xapian.root
-    # FIXME: codify this more
+    # index file for the document
     def _index_file(self, path):
-        base, full = self.db._basename_for_path(path)
-
         # FIXME: pick parser based on mime type
         from .parsers import pdf as parser
-        text = parser.parse_file(full)
 
-        # FIXME: set mime type term
+        text = parser.parse_file(path)
 
         self._gen_terms(None, text)
 
@@ -216,74 +235,61 @@ class Document():
         return list
 
     def add_file(self, infile):
-        """Add a file to document, copying into new xapers doc directory."""
-        self._make_docdir()
+        """Add a file to document.
+File will not copied in to docdir until sync()."""
 
-        # FIXME: should files be renamed to something generic (0.pdf)?
-        outfile = os.path.join(self.docdir, os.path.basename(infile))
+        # FIXME: should load entire file into {name: file} to be
+        # written as file>docdir/name
 
-        try:
-            shutil.copyfile(infile, outfile)
-        except shutil.Error:
-            pass
+        # FIXME: set mime type term
 
-        base, full = self.db._basename_for_path(outfile)
-
-        summary = self._index_file(full)
-
-        self._add_path(base)
+        summary = self._index_file(infile)
 
         # set data to be text sample
         # FIXME: is this the right thing to put in the data?
         self._set_data(summary)
 
-        return full
+        # FIXME: should files be renamed to something generic (0.pdf)?
+        outfile = os.path.join(self.docdir, os.path.basename(infile))
+
+        base, full = self.db._basename_for_path(outfile)
+
+        self._add_path(base)
+
+        # add it to the cache to be written at sync()
+        if '_infiles' not in dir(self):
+            self._infiles = {}
+        self._infiles[infile] = outfile
+
 
     ########################################
 
     # SOURCES
-    def add_sources(self, sources):
-        """Add sources from dict: {source: sid}."""
-        p = self.db._find_prefix('source')
-        for source,sid in sources.items():
-            source = source.lower()
-            self._add_term(p, source)
-            sp = self.db._make_source_prefix(source)
-            self._add_term(sp, sid)
-
-    def get_source_id(self, source):
-        """Return source id for specified source."""
-        # FIXME: this should produce a single term
+    def _purge_sources_prefix(self, source):
+        # purge all terms for a given source prefix
         prefix = self.db._make_source_prefix(source)
-        sid = self._get_terms(prefix)
-        if sid:
-            return sid[0]
-        else:
-            return None
-
-    def get_sources(self):
-        """Return a source:sid dictionary associated with document."""
-        prefix = self.db._find_prefix('source')
-        sources = {}
-        for source in self._get_terms(prefix):
-            if not source:
-                break
-            sources[source] = self.get_source_id(source)
-        return sources
-
-    def get_sources_list(self):
-        list = []
-        sources = self.get_sources()
-        for source,sid in sources.items():
-            list.append('%s:%s' % (source,sid))
-        return list
-
-    def remove_source(self, source):
-        """Remove source from document."""
-        prefix = self.db._make_source_prefix(source)
-        for sid in self._get_terms(prefix):
-            self._remove_term(prefix, sid)
+        for i in self._get_terms(prefix):
+            self._remove_term(prefix, i)
         self._remove_term(self.db._find_prefix('source'), source)
+
+    def add_sid(self, sid):
+        """Add source sid to document."""
+        source,oid = sid.split(':')
+        source = source.lower()
+        # remove any existing terms for this source
+        self._purge_sources_prefix(source)
+        # add a term for the source
+        self._add_term(self.db._find_prefix('source'), source)
+        # add a term for the sid, with source as prefix
+        self._add_term(self.db._make_source_prefix(source), oid)
+
+    def get_sids(self):
+        """Return a list of sids for document."""
+        sids = []
+        for source in self._get_terms(self.db._find_prefix('source')):
+            for oid in self._get_terms(self.db._make_source_prefix(source)):
+                sids.append('%s:%s' % (source, oid))
+        return sids
 
     # TAGS
     def add_tags(self, tags):
@@ -291,7 +297,6 @@ class Document():
         prefix = self.db._find_prefix('tag')
         for tag in tags:
             self._add_term(prefix, tag)
-        self.dump_tags()
 
     def get_tags(self):
         """Return a list of tags associated with document."""
@@ -303,14 +308,6 @@ class Document():
         prefix = self.db._find_prefix('tag')
         for tag in tags:
             self._remove_term(prefix, tag)
-        self.dump_tags()
-
-    def dump_tags(self):
-        """Dump document tags to tag file in docdir."""
-        with open(os.path.join(self.docdir, 'tags'), 'w') as f:
-            for tag in self.get_tags():
-                f.write(tag)
-                f.write('\n')
 
     # TITLE
     def _set_title(self, title):
@@ -350,7 +347,7 @@ class Document():
             self._remove_term(prefix, term)
         self._add_term(prefix, key)
 
-    def _index_bib(self, bibentry):
+    def _index_bibentry(self, bibentry):
         authors = bibentry.get_authors()
         fields = bibentry.get_fields()
         if 'title' in fields:
@@ -364,72 +361,66 @@ class Document():
 
         for source in xapers.source.list_sources():
             if source in fields:
-                self.add_sources({source: fields[source]})
-
+                self.add_sid('%s:%s' % (source, fields[source]))
+        # FIXME: how do we get around special exception for this?
         if 'eprint' in fields:
-            self.add_sources({'arxiv': fields['eprint']})
+            self.add_sid('%s:%s' % ('arxiv', fields['eprint']))
 
         self._set_bibkey(bibentry.key)
 
-    def _write_bibfile(self, bibentry):
-        bibpath = self.get_bibpath()
-        bibentry.to_file(bibpath)
-
     def add_bibtex(self, bibtex):
         """Add bibtex to document."""
-        self._make_docdir()
-        bibentry = xapers.bibtex.Bibentry(bibtex)
-        self._index_bib(bibentry)
-        bibfile = self._write_bibfile(bibentry)
-        return bibfile
+        self.bibentry = xapers.bibtex.Bibentry(bibtex)
+        self._index_bibentry(self.bibentry)
 
-    def _get_bibentry(self):
+    def _load_bib(self):
+        if 'bibentry' in dir(self):
+            return
         bibpath = self.get_bibpath()
+        self.bibentry = None
         if os.path.exists(bibpath):
-            return xapers.bibtex.Bibentry(bibpath)
-        else:
-            return None
+            self.bibentry = xapers.bibtex.Bibentry(bibpath)
 
     def get_bibtex(self):
         """Get the bib for document as a bibtex string."""
-        bibentry = self._get_bibentry()
-        if bibentry:
-            return bibentry.as_string()
+        self._load_bib()
+        if self.bibentry:
+            return self.bibentry.as_string()
         else:
             return None
 
     def get_bibdata(self):
-        bibentry = self._get_bibentry()
-        if bibentry:
-            data = bibentry.get_fields()
-            data['authors'] = bibentry.get_authors()
+        self._load_bib()
+        if self.bibentry:
+            data = self.bibentry.get_fields()
+            data['authors'] = self.bibentry.get_authors()
             return data
         else:
             return None
 
     def update_from_bibtex(self):
         """Update document metadata from document bibtex."""
-        bibentry = self._get_bibentry()
-        self._index_bib(bibentry)
+        self._load_bib()
+        self._index_bibentry(self.bibentry)
 
     ########################################
 
     def get_title(self):
         """Get the title from document bibtex."""
-        bibentry = self._get_bibentry()
-        if not bibentry:
+        self._load_bib()
+        if not self.bibentry:
             return None
-        fields = bibentry.get_fields()
+        fields = self.bibentry.get_fields()
         if 'title' in fields:
             return fields['title']
         return None
 
     def get_url(self):
         """Get the URL from document bibtex."""
-        bibentry = self._get_bibentry()
-        if not bibentry:
+        self._load_bib()
+        if not self.bibentry:
             return None
-        fields = bibentry.get_fields()
+        fields = self.bibentry.get_fields()
         if 'url' in fields:
             return fields['url']
         if 'adsurl' in fields:

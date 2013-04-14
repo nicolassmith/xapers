@@ -35,7 +35,7 @@ class DocListItem(urwid.WidgetWrap):
         for field in ['sources', 'tags', 'title', 'authors', 'year', 'summary']:
             self.fields[field] = urwid.Text('')
 
-        self.fields['sources'].set_text(' '.join(self.doc.get_sources_list()))
+        self.fields['sources'].set_text(' '.join(self.doc.get_sids()))
         self.fields['tags'].set_text(' '.join(self.doc.get_tags()))
 
         data = self.doc.get_bibdata()
@@ -101,8 +101,8 @@ class Search(urwid.WidgetWrap):
     palette = [
         ('head', 'dark blue, bold', ''),
         ('head_focus', 'white, bold', 'dark blue'),
-        ('field', 'dark gray', ''),
-        ('field_focus', '', 'dark gray'),
+        ('field', 'light gray', ''),
+        ('field_focus', '', 'light gray'),
         ('sources', 'light magenta, bold', ''),
         ('tags', 'dark green, bold', ''),
         ('title', 'yellow', ''),
@@ -113,6 +113,8 @@ class Search(urwid.WidgetWrap):
     keys = {
         'n': "nextEntry",
         'p': "prevEntry",
+        'down': "nextEntry",
+        'up': "prevEntry",
         'enter': "viewFile",
         'u': "viewURL",
         'b': "viewBibtex",
@@ -172,7 +174,7 @@ class Search(urwid.WidgetWrap):
             self.ui.set_status('ERROR: id:%s: file not found.' % entry.docid)
             return
         self.ui.set_status('opening file: %s...' % path)
-        subprocess.call(' '.join(["xdg-open", path, '&']),
+        subprocess.call(' '.join(['nohup', 'xdg-open', path, '&']),
                         shell=True,
                         stdout=open('/dev/null','w'),
                         stderr=open('/dev/null','w'))
@@ -186,7 +188,7 @@ class Search(urwid.WidgetWrap):
             self.ui.set_status('ERROR: id:%s: URL not found.' % entry.docid)
             return
         self.ui.set_status('opening url: %s...' % url)
-        subprocess.call(' '.join(["xdg-open", url, '&']),
+        subprocess.call(' '.join(['nohup', 'xdg-open', url, '&']),
                         shell=True,
                         stdout=open('/dev/null','w'),
                         stderr=open('/dev/null','w'))

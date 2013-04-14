@@ -4,6 +4,7 @@ import os
 import sys
 import xapers
 import xapers.cli
+import xapers.source
 
 ########################################################################
 
@@ -14,7 +15,7 @@ def make_query_string(terms, require=True):
     if string == '':
         if require:
             print >>sys.stderr, "Must specify a search term."
-            sys.exit()
+            sys.exit(1)
         else:
             string = '*'
     return string
@@ -35,28 +36,31 @@ def usage():
     print """
 Commands:
 
-  import [options] [[id:]<docid>]     Import new document or update existing.
-    --source=<source>                   source for bib data
-    --file=<file>                       file to index
+  import [options] [<search-terms>]   Import new document or update existing.
+                                      If provided, search should match a single
+                                      document.
+    --source=<source>                   source, for retrieving bibtex
+    --file=<file>                       file to index and archive
     --tags=<tag>[,...]                  initial tags
     --prompt                            prompt for unspecified options
     --view                              view entry after adding
-  delete [id:]<docid>                 Delete document from database.
+  delete <search-terms>               Delete documents from database.
+    --noprompt                          do not prompt to confirm deletion
   restore                             Restore database from xapers root.
 
-  tag +<tag>|-<tag> [...] [--] <search-terms>...
+  tag +<tag>|-<tag> [...] [--] <search-terms>
                                       Add/remove tags.
 
-  search [options] <search-terms>...  Search for documents.
-    --output=[summary|bibtex|files|sources|tags]
+  search [options] <search-terms>     Search for documents.
+    --output=[summary|bibtex|tags|sources|files]
                                         output format (default is 'summary')
     --limit=N                           limit number of results returned
                                         (default is 20, 0 for all)
-  bibtex <search-terms>...            Short for \"search --output=bibtex\".
-  view <search-terms>...              View search in curses UI.
-  count <search-terms>...             Count matches.
+  bibtex <search-terms>               Short for \"search --output=bibtex\".
+  view <search-terms>                 View search in curses UI.
+  count <search-terms>                Count matches.
 
-  export <dir> <search-terms>...      Export documents to a directory of
+  export <dir> <search-terms>         Export documents to a directory of
                                       files named for document titles.
 
   sources                             List available sources.
@@ -75,20 +79,21 @@ Other definitions:
 
   <docid>: Documents are assigned unique integer IDs.
 
-  <source>: Sources can be either URLs, 'source:sid' strings, or
-    bibtex files.  URLs and source:id strings will be parsed by the
-    source module to determine online sources to for downloading
-    bibtex.  The currently recognized source:sids are:
+  <source>: A source can be either a URL, a source ID string of the
+    form '<source>:<id>', or a bibtex file.  Currently recognized
+    sources:
       doi:<Digital Object Id>
       arxiv:<arXiv Article Id>
 
-  <search-terms>: The following prefixes are used to match against
-    specific elements of a document:
-      id:<docid>               document id
+  <search-terms>: Free-form text to match against indexed document
+    text, or the following prefixes can be used to match against
+    specific document metadata:
+      id:<docid>               Xapers document id
       author:<string>          string in authors (also a:)
       title:<string>           string in title (also t:)
-      tag:<tag>                user tags
-      source:<source>          source type (also s:)
+      tag:<tag>                specific user tags
+      <source>:<id>            specific sid string
+      source:<lib>             specific source
 
   The string '*' will match all documents."""
 
@@ -113,7 +118,7 @@ if __name__ == '__main__':
         source = None
         prompt = False
         view = False
-        docid = None
+        query_string = None
 
         argc = 2
         while True:
@@ -134,9 +139,9 @@ if __name__ == '__main__':
             argc += 1
 
         if argc == (len(sys.argv) - 1):
-            docid = sys.argv[argc]
+            query_string = make_query_string(sys.argv[argc:])
 
-        docid = cli.add(docid, infile=infile, source=source, tags=tags, prompt=prompt)
+        docid = cli.add(query_string, infile=infile, source=source, tags=tags, prompt=prompt)
 
         # dereference the cli object so that the database is flushed
         # FIXME: is there a better way to handle this?
@@ -153,8 +158,20 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['delete']:
+        prompt = True
+
+        argc = 2
+        while True:
+            if argc >= len(sys.argv):
+                break
+            elif '--noprompt' in sys.argv[argc]:
+                prompt = False
+            else:
+                break
+            argc += 1
+
         cli = xapers.cli.UI(xroot)
-        cli.delete(make_query_string(sys.argv[2:]))
+        cli.delete(make_query_string(sys.argv[argc:]), prompt=prompt)
 
     ########################################
     elif cmd in ['search','s']:
@@ -228,6 +245,10 @@ if __name__ == '__main__':
                 break
             argc += 1
 
+        if not add_tags and not remove_tags:
+            print >>sys.stderr, "Must specify tags to add or remove."
+            sys.exit(1)
+
         query = make_query_string(sys.argv[argc:])
         cli.tag(query, add_tags, remove_tags)
 
@@ -236,6 +257,14 @@ if __name__ == '__main__':
         cli = xapers.cli.UI(xroot)
         query = make_query_string(sys.argv[2:], require=False)
         cli.dumpterms(query)
+
+    ########################################
+    elif cmd in ['maxid']:
+        db = xapers.cli.initdb(xroot)
+        docid = 0
+        for doc in db.search('*'):
+            docid = max(docid, int(doc.docid))
+        print 'id:%d' % docid
 
     ########################################
     elif cmd in ['count']:
@@ -257,28 +286,40 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['sources']:
-        import xapers.source
         for source in xapers.source.list_sources():
             print source
 
     ########################################
     elif cmd in ['source2bib','s2b']:
         string = sys.argv[2]
-        import xapers.source
-        bibtex, url = xapers.source.fetch_bibtex(string)
-        if url:
-            print >>sys.stderr, url
+
+        try:
+            smod = xapers.source.get_source(string)
+        except xapers.source.SourceError as e:
+            print >>sys.stderr, e
+            sys.exit(1)
+
+        try:
+            print >>sys.stderr, "Retrieving bibtex...",
+            bibtex = smod.get_bibtex()
+            print >>sys.stderr, "done."
+        except Exception, e:
+            print >>sys.stderr, "\n"
+            print >>sys.stderr, "Could not retrieve bibtex: %s" % e
+            sys.exit(1)
+
         try:
             print xapers.bibtex.Bibentry(bibtex).as_string()
-        except:
-            raise
-            print >>sys.stderr, "Problem parsing bibtex.  Outputting raw bibtex..."
+        except Exception, e:
+            print >>sys.stderr, "Error parsing bibtex:"
+            print >>sys.stderr, e
+            print >>sys.stderr, "Outputting raw..."
             print bibtex
+            sys.exit(1)
 
     ########################################
     elif cmd in ['scandoc','sd']:
         infile = sys.argv[2]
-        import xapers.source
         sources = xapers.source.scan_for_sources(infile)
         for ss in sources:
             print "%s" % (ss)

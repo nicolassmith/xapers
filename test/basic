@@ -8,7 +8,7 @@ test_description='the test framework itself.'
 . ./test-lib.sh
 
 ################################################################
-# Test harness
+
 test_expect_success 'success is reported like this' '
     :
 '
@@ -43,7 +43,8 @@ test_expect_code 2 'failure to clean up causes the test to fail' '
 # Ensure that all tests are being run
 test_begin_subtest 'Ensure that all available tests will be run by xapers-test'
 eval $(sed -n -e '/^TESTS="$/,/^"$/p' $TEST_DIRECTORY/xapers-test)
-tests_in_suite=$(for i in $TESTS; do echo $i; done | sort)
+eval $(sed -n -e '/^TESTS_NET="$/,/^"$/p' $TEST_DIRECTORY/xapers-test)
+tests_in_suite=$(for i in $TESTS $TESTS_NET; do echo $i; done | sort)
 available=$(find "$TEST_DIRECTORY" -maxdepth 1 -type f -perm +111  \
     ! -name '*~'                        \
     ! -name test-aggregate-results      \
@@ -70,5 +71,7 @@ expected=$(cat $EXPECTED/test-verbose-yes | suppress_diff_date)
 rm $TEST_DIRECTORY/test-results/test-verbose-*
 rm -r $TEST_DIRECTORY/tmp.test-verbose
 test_expect_equal "$output" "$expected"
+
+################################################################
 
 test_done
