@@ -384,12 +384,22 @@ class UI():
         except:
             pass
         for doc in self.db.search(query_string):
-            orig = doc.get_fullpaths()[0]
-            title = doc.get_title()
-            name = '%s.pdf' % (title.replace(' ','_'))
-            outpath = os.path.join(outdir,name)
-            print outpath
-            shutil.copyfile(orig, outpath)
+            origpaths = doc.get_fullpaths()
+            nfiles = len(origpaths)
+            for path in origpaths:
+                title = doc.get_title()
+                if not title:
+                    name = os.path.basename(os.path.splitext(path)[0])
+                else:
+                    name = '%s' % (title.replace(' ','_'))
+                ind = 0
+                if nfiles > 1:
+                    name += '.%s' % ind
+                    ind += 1
+                name += '.pdf'
+                outpath = os.path.join(outdir,name)
+                print outpath
+                shutil.copyfile(path, outpath)
 
     ############################################
 
