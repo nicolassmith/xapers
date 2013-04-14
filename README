@@ -81,6 +81,21 @@ this interface you can import documents, search, tag, etc.
 See the included xapers(1) man page for detailed usage and information
 on source modules and searching.
 
+Curses interface
+----------------
+
+The curses interface (accessed through 'xapers show ...') is a simple
+way to interact with the database.  From within the interface,
+searches can be performed.  Documents matching search are displayed
+with their bibliographic information and a short text summary.  It
+allows for manipulating document tags and for retrieved for document
+files and source URLs for viewing.
+
+See the included xapers(1) man page for detailed usage.
+
+xapers-importer
+---------------
+
 Also included is a simple example of an import script
 ("xapers-importer") that helps in the importing of documents.  It can
 be used e.g. as a PDF handler in your favorite browser.  It displays
