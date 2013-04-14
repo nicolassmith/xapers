@@ -15,7 +15,7 @@ def make_query_string(terms, require=True):
     if string == '':
         if require:
             print >>sys.stderr, "Must specify a search term."
-            sys.exit()
+            sys.exit(1)
         else:
             string = '*'
     return string
