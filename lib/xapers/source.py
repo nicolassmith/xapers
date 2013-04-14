@@ -22,13 +22,17 @@ class Source():
     netloc = None
     scan_regex = None
 
-    def __init__(self, sid=None):
-        self.sid = sid
+    def __init__(self, id=None):
+        self.id = id
+
+    def get_sid(self):
+        if self.id:
+            return '%s:%s' % (self.source, self.id)
 
     def gen_url(self):
         """Return url string for source ID."""
-        if self.netloc and self.sid:
-            return 'http://%s/%s' % (self.netloc, self.sid)
+        if self.netloc and self.id:
+            return 'http://%s/%s' % (self.netloc, self.id)
 
     def match(self, netloc, path):
         """Return True if netloc/path belongs to this source and a sid can be determined."""
@@ -48,16 +52,42 @@ def list_sources():
         sources.append(s)
     return sources
 
-
-def get_source(source, sid=None):
-    """Return Source class for a given source type string.  An sid may
-    be provided to initiate in Source class."""
+def _load_source(source):
     try:
-        exec('from xapers.sources.' + source + ' import Source')
+        mod = __import__('xapers.sources.' + source, fromlist=['Source'])
+        return getattr(mod, 'Source')
     except ImportError:
         raise SourceError("Unknown source '%s'." % source)
-    return Source(sid)
 
+def get_source(string):
+    """Return Source class object for URL or source identifier string. """
+    smod = None
+
+    o = urlparse(string)
+
+    # if the scheme is http, look for source match
+    if o.scheme in ['http', 'https']:
+        for source in list_sources():
+            smod = get_source(source)
+            # if matches, id will be set
+            if smod.match(o.netloc, o.path):
+                break
+            else:
+                smod = None
+
+        if not smod:
+            raise SourceError('URL matches no known source.')
+
+    elif o.scheme == '':
+        source = o.path
+        smod = _load_source(source)()
+
+    else:
+        source = o.scheme
+        oid = o.path
+        smod = _load_source(source)(oid)
+
+    return smod
 
 def scan_for_sources(file):
     """Scan document file and return a list of source strings found
@@ -77,57 +107,3 @@ def scan_for_sources(file):
                 # FIXME: this should be a set
                 sources.append('%s:%s' % (smod.source.lower(), match))
     return sources
-
-
-def source_from_string(string, log=False):
-    """Return Source class for string identifier.  A SourceError is
-    raised in case string can not be parsed into a known source."""
-
-    o = urlparse(string)
-
-    # if the scheme is http, look for source match
-    if o.scheme in ['http', 'https']:
-        if log:
-            print >>sys.stderr, 'Matching source from URL:'
-
-        for ss in list_sources():
-            if log:
-                print >>sys.stderr, ' trying %s...' % ss,
-
-            source = get_source(ss)
-
-            if source.match(o.netloc, o.path):
-                if log:
-                    print >>sys.stderr, 'match!'
-                break
-            else:
-                if log:
-                    print >>sys.stderr, ''
-                source = None
-
-        if not source:
-            raise SourceError('URL matches no known source.')
-
-    # otherwise, assume scheme is source
-    else:
-        source = get_source(o.scheme, o.path)
-
-    if log:
-        print >>sys.stderr, "Source: %s:%s" % (source.source, source.sid)
-        print >>sys.stderr, "URL: %s" % (source.gen_url())
-
-    return source
-
-##################################################
-
-def parse_and_fetch(string):
-    """Convenience function to download bibtex for a source string."""
-    source = source_from_string(string, log=True)
-    print >>sys.stderr, "Retrieving bibtex...",
-    try:
-        bibtex = source.get_bibtex()
-        print >>sys.stderr, "done."
-    except Exception, e:
-        print >>sys.stderr, ""
-        raise SourceError('Could not retrieve bibtex: %s.' % e)
-    return bibtex

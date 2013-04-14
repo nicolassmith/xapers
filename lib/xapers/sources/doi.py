@@ -11,15 +11,20 @@ class Source():
     #scan_regex = '(doi|DOI)(10[.][0-9]{4,}(?:[.][0-9]+)*[\/\.](?:(?!["&\'<>])[[:graph:]])+)'
     scan_regex = '(?:doi|DOI)[\s\.\:]{0,2}(10\.\d{4,}[\w\d\:\.\-\/]+)'
 
-    def __init__(self, sid=None):
-        self.sid = sid
+    def __init__(self, id=None):
+        self.id = id
+
+    def get_sid(self):
+        if self.id:
+            return '%s:%s' % (self.source, self.id)
 
     def gen_url(self):
-        return 'http://%s/%s' % (self.netloc, self.sid)
+        if self.id:
+            return 'http://%s/%s' % (self.netloc, self.id)
 
     def match(self, netloc, path):
         if netloc.find(self.netloc) >= 0:
-            self.sid = path.strip('/')
+            self.id = path.strip('/')
             return True
         else:
             return False
@@ -59,8 +64,7 @@ class Source():
         f = urllib2.urlopen(req)
         json = f.read()
         f.close
-        key = '%s:%s' % (self.source, self.sid)
-        bibentry = bibparse.json2bib(json, key)
+        bibentry = bibparse.json2bib(json, self.get_sid())
         return bibentry.as_string()
 
     def _get_bib_ads(self):

@@ -55,11 +55,16 @@ class Source():
     source = 'arxiv'
     netloc = 'arxiv.org'
 
-    def __init__(self, sid=None):
-        self.sid = sid
+    def __init__(self, id=None):
+        self.id = id
+
+    def get_sid(self):
+        if self.id:
+            return '%s:%s' % (self.source, self.id)
 
     def gen_url(self):
-        return 'http://%s/abs/%s' % (self.netloc, self.sid)
+        if self.id:
+            return 'http://%s/abs/%s' % (self.netloc, self.id)
 
     def match(self, netloc, path):
         if netloc.find(self.netloc) < 0:
@@ -70,7 +75,7 @@ class Source():
                 break
         index = len(prefix)
         # FIXME: strip anything else?
-        self.sid = path[index:].strip('/')
+        self.id = path[index:].strip('/')
         return True
 
     def get_data(self):
@@ -91,11 +96,11 @@ class Source():
             return None
 
         data = {
-            'arxiv':   self.sid,
+            'arxiv':   self.id,
             'title':   parser.title,
             'authors': parser.author,
             'year':    parser.year,
-            'eprint':  self.sid,
+            'eprint':  self.id,
             'url':     self.gen_url(),
             }
 
@@ -103,6 +108,5 @@ class Source():
 
     def get_bibtex(self):
         data, url = self.get_data()
-        key = '%s:%s' % (self.source, self.sid)
-        bibentry = bibparse.data2bib(data, key)
+        bibentry = bibparse.data2bib(data, self.get_sid())
         return bibentry.as_string()
