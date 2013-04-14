@@ -51,7 +51,7 @@ Tests
 
 Run the tests:
 
-$ ./test/xapers-test
+$ make test
 
 Debian
 ------
@@ -72,8 +72,8 @@ $ sudo dpkg -i build/xapers_0.1_amd64.deb
 Using Xapers
 ============
 
-CLI
----
+Command line interface
+----------------------
 
 The main interface to Xapers is the xapers command line utility.  From
 this interface you can import documents, search, tag, etc.
