@@ -20,6 +20,7 @@ sources:
 * add method to download document file
 
 parser:
+* handle parse errros
 * better pdf parser
 * parsers for other document types
 
