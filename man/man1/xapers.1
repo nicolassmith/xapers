@@ -51,14 +51,14 @@ http://xapian.org/ for more information.
 The following are the main xapers commands.  See \fBSEARCH TERMS\fR
 below for details of the supported syntax for <search-terms>.
  
-.SS import [options] [[id:]<docid>]
-.SS add [options] [[id:]<docid>]
-.SS update [options] [[id:]<docid>]
+.SS import [options] [<search-terms>]
+.SS add [options] [<search-terms>]
+.SS update [options] [<search-terms>]
 
 Import a document, or update an existing document.  Must specify at
-least one of --file or --source options when importing.  If an
-existing document id (<docid>) is specified as the last argument, the
-matching document is updated with newly provided information.
+least one of --file or --source options when importing.  If search
+terms are provided they must match exactly one document and the
+matching document is updated with the newly provided information.
 Available options:
 .RS 4
 .TP 4

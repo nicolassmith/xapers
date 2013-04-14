@@ -59,7 +59,8 @@ test_expect_success 'update doc with bib (foo)' \
 test_expect_code 1 'import non-existant file' \
     'xapers import --file=foo.pdf'
 
-# FIXME: add test for adding file already in db?
+test_expect_code 1 'attempt to add doc for existing source' \
+    'xapers add --source=doi:10.1364/JOSAA.29.002092 id:1'
 
 test_begin_subtest 'count all'
 output=`xapers count`

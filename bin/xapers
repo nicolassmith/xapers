@@ -36,7 +36,9 @@ def usage():
     print """
 Commands:
 
-  import [options] [[id:]<docid>]     Import new document or update existing.
+  import [options] [<search-terms>]   Import new document or update existing.
+                                      If provided, search should match a single
+                                      document.
     --source=<source>                   source, for retrieving bibtex
     --file=<file>                       file to index and archive
     --tags=<tag>[,...]                  initial tags
@@ -114,7 +116,7 @@ if __name__ == '__main__':
         source = None
         prompt = False
         view = False
-        docid = None
+        query_string = None
 
         argc = 2
         while True:
@@ -135,9 +137,9 @@ if __name__ == '__main__':
             argc += 1
 
         if argc == (len(sys.argv) - 1):
-            docid = sys.argv[argc]
+            query_string = make_query_string(sys.argv[argc:])
 
-        docid = cli.add(docid, infile=infile, source=source, tags=tags, prompt=prompt)
+        docid = cli.add(query_string, infile=infile, source=source, tags=tags, prompt=prompt)
 
         # dereference the cli object so that the database is flushed
         # FIXME: is there a better way to handle this?

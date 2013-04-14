@@ -100,12 +100,25 @@ class UI():
 
     ############################################
 
-    def add(self, docid, infile=None, source=None, tags=None, prompt=False):
+    def add(self, query_string, infile=None, source=None, tags=None, prompt=False):
 
-        # no bibtex initiallly.  we expect to fill this with a bibtex
-        # string if a source was provided and the bibtex could be
-        # retrieved.
+        doc = None
         bibtex = None
+        smod = None
+
+        ##################################
+        # open db and get doc
+
+        self.db = initdb(self.xroot, writable=True, create=True)
+
+        # if query provided, find single doc to update
+        if query_string:
+            if self.db.count(query_string) != 1:
+                print >>sys.stderr, "Search did not match a single document.  Aborting."
+                sys.exit(1)
+
+            for doc in self.db.search(query_string):
+                break
 
         ##################################
         # do fancy option prompting
@@ -118,32 +131,33 @@ class UI():
             sys.exit(1)
 
         if prompt:
+            sources = []
+            if source:
+                sources = [source]
+            # scan the file for source info
             if infile:
-                # scan the file for source info
                 print >>sys.stderr, "Scanning document for source identifiers..."
-                sources = xapers.source.scan_for_sources(infile)
-                if len(sources) == 0:
-                    print >>sys.stderr, "0 source ids found."
-                else:
-                    print >>sys.stderr, "%d source ids found:" % (len(sources))
-                    for ss in sources:
-                        print >>sys.stderr, "  %s" % (ss)
+                ss = xapers.source.scan_for_sources(infile)
+                print >>sys.stderr, "%d source ids found:" % (len(sources))
+                if len(sources) > 0:
+                    for sid in ss:
+                        print >>sys.stderr, "  %s" % (sid)
+                    sources += ss
             source = self.prompt_for_source(sources)
             tags = self.prompt_for_tags(tags)
 
-        if not docid and not infile and not source:
-            print >>sys.stderr, "Must specify file or source to import, or docid to update."
+        if not query_string and not infile and not source:
+            print >>sys.stderr, "Must specify file or source to import, or query to update existing document."
             sys.exit(1)
 
         ##################################
-        # processing sources/bibtex
+        # process source
 
-        # check if source is a file and load bibtex from file
+        # check if source is a file load bibtex from file
         if source and os.path.exists(source):
-            bibfile = source
             try:
                 print >>sys.stderr, "Reading bibtex...",
-                with open(bibfile, 'r') as f:
+                with open(source, 'r') as f:
                     bibtex = f.read()
                 print >>sys.stderr, "done."
             except:
@@ -152,26 +166,45 @@ class UI():
 
         elif source:
             try:
-                bibtex = xapers.source.parse_and_fetch(source)
+                smod = xapers.source.get_source(source)
             except xapers.source.SourceError as e:
                 print >>sys.stderr, e
                 sys.exit(1)
 
-        ##################################
-        # open db and get doc
-
-        self.db = initdb(self.xroot, writable=True, create=True)
-
-        # if docid provided, update that doc, otherwise create a new one
-        if docid:
-            if docid.find('id:') == 0:
-                docid = docid.split(':')[1]
-            doc = self.db.doc_for_docid(docid)
-            if not doc:
-                print >>sys.stderr, "Failed to find document id:%s." % (docid)
+            sid = smod.get_sid()
+            if not sid:
+                print >>sys.stderr, "Source ID not specified."
                 sys.exit(1)
-        else:
+
+            # check that the source doesn't match an existing doc
+            for tdoc in self.db.search(sid):
+                if doc:
+                    if tdoc != doc:
+                        print >>sys.stderr, "Document already exists for source '%s'.  Aborting." % (sid)
+                        sys.exit(1)
+                else:
+                    print >>sys.stderr, "Updating existing document..."
+                    doc = tdoc
+                break
+
+        ##################################
+
+        # if we still don't have a doc, create a new one
+        if not doc:
             doc = Document(self.db)
+
+        ##################################
+        # not fetch the bibtex
+
+        if smod:
+            try:
+                print >>sys.stderr, "Retrieving bibtex...",
+                bibtex = smod.get_bibtex()
+                print >>sys.stderr, "done."
+            except Exception, e:
+                print >>sys.stderr, "\n"
+                print >>sys.stderr, "Could not retrieve bibtex: %s" % e
+                sys.exit(1)
 
         ##################################
         # add stuff to the doc
