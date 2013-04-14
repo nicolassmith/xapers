@@ -302,7 +302,7 @@ class UI():
                 print tag
             return
         if oformat == 'sources' and query_string == '*':
-            for source in self.db.get_terms('source'):
+            for source in self.db.get_sids():
                 print source
             return
 
