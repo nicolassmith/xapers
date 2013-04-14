@@ -185,6 +185,14 @@ class Database():
         prefix = self._find_prefix(name)
         return self._get_terms(prefix)
 
+    def get_sids(self):
+        """Get all sources in database."""
+        sids = []
+        for source in self._get_terms(self._find_prefix('source')):
+            for oid in self._get_terms(self._make_source_prefix(source)):
+                sids.append('%s:%s' % (source, oid))
+        return sids
+
     ########################################
 
     # search for documents based on query string
