@@ -36,7 +36,6 @@ class Database():
         'id': 'Q',
         'bib': 'XBIB|',
         'source': 'XSOURCE|',
-        's': 'XSOURCE|',
         'tag': 'K',
 
         'year': 'Y',
