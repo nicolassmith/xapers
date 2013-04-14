@@ -8,6 +8,7 @@ cli:
 * improve command line parsing
 
 nci:
+* how to test??
 * asyncronously load search results
 * add update/add command
 * better entry highlighting (full entry)
