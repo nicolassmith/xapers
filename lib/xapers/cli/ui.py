@@ -311,15 +311,10 @@ class UI():
         for doc in self.db.search(query_string, limit=limit):
             docid = doc.get_docid()
 
-            # FIXME: could this be multiple paths?
-            fullpaths = doc.get_fullpaths()
-            if fullpaths:
-                fullpath = doc.get_fullpaths()[0]
-            else:
-                fullpath = ''
-
             if oformat in ['file','files']:
-                print "%s" % (fullpath)
+                # FIXME: could this be multiple paths?
+                for path in doc.get_fullpaths():
+                    print "%s" % (path)
                 continue
 
             tags = doc.get_tags()
