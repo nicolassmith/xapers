@@ -415,14 +415,19 @@ File will not copied in to docdir until sync()."""
             return fields['title']
         return None
 
-    def get_url(self):
-        """Get the URL from document bibtex."""
+    def get_urls(self):
+        """Get all URLs associated with document."""
+        urls = []
+        # get urls associated with known sources
+        for sid in self.get_sids():
+            smod = xapers.source.get_source(sid)
+            urls.append(smod.gen_url())
+        # get urls from bibtex
         self._load_bib()
-        if not self.bibentry:
-            return None
-        fields = self.bibentry.get_fields()
-        if 'url' in fields:
-            return fields['url']
-        if 'adsurl' in fields:
-            return fields['adsurl']
-        return None
+        if self.bibentry:
+            fields = self.bibentry.get_fields()
+            if 'url' in fields:
+                urls.append(fields['url'])
+            if 'adsurl' in fields:
+                urls.append(fields['adsurl'])
+        return urls
