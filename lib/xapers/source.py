@@ -94,15 +94,13 @@ def scan_for_sources(file):
     from .parsers import pdf as parser
     text = parser.parse_file(file)
     sources = []
-    for ss in list_sources():
-        smod = get_source(ss)
+    for source in list_sources():
+        smod = _load_source(source)()
         if 'scan_regex' not in dir(smod):
             continue
         prog = re.compile(smod.scan_regex)
         matches = prog.findall(text)
         if matches:
             for match in matches:
-                #sources.append((smod.source, match))
-                # FIXME: this should be a set
                 sources.append('%s:%s' % (smod.source.lower(), match))
     return sources
