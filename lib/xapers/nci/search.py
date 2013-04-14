@@ -183,10 +183,12 @@ class Search(urwid.WidgetWrap):
         """open document URL in browser"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        url = entry.doc.get_url()
-        if not url:
-            self.ui.set_status('ERROR: id:%s: URL not found.' % entry.docid)
+        urls = entry.doc.get_urls()
+        if not urls:
+            self.ui.set_status('ERROR: id:%s: no URLs found.' % entry.docid)
             return
+        # FIXME: open all instead of just first?
+        url = urls[0]
         self.ui.set_status('opening url: %s...' % url)
         subprocess.call(' '.join(['nohup', 'xdg-open', url, '&']),
                         shell=True,
@@ -222,10 +224,12 @@ class Search(urwid.WidgetWrap):
         """copy document URL to clipboard"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        url = entry.doc.get_url()
-        if not url:
+        urls = entry.doc.get_urls()
+        if not urls:
             self.ui.set_status('ERROR: id:%s: URL not found.' % entry.docid)
             return
+        # FIXME: copy all instead of just first?
+        url = urls[0]
         xclip(url)
         self.ui.set_status('url yanked: %s' % url)
 
