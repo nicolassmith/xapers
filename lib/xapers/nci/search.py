@@ -271,7 +271,7 @@ class Search(urwid.WidgetWrap):
             return
         entry = self.listbox.get_focus()[0]
         with Database(self.ui.xroot, writable=True) as db:
-            doc = db.doc_for_docid(entry.docid)
+            doc = db[entry.docid]
             tags = tag_string.split()
             if sign is '+':
                 doc.add_tags(tags)
@@ -289,7 +289,7 @@ class Search(urwid.WidgetWrap):
         entry = self.listbox.get_focus()[0]
         if not entry: return
         with Database(self.ui.xroot, writable=True) as db:
-            doc = db.doc_for_docid(entry.docid)
+            doc = db[entry.docid]
             tag = 'new'
             msg = "Removed tag '%s'." % (tag)
             doc.remove_tags([tag])
