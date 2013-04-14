@@ -269,7 +269,10 @@ class Database():
             if not os.path.isdir(docdir):
                 # skip things that aren't directories
                 continue
-            docdir = os.path.join(self.root, docdir)
+
+            if log:
+                print >>sys.stderr, docdir
+
             docfiles = os.listdir(docdir)
             if not docfiles:
                 # skip empty directories
@@ -283,7 +286,7 @@ class Database():
                 continue
 
             if log:
-                print >>sys.stderr, docid
+                print >>sys.stderr, '  docid:', docid
 
             doc = self.__getitem__(docid)
             if not doc:
@@ -293,17 +296,17 @@ class Database():
                 dpath = os.path.join(docdir, dfile)
                 if dfile == 'bibtex':
                     if log:
-                        print >>sys.stderr, '  bibtex found'
+                        print >>sys.stderr, '  adding bibtex'
                     with open(dpath, 'r') as f:
                         bibtex = f.read()
                     doc.add_bibtex(bibtex)
                 elif os.path.splitext(dpath)[1] == '.pdf':
                     if log:
-                        print >>sys.stderr, '  pdf found:', dfile
+                        print >>sys.stderr, '  adding file:', dfile
                     doc.add_file(dpath)
                 elif dfile == 'tags':
                     if log:
-                        print >>sys.stderr, '  tags found'
+                        print >>sys.stderr, '  adding tags'
                     with open(dpath, 'r') as f:
                         tags = f.read().strip().split('\n')
                     doc.add_tags(tags)
