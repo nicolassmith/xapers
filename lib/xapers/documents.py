@@ -265,48 +265,31 @@ File will not copied in to docdir until sync()."""
     ########################################
 
     # SOURCES
-    def add_sources(self, sources):
-        """Add sources from dict: {source: sid}."""
-        p = self.db._find_prefix('source')
-        for source,sid in sources.items():
-            source = source.lower()
-            self._add_term(p, source)
-            sp = self.db._make_source_prefix(source)
-            self._add_term(sp, sid)
-
-    def get_source_id(self, source):
-        """Return source id for specified source."""
-        # FIXME: this should produce a single term
+    def _purge_sources_prefix(self, source):
+        # purge all terms for a given source prefix
         prefix = self.db._make_source_prefix(source)
-        sid = self._get_terms(prefix)
-        if sid:
-            return sid[0]
-        else:
-            return None
-
-    def get_sources(self):
-        """Return a source:sid dictionary associated with document."""
-        prefix = self.db._find_prefix('source')
-        sources = {}
-        for source in self._get_terms(prefix):
-            if not source:
-                break
-            sources[source] = self.get_source_id(source)
-        return sources
-
-    def get_sources_list(self):
-        list = []
-        sources = self.get_sources()
-        for source,sid in sources.items():
-            list.append('%s:%s' % (source,sid))
-        return list
-
-    def remove_source(self, source):
-        """Remove source from document."""
-        prefix = self.db._make_source_prefix(source)
-        for sid in self._get_terms(prefix):
-            self._remove_term(prefix, sid)
+        for i in self._get_terms(prefix):
+            self._remove_term(prefix, i)
         self._remove_term(self.db._find_prefix('source'), source)
+
+    def add_sid(self, sid):
+        """Add source sid to document."""
+        source,oid = sid.split(':')
+        source = source.lower()
+        # remove any existing terms for this source
+        self._purge_sources_prefix(source)
+        # add a term for the source
+        self._add_term(self.db._find_prefix('source'), source)
+        # add a term for the sid, with source as prefix
+        self._add_term(self.db._make_source_prefix(source), oid)
+
+    def get_sids(self):
+        """Return a list of sids for document."""
+        sids = []
+        for source in self._get_terms(self.db._find_prefix('source')):
+            for oid in self._get_terms(self.db._make_source_prefix(source)):
+                sids.append('%s:%s' % (source, oid))
+        return sids
 
     # TAGS
     def add_tags(self, tags):
@@ -378,10 +361,10 @@ File will not copied in to docdir until sync()."""
 
         for source in xapers.source.list_sources():
             if source in fields:
-                self.add_sources({source: fields[source]})
-
+                self.add_sid('%s:%s' % (source, fields[source]))
+        # FIXME: how do we get around special exception for this?
         if 'eprint' in fields:
-            self.add_sources({'arxiv': fields['eprint']})
+            self.add_sid('%s:%s' % ('arxiv', fields['eprint']))
 
         self._set_bibkey(bibentry.key)
 

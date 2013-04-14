@@ -35,7 +35,7 @@ class DocListItem(urwid.WidgetWrap):
         for field in ['sources', 'tags', 'title', 'authors', 'year', 'summary']:
             self.fields[field] = urwid.Text('')
 
-        self.fields['sources'].set_text(' '.join(self.doc.get_sources_list()))
+        self.fields['sources'].set_text(' '.join(self.doc.get_sids()))
         self.fields['tags'].set_text(' '.join(self.doc.get_tags()))
 
         data = self.doc.get_bibdata()

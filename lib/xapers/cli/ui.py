@@ -323,7 +323,7 @@ class UI():
                 continue
 
             tags = doc.get_tags()
-            sources = doc.get_sources_list()
+            sources = doc.get_sids()
 
             if oformat == 'tags':
                 otags = otags | set(tags)
