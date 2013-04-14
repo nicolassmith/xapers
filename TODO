@@ -1,17 +1,8 @@
 db:
-* add publication date, entry creation time, mod time, etc. as db values
-
-sources:
-* add method to download document file
-* allow for user source modules
-
-bib:
-* include file path in bibtex
-* do something about "container-title" from doi
-* provide bib output in other formats
+* add values: publication date, entry creation time, mod time, etc.
 
 cli:
-* check for existing source id when importing
+* --output=sids
 * update should re-pull from existing source if available
 * needs simplification (script + module is clunky)
 * improve command line parsing
@@ -23,6 +14,15 @@ nci:
 * fail gracefully if db has changed
 * customizable keybindings
 * customizable palette
+
+sources:
+* allow for user source modules
+* add method to download document file
+
+bib:
+* include file path in bibtex
+* do something about "container-title" from doi
+* provide bib output in other formats
 
 emacs UI
 * make emacs UI! (need json/sexp output)
