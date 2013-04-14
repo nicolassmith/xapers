@@ -245,6 +245,10 @@ if __name__ == '__main__':
                 break
             argc += 1
 
+        if not add_tags and not remove_tags:
+            print >>sys.stderr, "Must specify tags to add or remove."
+            sys.exit(1)
+
         query = make_query_string(sys.argv[argc:])
         cli.tag(query, add_tags, remove_tags)
 
