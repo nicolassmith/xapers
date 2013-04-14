@@ -290,9 +290,18 @@ if __name__ == '__main__':
         string = sys.argv[2]
 
         try:
-            bibtex = xapers.source.parse_and_fetch(string)
+            smod = xapers.source.get_source(string)
         except xapers.source.SourceError as e:
             print >>sys.stderr, e
+            sys.exit(1)
+
+        try:
+            print >>sys.stderr, "Retrieving bibtex...",
+            bibtex = smod.get_bibtex()
+            print >>sys.stderr, "done."
+        except Exception, e:
+            print >>sys.stderr, "\n"
+            print >>sys.stderr, "Could not retrieve bibtex: %s" % e
             sys.exit(1)
 
         try:
