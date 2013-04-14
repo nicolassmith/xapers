@@ -183,7 +183,7 @@ class Document():
     def _get_terms(self, prefix):
         list = []
         for term in self.doc:
-            if term.term.find(prefix) == 0:
+            if term.term.find(prefix.encode("utf-8")) == 0:
                 index = len(prefix)
                 list.append(term.term[index:])
         return list
@@ -274,7 +274,7 @@ File will not copied in to docdir until sync()."""
 
     def add_sid(self, sid):
         """Add source sid to document."""
-        source,oid = sid.split(':')
+        source,oid = sid.split(':',1)
         source = source.lower()
         # remove any existing terms for this source
         self._purge_sources_prefix(source)
