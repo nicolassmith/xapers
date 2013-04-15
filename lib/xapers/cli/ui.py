@@ -153,18 +153,11 @@ class UI():
             sys.exit(1)
 
         ##################################
-        # process source
+        # process source and get bibtex
 
-        # check if source is a file load bibtex from file
+        # check if source is a file, in which case interpret it as bibtex
         if source and os.path.exists(source):
-            try:
-                print >>sys.stderr, "Reading bibtex...",
-                with open(os.path.expanduser(source), 'r') as f:
-                    bibtex = f.read()
-                print >>sys.stderr, "done."
-            except:
-                print >>sys.stderr, "\n"
-                raise
+            bibtex = source
 
         elif source:
             try:
