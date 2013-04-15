@@ -29,11 +29,17 @@ class Bibentry():
         elif bibtex:
             parser = inparser.Parser(encoding='UTF-8')
             if os.path.exists(bibtex):
-                self.bibdata = parser.parse_file(bibtex)
+                try:
+                    self.bibdata = parser.parse_file(bibtex)
+                except Exception, e:
+                    raise BibentryError('Error loading bibtex from file: %s' % e )
             else:
-                stream = io.StringIO(unicode(bibtex.decode('utf-8')))
-                self.bibdata = parser.parse_stream(stream)
-                stream.close()
+                try:
+                    stream = io.StringIO(unicode(bibtex.decode('utf-8')))
+                    self.bibdata = parser.parse_stream(stream)
+                    stream.close()
+                except Exception, e:
+                    raise BibentryError('Error loading bibtex string: %s' % e )
             self.key = self.bibdata.entries.keys()[0]
             self.entry = self.bibdata.entries.values()[0]
         else:
