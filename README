@@ -36,16 +36,20 @@ Source
 Clone the repo:
 
 $ git clone git://finestructure.net/xapers
+$ cd xapers
 
 Dependencies:
   * python (>= 2.6)
   * python-xapian - Python Xapian search engine bindings
   * pybtex - Python bibtex parser
+  * poppler-utils - PDF processing tools
 
 Recommends (for curses UI):
   * python-urwid - Python Urwid curses library
   * xdg-utils - Desktop tools for opening files and URLs
   * xclip - X clipboard support for copying document fields
+
+$ sudo apt-get install python-xapian pybtex poppler-utils python-urwid xdg-utils xclip
 
 Tests
 -----
@@ -59,13 +63,13 @@ Debian
 
 Debian/Ubuntu snapshot packages can be easily made from the git
 source.  You can build the package from any branch but it requires an
-up-to-date local checkout of the origin/debian branch, e.g.:
+up-to-date local branch of origin/debian, e.g.:
 
 $ git branch debian origin/debian
 
 Then:
 
-$ sudo apt-get install build-essential devscripts
+$ sudo apt-get install build-essential devscripts pkg-config python-all-dev python-setuptools debhelper dpkg-dev fakeroot
 $ make debian-snapshot
 $ sudo dpkg -i build/xapers_0.1_amd64.deb
 
