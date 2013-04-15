@@ -2,7 +2,6 @@ db:
 * add values: publication date, entry creation time, mod time, etc.
 
 cli:
-* --output=sids
 * update should re-pull from existing source if available
 * needs simplification (script + module is clunky)
 * improve command line parsing
@@ -10,7 +9,7 @@ cli:
 nci:
 * how to test??
 * asyncronously load search results
-* add update/add command
+* update/add in search
 * better entry highlighting (full entry)
 * fail gracefully if db has changed
 * customizable keybindings
@@ -21,7 +20,7 @@ sources:
 * add method to download document file
 
 parser:
-* handle parse errros
+* better handle parse errors
 * better pdf parser
 * parsers for other document types
 
