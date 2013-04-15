@@ -348,8 +348,8 @@ test_expect_code 1 'fail export no query' \
 
 test_begin_subtest 'export all'
 xapers export "$TMP_DIRECTORY"/export '*'
-find "$TMP_DIRECTORY"/export -mindepth 1 | sed "s|$TMP_DIRECTORY|TMP_DIRECTORY|" >OUTPUT
-cat <<EOF >EXPECTED
+find "$TMP_DIRECTORY"/export -mindepth 1 | sed "s|$TMP_DIRECTORY|TMP_DIRECTORY|" | sort >OUTPUT
+cat <<EOF | sort >EXPECTED
 TMP_DIRECTORY/export/5.pdf
 TMP_DIRECTORY/export/When_the_liver_meats_the_pavement.pdf
 TMP_DIRECTORY/export/Multicolor_cavity_sadness.pdf
@@ -361,8 +361,8 @@ rm -rf "$TMP_DIRECTORY"/export
 
 test_begin_subtest 'export query'
 xapers export "$TMP_DIRECTORY"/export lorem
-find "$TMP_DIRECTORY"/export -mindepth 1 | sed "s|$TMP_DIRECTORY|TMP_DIRECTORY|" >OUTPUT
-cat <<EOF >EXPECTED
+find "$TMP_DIRECTORY"/export -mindepth 1 | sed "s|$TMP_DIRECTORY|TMP_DIRECTORY|" | sort >OUTPUT
+cat <<EOF | sort >EXPECTED
 TMP_DIRECTORY/export/5.pdf
 TMP_DIRECTORY/export/Creation_of_the_Universes.pdf
 EOF
