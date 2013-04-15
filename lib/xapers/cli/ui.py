@@ -27,7 +27,7 @@ from subprocess import call
 
 from xapers.database import Database, DatabaseError
 from xapers.documents import Document
-import xapers.bibtex as bibparse
+from xapers.bibtex import BibentryError
 import xapers.source
 
 ############################################################
@@ -220,6 +220,11 @@ class UI():
                 print >>sys.stderr, "Adding bibtex...",
                 doc.add_bibtex(bibtex)
                 print >>sys.stderr, "done."
+            except BibentryError, e:
+                print >>sys.stderr, "\n"
+                print >>sys.stderr, e
+                print >>sys.stderr, "Bibtex must be a plain text file with a single bibtex entry."
+                sys.exit(1)
             except:
                 print >>sys.stderr, "\n"
                 raise
