@@ -201,17 +201,6 @@ class UI():
         ##################################
         # add stuff to the doc
 
-        if infile:
-            path = os.path.abspath(infile)
-            try:
-                print >>sys.stderr, "Adding file '%s'..." % (path),
-                # FIXME: check if file already exists?
-                doc.add_file(path)
-                print >>sys.stderr, "done."
-            except:
-                print >>sys.stderr, "\n"
-                raise
-
         if bibtex:
             try:
                 print >>sys.stderr, "Adding bibtex...",
@@ -222,6 +211,17 @@ class UI():
                 print >>sys.stderr, e
                 print >>sys.stderr, "Bibtex must be a plain text file with a single bibtex entry."
                 sys.exit(1)
+            except:
+                print >>sys.stderr, "\n"
+                raise
+
+        if infile:
+            path = os.path.abspath(infile)
+            try:
+                print >>sys.stderr, "Adding file '%s'..." % (path),
+                # FIXME: check if file already exists?
+                doc.add_file(path)
+                print >>sys.stderr, "done."
             except:
                 print >>sys.stderr, "\n"
                 raise
