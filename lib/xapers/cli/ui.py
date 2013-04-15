@@ -182,15 +182,6 @@ class UI():
                     doc = tdoc
                 break
 
-        ##################################
-
-        # if we still don't have a doc, create a new one
-        if not doc:
-            doc = Document(self.db)
-
-        ##################################
-        # not fetch the bibtex
-
         if smod:
             try:
                 print >>sys.stderr, "Retrieving bibtex...",
@@ -200,6 +191,12 @@ class UI():
                 print >>sys.stderr, "\n"
                 print >>sys.stderr, "Could not retrieve bibtex: %s" % e
                 sys.exit(1)
+
+        ##################################
+
+        # if we still don't have a doc, create a new one
+        if not doc:
+            doc = Document(self.db)
 
         ##################################
         # add stuff to the doc
