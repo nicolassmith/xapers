@@ -68,6 +68,9 @@ test_expect_code 1 'fail to import non-existant file' \
 test_expect_code 1 'fail to import non-existant source' \
     'xapers import --source=foo.bib'
 
+test_expect_code 1 'fail to import non-bibtex file as source' \
+    'xapers import --source=$DOC_DIR/3.pdf'
+
 test_expect_code 1 'fail to add source doc already associated with different doc' \
     'xapers add --source=doi:10.9999/FOO.1 id:1'
 
