@@ -141,7 +141,11 @@ if __name__ == '__main__':
         if argc == (len(sys.argv) - 1):
             query_string = make_query_string(sys.argv[argc:])
 
-        docid = cli.add(query_string, infile=infile, source=source, tags=tags, prompt=prompt)
+        try:
+            docid = cli.add(query_string, infile=infile, source=source, tags=tags, prompt=prompt)
+        except KeyboardInterrupt:
+            print >>sys.stderr, ''
+            sys.exit(1)
 
         # dereference the cli object so that the database is flushed
         # FIXME: is there a better way to handle this?
@@ -196,7 +200,8 @@ if __name__ == '__main__':
         try:
             cli.search(query, oformat=oformat, limit=limit)
         except KeyboardInterrupt:
-            sys.exit()
+            print >>sys.stderr, ''
+            sys.exit(1)
 
     ########################################
     elif cmd in ['bibtex','bib','b']:
@@ -206,7 +211,8 @@ if __name__ == '__main__':
         try:
             cli.search(query, oformat='bibtex')
         except KeyboardInterrupt:
-            sys.exit()
+            print >>sys.stderr, ''
+            sys.exit(1)
 
     ########################################
     elif cmd in ['nci','view','v','show','select']:
@@ -221,7 +227,8 @@ if __name__ == '__main__':
         try:
             xapers.nci.UI(xroot, cmd=args)
         except KeyboardInterrupt:
-            sys.exit()
+            print >>sys.stderr, ''
+            sys.exit(1)
 
     ########################################
     elif cmd in ['tag','t']:
