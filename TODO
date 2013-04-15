@@ -41,3 +41,11 @@ emacs UI
 
 packaging:
 * set version in setup.py
+
+BUGS
+====
+
+* nci: 'b' on doc with no bib produces traceback
+
+* nci: traceback when moving under some circumstance
+id:20130415184645.698.61822@brick.lan
