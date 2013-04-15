@@ -14,6 +14,12 @@ def clean_bib_string(string):
         string = string.replace(char,'')
     return string
 
+class BibentryError(Exception):
+    """Base class for Xapers bibentry exceptions."""
+    def __init__(self, msg):
+        self.msg = msg
+    def __str__(self):
+        return self.msg
 
 class Bibentry():
     def __init__(self, bibtex=None, entry=None, key=None):
