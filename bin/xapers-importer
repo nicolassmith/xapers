@@ -19,6 +19,7 @@ xdg-open "$infile" &
 x-terminal-emulator \
     -title "xapers-import" \
     -e bash -c "
+echo 'Type C-c at any time to cancel.'
 xapers add --file=$infile --tags=new --prompt --view
 read -N1 -p 'any key to quit:' OK
 "
