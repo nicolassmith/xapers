@@ -16,6 +16,7 @@ Depends:
  ${misc:Depends},
  ${python:Depends},
  python-xapian,
+ poppler-utils,
  pybtex
 Recommends:
  python-urwid,
