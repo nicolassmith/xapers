@@ -369,7 +369,7 @@ File will not copied in to docdir until sync()."""
         self._set_bibkey(bibentry.key)
 
     def add_bibtex(self, bibtex):
-        """Add bibtex to document."""
+        """Add bibtex to document, as string or file path."""
         self.bibentry = xapers.bibtex.Bibentry(bibtex)
         self._index_bibentry(self.bibentry)
 
