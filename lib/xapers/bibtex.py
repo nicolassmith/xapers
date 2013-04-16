@@ -35,7 +35,7 @@ class Bibentry():
                     raise BibentryError('Error loading bibtex from file: %s' % e )
             else:
                 try:
-                    stream = io.StringIO(unicode(bibtex.decode('utf-8')))
+                    stream = io.StringIO(unicode(bibtex))
                     self.bibdata = parser.parse_stream(stream)
                     stream.close()
                 except Exception, e:
