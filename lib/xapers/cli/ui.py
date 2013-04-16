@@ -20,6 +20,8 @@ Jameson Rollins <jrollins@finestructure.net>
 
 import os
 import sys
+import codecs
+sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 import sets
 import shutil
 import readline
