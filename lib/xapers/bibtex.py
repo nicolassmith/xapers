@@ -35,9 +35,8 @@ class Bibentry():
                     raise BibentryError('Error loading bibtex from file: %s' % e )
             else:
                 try:
-                    stream = io.StringIO(unicode(bibtex))
-                    self.bibdata = parser.parse_stream(stream)
-                    stream.close()
+                    with io.StringIO(unicode(bibtex)) as stream:
+                        self.bibdata = parser.parse_stream(stream)
                 except Exception, e:
                     raise BibentryError('Error loading bibtex string: %s' % e )
             self.key = self.bibdata.entries.keys()[0]
@@ -72,10 +71,9 @@ class Bibentry():
     def as_string(self):
         """Return entry as formatted bibtex string."""
         writer = outparser.Writer()
-        f = io.StringIO()
-        writer.write_stream(self._entry2db(), f)
-        string = f.getvalue()
-        f.close()
+        with io.StringIO() as stream:
+            writer.write_stream(self._entry2db(), stream)
+            string = stream.getvalue()
         string = string.strip()
         return string
 
