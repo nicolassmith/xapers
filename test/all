@@ -173,35 +173,35 @@ id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_begin_subtest 'search title'
+test_begin_subtest 'search prefix title:'
 xapers search title:cavity >OUTPUT
 cat <<EOF >EXPECTED
 id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_begin_subtest 'search author'
+test_begin_subtest 'search prefix author:'
 xapers search author:cruise >OUTPUT
 cat <<EOF >EXPECTED
 id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_begin_subtest 'search id'
+test_begin_subtest 'search prefix id:'
 xapers search id:3 >OUTPUT
 cat <<EOF >EXPECTED
 id:3 [] (qux) "When the liver meats the pavement"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_begin_subtest 'search sid'
+test_begin_subtest 'search prefix <source>:'
 xapers search doi:10.9999/FOO.1 >OUTPUT
 cat <<EOF >EXPECTED
 id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_begin_subtest 'search tag'
+test_begin_subtest 'search prefix tag:'
 xapers search tag:new >OUTPUT
 cat <<EOF >EXPECTED
 id:5 [] (new) ""
