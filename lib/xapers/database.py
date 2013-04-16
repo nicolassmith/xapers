@@ -297,9 +297,7 @@ class Database():
                 if dfile == 'bibtex':
                     if log:
                         print >>sys.stderr, '  adding bibtex'
-                    with open(dpath, 'r') as f:
-                        bibtex = f.read()
-                    doc.add_bibtex(bibtex)
+                    doc.add_bibtex(dpath)
                 elif os.path.splitext(dpath)[1] == '.pdf':
                     if log:
                         print >>sys.stderr, '  adding file:', dfile
