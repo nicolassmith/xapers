@@ -145,6 +145,17 @@ id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
+test_begin_subtest 'search all pipe'
+xapers search '*' | cat >OUTPUT
+cat <<EOF >EXPECTED
+id:5 [] (new) ""
+id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
+id:3 [] (qux) "When the liver meats the pavement"
+id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
+id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
 test_begin_subtest 'search all --limit'
 xapers search --limit=3 '*' >OUTPUT
 cat <<EOF >EXPECTED
