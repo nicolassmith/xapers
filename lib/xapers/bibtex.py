@@ -27,7 +27,7 @@ class Bibentry():
             self.entry = entry
             self.key = key
         elif bibtex:
-            parser = inparser.Parser(encoding='UTF-8')
+            parser = inparser.Parser(encoding='utf-8')
             if os.path.exists(bibtex):
                 try:
                     self.bibdata = parser.parse_file(bibtex)
@@ -81,7 +81,7 @@ class Bibentry():
 
     def to_file(self, path):
         """Write entry bibtex to file."""
-        writer = outparser.Writer()
+        writer = outparser.Writer(encoding='utf-8')
         writer.write_file(self._entry2db(), path)
 
 
