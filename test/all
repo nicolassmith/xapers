@@ -86,7 +86,7 @@ test_begin_subtest 'update with different bib overwrites previous'
 xapers update --source=$DOC_DIR/1a.bib id:1
 xapers search id:1 >OUTPUT
 cat <<EOF >EXPECTED
-id:1 [arxiv:1235] (foo new) "Creation of the Universes"
+id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -141,7 +141,7 @@ id:5 [] (new) ""
 id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
 id:3 [] (qux) "When the liver meats the pavement"
 id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
-id:1 [arxiv:1235] (foo new) "Creation of the Universes"
+id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -158,7 +158,7 @@ test_begin_subtest 'search text'
 xapers search --output=summary lorem >OUTPUT
 cat <<EOF >EXPECTED
 id:5 [] (new) ""
-id:1 [arxiv:1235] (foo new) "Creation of the Universes"
+id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -172,7 +172,7 @@ test_expect_equal_file OUTPUT EXPECTED
 test_begin_subtest 'search author'
 xapers search author:cruise >OUTPUT
 cat <<EOF >EXPECTED
-id:1 [arxiv:1235] (foo new) "Creation of the Universes"
+id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -196,7 +196,7 @@ cat <<EOF >EXPECTED
 id:5 [] (new) ""
 id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
 id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
-id:1 [arxiv:1235] (foo new) "Creation of the Universes"
+id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -250,7 +250,7 @@ cat <<EOF >EXPECTED
 @article{
     arxiv:1235,
     author = "Dole, Bob and Cruise, Tim",
-    title = "Creation of the Universes",
+    title = "Creation of the γ-verses",
     eprint = "1235",
     year = "2012"
 }
@@ -289,7 +289,7 @@ cat <<EOF >EXPECTED
 @article{
     arxiv:1235,
     author = "Dole, Bob and Cruise, Tim",
-    title = "Creation of the Universes",
+    title = "Creation of the γ-verses",
     eprint = "1235",
     year = "2012"
 }
@@ -309,7 +309,7 @@ test_begin_subtest 'add tag'
 xapers tag +baz -- tag:foo
 xapers search tag:baz >OUTPUT
 cat <<EOF >EXPECTED
-id:1 [arxiv:1235] (baz foo new) "Creation of the Universes"
+id:1 [arxiv:1235] (baz foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -356,7 +356,7 @@ cat <<EOF | sort >EXPECTED
 TMP_DIRECTORY/export/5.pdf
 TMP_DIRECTORY/export/When_the_liver_meats_the_pavement.pdf
 TMP_DIRECTORY/export/Multicolor_cavity_sadness.pdf
-TMP_DIRECTORY/export/Creation_of_the_Universes.pdf
+TMP_DIRECTORY/export/Creation_of_the_γ-verses.pdf
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -367,7 +367,7 @@ xapers export "$TMP_DIRECTORY"/export lorem
 find "$TMP_DIRECTORY"/export -mindepth 1 | sed "s|$TMP_DIRECTORY|TMP_DIRECTORY|" | sort >OUTPUT
 cat <<EOF | sort >EXPECTED
 TMP_DIRECTORY/export/5.pdf
-TMP_DIRECTORY/export/Creation_of_the_Universes.pdf
+TMP_DIRECTORY/export/Creation_of_the_γ-verses.pdf
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -381,7 +381,7 @@ id:5 [] (new) ""
 id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
 id:3 [] (qux) "When the liver meats the pavement"
 id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
-id:1 [arxiv:1235] (foo new) "Creation of the Universes"
+id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -401,7 +401,7 @@ id:5 [] (new) ""
 id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
 id:3 [] (qux) "When the liver meats the pavement"
 id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
-id:1 [arxiv:1235] (foo new) "Creation of the Universes"
+id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
