@@ -36,7 +36,7 @@ def usage():
     print """
 Commands:
 
-  import [options] [<search-terms>]   Import new document or update existing.
+  add [options] [<search-terms>]      Add a new document or update existing.
                                       If provided, search should match a single
                                       document.
     --source=<source>                   source, for retrieving bibtex
@@ -110,7 +110,7 @@ if __name__ == '__main__':
                       os.path.expanduser(os.path.join('~','.xapers','docs')))
 
     ########################################
-    if cmd in ['add','a','import','i','update','u']:
+    if cmd in ['add','a']:
         cli = xapers.cli.UI(xroot)
 
         tags = None
