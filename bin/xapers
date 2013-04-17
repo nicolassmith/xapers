@@ -52,7 +52,7 @@ Commands:
                                       Add/remove tags.
 
   search [options] <search-terms>     Search for documents.
-    --output=[summary|bibtex|tags|sources|files]
+    --output=[summary|bibtex|tags|sources|keys|files]
                                         output format (default is 'summary')
     --limit=N                           limit number of results returned
                                         (default is 20, 0 for all)

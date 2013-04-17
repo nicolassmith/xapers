@@ -304,9 +304,14 @@ class UI():
             for source in self.db.get_sids():
                 print source
             return
+        if oformat == 'keys' and query_string == '*':
+            for key in self.db.get_terms('key'):
+                print key
+            return
 
         otags = set([])
         osources = set([])
+
         for doc in self.db.search(query_string, limit=limit):
             docid = doc.get_docid()
 
