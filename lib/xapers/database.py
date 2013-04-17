@@ -173,12 +173,12 @@ class Database():
     # return a list of terms for prefix
     # FIXME: is this the fastest way to do this?
     def _get_terms(self, prefix):
-        list = []
+        terms = []
         for term in self.xapian:
             if term.term.find(prefix.encode("utf-8")) == 0:
                 index = len(prefix)
-                list.append(term.term[index:])
-        return list
+                terms.append(term.term[index:])
+        return terms
 
     def get_terms(self, name):
         """Get terms associate with name."""
