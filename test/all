@@ -201,6 +201,21 @@ id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
+test_begin_subtest 'search prefix bib:'
+test_subtest_known_broken
+xapers search key:Good_Bad_Up_Down_Left_Right_et_al._2012 >OUTPUT
+cat <<EOF >EXPECTED
+id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search *different?* prefix bib:'
+xapers search key:fake:1234 >OUTPUT
+cat <<EOF >EXPECTED
+id:3 [] (qux) "When the liver meats the pavement"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
 test_begin_subtest 'search prefix tag:'
 xapers search tag:new >OUTPUT
 cat <<EOF >EXPECTED
