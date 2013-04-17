@@ -383,10 +383,10 @@ class UI():
         except:
             pass
         for doc in self.db.search(query_string):
+            title = doc.get_title()
             origpaths = doc.get_fullpaths()
             nfiles = len(origpaths)
             for path in origpaths:
-                title = doc.get_title()
                 if not title:
                     name = os.path.basename(os.path.splitext(path)[0])
                 else:
