@@ -293,7 +293,7 @@ class UI():
 
     ############################################
 
-    def search(self, query_string, oformat='simple', limit=None):
+    def search(self, query_string, oformat='summary', limit=None):
         self.db = initdb(self.xroot)
 
         if oformat == 'tags' and query_string == '*':

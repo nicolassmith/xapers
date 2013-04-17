@@ -197,6 +197,10 @@ if __name__ == '__main__':
                 break
             argc += 1
 
+        if oformat not in ['summary','bibtex','tags','sources','keys','files']:
+                print >>sys.stderr, "Unknown output format."
+                sys.exit(1)
+
         query = make_query_string(sys.argv[argc:])
         try:
             cli.search(query, oformat=oformat, limit=limit)
