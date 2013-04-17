@@ -94,6 +94,7 @@ Other definitions:
       tag:<tag>                specific user tags
       <source>:<id>            specific sid string
       source:<lib>             specific source
+      key:<key>                specific bibtex citation key
 
   The string '*' will match all documents."""
 
