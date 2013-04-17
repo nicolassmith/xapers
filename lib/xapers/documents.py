@@ -342,7 +342,7 @@ File will not copied in to docdir until sync()."""
         return os.path.join(self.docdir, 'bibtex')
 
     def _set_bibkey(self, key):
-        prefix = self.db._find_prefix('bib')
+        prefix = self.db._find_prefix('key')
         for term in self._get_terms(prefix):
             self._remove_term(prefix, term)
         self._add_term(prefix, key)
