@@ -346,6 +346,6 @@ if __name__ == '__main__':
 
     ########################################
     else:
-        print >>sys.stderr, "unknown sub command '%s'." % cmd
-        usage()
+        print >>sys.stderr, "Unknown command '%s'." % cmd
+        print >>sys.stderr, "See \"help\" for more information."
         sys.exit(1)
