@@ -398,7 +398,7 @@ class UI():
                 name += '.pdf'
                 outpath = os.path.join(outdir,name)
                 print outpath
-                shutil.copyfile(path, outpath)
+                shutil.copyfile(path, outpath.encode('utf-8'))
 
     ############################################
 
