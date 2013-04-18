@@ -1,18 +1,22 @@
 import sys
 import pycurl
 import cStringIO
+import tempfile
 import xapers.bibtex as bibparse
 
-def dccRetrieve(url):
+def dccRetrieveXML(docid):
+    url = 'https://dcc.ligo.org/Shibboleth.sso/Login?target=https%3A%2F%2Fdcc.ligo.org%2Fcgi-bin%2Fprivate%2FDocDB%2FShowDocument?docid=' + docid + '%26outformat=xml&entityID=https%3A%2F%2Flogin.ligo.org%2Fidp%2Fshibboleth'
+
     curl = pycurl.Curl()
+    cookies = tempfile.NamedTemporaryFile()
+
     curl.setopt(pycurl.URL, url)
-    # --negotiate --cookie foo --cookie-jar foo --user : --location-trusted --insecure
+    curl.setopt(pycurl.UNRESTRICTED_AUTH, 1)
     curl.setopt(pycurl.HTTPAUTH, pycurl.HTTPAUTH_GSSNEGOTIATE)
-    #curl.setopt(pycurl.COOKIEFILE, 'foo')
-    #curl.setopt(pycurl.COOKIEJAR, 'foo')
+    curl.setopt(pycurl.COOKIEJAR, cookies.name)
     curl.setopt(pycurl.USERPWD, ':')
     curl.setopt(pycurl.FOLLOWLOCATION, 1)
-    curl.setopt(pycurl.UNRESTRICTED_AUTH, 1)
+
     doc = cStringIO.StringIO()
     curl.setopt(pycurl.WRITEFUNCTION, doc.write)
     try:
@@ -21,9 +25,14 @@ def dccRetrieve(url):
         import traceback
         traceback.print_exc(file=sys.stderr)
         sys.stderr.flush()
-    # FIXME: check return code
+
+    xml = doc.getvalue()
+
     curl.close()
-    return doc.getvalue()
+    cookies.close()
+    doc.close()
+
+    return xml
 
 def dccXMLExtract(xmlstring):
     from xml.dom.minidom import parse, parseString
@@ -42,9 +51,10 @@ def dccXMLExtract(xmlstring):
         abstract = eabstract.data
     else:
         abstract = None
-    # FIXME: find year
+    # FIXME: find year/date
     year = None
     return title, authors, year, abstract
+
 
 class Source():
     source = 'dcc'
@@ -59,30 +69,27 @@ class Source():
 
     def gen_url(self):
         if self.id:
-            return 'http://%s/cgi-bin/private/DocDB/ShowDocument?docid=%s' % (self.netloc, self.id)
+            return 'http://%s/%s' % (self.netloc, self.id)
 
     def match(self, netloc, path):
-        if netloc.find(self.netloc) >= 0:
-            for query in parsedurl.query.split('&'):
-                if 'docid=' in query:
-                    field, self.id = query.split('=')
-                    return True
+        if netloc != self.netloc:
             return False
+        fullid = path.split('/')[1]
+        dccid, vers = fullid.replace('LIGO-','').split('-')
+        self.id = dccid
+        if self.id:
+            return True
         else:
             return False
 
     def get_data(self):
-        # url = 'http://%s/cgi-bin/private/DocDB/RetrieveFile?docid=' % (self.netloc, self.id)
-        # pdf = dccRetrieve(url)
-
         if 'file' in dir(self):
             f = open(self.file, 'r')
             url = None
             xml = f.read()
             f.close()
         else:
-            url = self.gen_url() + '&outformat=xml'
-            xml = dccRetrieve(url)
+            xml = dccRetrieveXML(self.id)
 
         try:
             title, authors, year, abstract = dccXMLExtract(xml)
@@ -91,6 +98,8 @@ class Source():
             raise
 
         data = {
+            'institution': 'LIGO Laboratory',
+            'number': self.id,
             'dcc': self.id,
             'url': self.gen_url()
             }
@@ -104,17 +113,11 @@ class Source():
         if year:
             data['year'] = year
 
-        # FIXME: use these fields:
-        #   @techreport
-        #   institution: LIGO Labratory
-        #   number: DCC number
-        #   month:
-
         return data
 
     def get_bibtex(self):
-        data, url = self.get_data()
-        if not data:
-            return
-        bibentry = bibparse.data2bib(data, self.get_sid())
+        data = self.get_data()
+        key = self.get_sid()
+        btype = '@techreport'
+        bibentry = bibparse.data2bib(data, self.get_sid(), type=btype)
         return bibentry.as_string()
