@@ -25,7 +25,6 @@ sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 import sets
 import shutil
 import readline
-from subprocess import call
 
 from xapers.database import Database, DatabaseError
 from xapers.documents import Document
