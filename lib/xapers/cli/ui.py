@@ -21,6 +21,7 @@ Jameson Rollins <jrollins@finestructure.net>
 import os
 import sys
 import codecs
+SYS_STDOUT = sys.stdout
 sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 import sets
 import shutil
