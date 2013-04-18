@@ -14,41 +14,67 @@ def clean_bib_string(string):
         string = string.replace(char,'')
     return string
 
-class BibentryError(Exception):
-    """Base class for Xapers bibentry exceptions."""
+##################################################
+
+class BibtexError(Exception):
+    """Base class for Xapers bibtex exceptions."""
     def __init__(self, msg):
         self.msg = msg
     def __str__(self):
         return self.msg
 
-class Bibentry():
-    def __init__(self, bibtex=None, entry=None, key=None):
-        if entry and key:
-            self.entry = entry
-            self.key = key
-        elif bibtex:
-            parser = inparser.Parser(encoding='utf-8')
-            if os.path.exists(bibtex):
-                try:
-                    self.bibdata = parser.parse_file(bibtex)
-                except Exception, e:
-                    raise BibentryError('Error loading bibtex from file: %s' % e )
-            else:
-                try:
-                    with io.StringIO(unicode(bibtex)) as stream:
-                        self.bibdata = parser.parse_stream(stream)
-                except Exception, e:
-                    raise BibentryError('Error loading bibtex string: %s' % e )
-            self.key = self.bibdata.entries.keys()[0]
-            self.entry = self.bibdata.entries.values()[0]
-        else:
-            # FIXME: do something here?
-            pass
+##################################################
 
-    def _entry2db(self):
-        db = pybtex.database.BibliographyData()
-        db.add_entry(self.key, self.entry)
-        return db
+class Bibtex():
+    """Represents a bibtex database."""
+
+    # http://www.bibtex.org/Format/
+
+    def __init__(self, bibtex):
+
+        parser = inparser.Parser(encoding='utf-8')
+
+        if os.path.exists(bibtex):
+            try:
+                bibdata = parser.parse_file(bibtex)
+            except Exception, e:
+                raise BibtexError('Error loading bibtex from file: %s' % e )
+        else:
+            try:
+                with io.StringIO(unicode(bibtex)) as stream:
+                    bibdata = parser.parse_stream(stream)
+            except Exception, e:
+                raise BibtexError('Error loading bibtex string: %s' % e )
+
+        self.keys = bibdata.entries.keys()
+        self.entries = bibdata.entries.values()
+
+        self.index = -1
+        self.max = len(self.entries)
+
+    def __getitem__(self, index):
+        key = self.keys[index]
+        entry = self.entries[index]
+        return Bibentry(key, entry)
+
+    def __iter__(self):
+        return self
+
+    def __len__(self):
+        return self.max
+
+    def next(self):
+        self.index = self.index + 1
+        if self.index == self.max:
+            raise StopIteration
+        return self[self.index]
+
+##################################################
+
+class Bibentry():
+    def __init__(self, key, entry):
+        self.key = key
+        self.entry = entry
 
     def get_authors(self):
         """Return a list of authors."""
@@ -67,6 +93,11 @@ class Bibentry():
         for field in bibfields:
             fields[field] = unicode(clean_bib_string(bibfields[field]))
         return fields
+
+    def _entry2db(self):
+        db = pybtex.database.BibliographyData()
+        db.add_entry(self.key, self.entry)
+        return db
 
     def as_string(self):
         """Return entry as formatted bibtex string."""
@@ -107,7 +138,7 @@ def data2bib(data, key):
         for p in authors:
             entry.add_person(Person(p), 'author')
 
-    return Bibentry(entry=entry, key=key)
+    return Bibentry(key, entry)
 
 
 def json2bib(jsonstring, key):
@@ -140,4 +171,4 @@ def json2bib(jsonstring, key):
         for author in authors:
             entry.add_person(Person(first=author['given'], last=author['family']), 'author')
 
-    return Bibentry(entry=entry, key=key)
+    return Bibentry(key, entry)

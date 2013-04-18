@@ -95,6 +95,9 @@ class Document():
         # specify a directory in the Xapers root for document data
         self.docdir = os.path.join(self.root, '%010d' % int(self.docid))
 
+        #
+        self.bibentry = None
+
     def get_docid(self):
         """Return document id of document."""
         return self.docid
@@ -116,7 +119,7 @@ class Document():
 
     def _write_bibfile(self):
         bibpath = self.get_bibpath()
-        if 'bibentry' in dir(self):
+        if self.bibentry:
             self.bibentry.to_file(bibpath)
 
     def _write_tagfile(self):
@@ -370,16 +373,15 @@ File will not copied in to docdir until sync()."""
 
     def add_bibtex(self, bibtex):
         """Add bibtex to document, as string or file path."""
-        self.bibentry = xapers.bibtex.Bibentry(bibtex)
+        self.bibentry = xapers.bibtex.Bibtex(bibtex)[0]
         self._index_bibentry(self.bibentry)
 
     def _load_bib(self):
-        if 'bibentry' in dir(self):
+        if self.bibentry:
             return
         bibpath = self.get_bibpath()
-        self.bibentry = None
         if os.path.exists(bibpath):
-            self.bibentry = xapers.bibtex.Bibentry(bibpath)
+            self.bibentry = xapers.bibtex.Bibtex(bibpath)[0]
 
     def get_bibtex(self):
         """Get the bib for document as a bibtex string."""

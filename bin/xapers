@@ -325,10 +325,9 @@ if __name__ == '__main__':
             sys.exit(1)
 
         try:
-            print xapers.bibtex.Bibentry(bibtex).as_string()
+            print xapers.bibtex.Bibtex(bibtex)[0].as_string()
         except Exception, e:
-            print >>sys.stderr, "Error parsing bibtex:"
-            print >>sys.stderr, e
+            print >>sys.stderr, "Error parsing bibtex: %s" % e
             print >>sys.stderr, "Outputting raw..."
             print bibtex
             sys.exit(1)
