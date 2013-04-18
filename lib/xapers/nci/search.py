@@ -140,6 +140,7 @@ class Search(urwid.WidgetWrap):
         for doc in docs:
             items.append(DocListItem(doc))
 
+        self.lenitems = len(items)
         self.listwalker = urwid.SimpleListWalker(items)
         self.listbox = urwid.ListBox(self.listwalker)
         w = self.listbox
@@ -152,6 +153,7 @@ class Search(urwid.WidgetWrap):
         """next entry"""
         entry, pos = self.listbox.get_focus()
         if not entry: return
+        if pos + 1 >= self.lenitems: return
         self.listbox.set_focus(pos + 1)
 
     def prevEntry(self):
