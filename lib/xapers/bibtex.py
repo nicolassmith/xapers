@@ -113,15 +113,13 @@ class Bibentry():
         writer = outparser.Writer(encoding='utf-8')
         writer.write_file(self._entry2db(), path)
 
+##################################################
 
-def data2bib(data, key):
+def data2bib(data, key, type='article'):
     """Convert a python dict into a Bibentry object."""
 
     if not data:
         return
-
-    # FIXME: what should this be for undefined?
-    btype = 'article'
 
     # need to remove authors field from data
     authors = None
@@ -133,7 +131,7 @@ def data2bib(data, key):
                 authors = authors[0].split(',')
         del data['authors']
 
-    entry = Entry(btype, fields=data)
+    entry = Entry(type, fields=data)
     if authors:
         for p in authors:
             entry.add_person(Person(p), 'author')
@@ -141,16 +139,13 @@ def data2bib(data, key):
     return Bibentry(key, entry)
 
 
-def json2bib(jsonstring, key):
+def json2bib(jsonstring, key, type='article'):
     """Convert a json string into a Bibentry object."""
 
     if not json:
         return
 
     data = json.loads(jsonstring)
-
-    # FIXME: determine this somehow
-    btype = 'article'
 
     # need to remove authors field from data
     authors = None
@@ -165,7 +160,7 @@ def json2bib(jsonstring, key):
     # delete other problematic fields
     del data['editor']
 
-    entry = Entry(btype, fields=data)
+    entry = Entry(type, fields=data)
 
     if authors:
         for author in authors:
