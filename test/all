@@ -260,6 +260,24 @@ doi:10.9999/FOO.2
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
+test_begin_subtest 'search --output=keys'
+test_subtest_known_broken
+xapers search --output=keys tag:bar >OUTPUT
+cat <<EOF >EXPECTED
+Good_Bad_Up_Down_Left_Right_et_al._2012
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search --output=keys all'
+xapers search --output=keys '*' >OUTPUT
+cat <<EOF >EXPECTED
+30929234
+Good_Bad_Up_Down_Left_Right_et_al._2012
+arxiv:1235
+fake:1234
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
 test_begin_subtest 'search --output=files'
 xapers search --output=files '*' | sed "s|$XAPERS_ROOT|XAPERS_ROOT|" >OUTPUT
 cat <<EOF >EXPECTED
