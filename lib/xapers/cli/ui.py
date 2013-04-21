@@ -311,6 +311,7 @@ class UI():
 
         otags = set([])
         osources = set([])
+        okeys = set([])
 
         for doc in self.db.search(query_string, limit=limit):
             docid = doc.get_docid()
@@ -323,6 +324,7 @@ class UI():
 
             tags = doc.get_tags()
             sources = doc.get_sids()
+            keys = doc.get_keys()
 
             if oformat == 'tags':
                 otags = otags | set(tags)
@@ -330,17 +332,22 @@ class UI():
             if oformat == 'sources':
                 osources = osources | set(sources)
                 continue
+            if oformat == 'keys':
+                okeys = okeys | set(keys)
+                continue
 
             title = doc.get_title()
             if not title:
                 title = ''
 
             if oformat in ['summary']:
-                print "id:%s [%s] (%s) \"%s\"" % (docid,
-                                                   ' '.join(sources),
-                                                   ' '.join(tags),
-                                                   title,
-                                                   )
+                print "id:%s [%s] {%s} (%s) \"%s\"" % (
+                    docid,
+                    ' '.join(sources),
+                    ' '.join(keys),
+                    ' '.join(tags),
+                    title,
+                    )
                 continue
 
             if oformat == 'bibtex':
