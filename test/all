@@ -97,7 +97,7 @@ EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'update doc with file'
-xapers add --file=$DOC_DIR/2.pdf doi:10.9999/FOO.1
+xapers add --file=$DOC_DIR/2\ file.pdf doi:10.9999/FOO.1
 xapers search pellentesque >OUTPUT
 cat <<EOF >EXPECTED
 id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
@@ -283,7 +283,7 @@ xapers search --output=files '*' | sed "s|$XAPERS_ROOT|XAPERS_ROOT|" >OUTPUT
 cat <<EOF >EXPECTED
 XAPERS_ROOT/0000000005/5.pdf
 XAPERS_ROOT/0000000003/3.pdf
-XAPERS_ROOT/0000000002/2.pdf
+XAPERS_ROOT/0000000002/2 file.pdf
 XAPERS_ROOT/0000000001/1.pdf
 EOF
 test_expect_equal_file OUTPUT EXPECTED
