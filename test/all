@@ -83,7 +83,7 @@ test_begin_subtest 'update doc with bib'
 xapers add --source=$DOC_DIR/1.bib id:1
 xapers search id:1 >OUTPUT
 cat <<EOF >EXPECTED
-id:1 [arxiv:1234] (foo new) "Creation of the Universe"
+id:1 [arxiv:1234] {arxiv:1234} (foo new) "Creation of the Universe"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -91,7 +91,7 @@ test_begin_subtest 'update with different bib overwrites previous'
 xapers add --source=$DOC_DIR/1a.bib id:1
 xapers search id:1 >OUTPUT
 cat <<EOF >EXPECTED
-id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -105,7 +105,7 @@ test_begin_subtest 'update doc with file'
 xapers add --file=$DOC_DIR/2\ file.pdf doi:10.9999/FOO.1
 xapers search pellentesque >OUTPUT
 cat <<EOF >EXPECTED
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -139,67 +139,67 @@ test_expect_code 1 'fail search without query' \
 test_begin_subtest 'search all'
 xapers search '*' >OUTPUT
 cat <<EOF >EXPECTED
-id:5 [] (new) ""
-id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
-id:3 [] (qux) "When the liver meats the pavement"
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
-id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
+id:5 [] {} (new) ""
+id:4 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search all pipe'
 xapers search '*' | cat >OUTPUT
 cat <<EOF >EXPECTED
-id:5 [] (new) ""
-id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
-id:3 [] (qux) "When the liver meats the pavement"
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
-id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
+id:5 [] {} (new) ""
+id:4 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search all --limit'
 xapers search --limit=3 '*' >OUTPUT
 cat <<EOF >EXPECTED
-id:5 [] (new) ""
-id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
-id:3 [] (qux) "When the liver meats the pavement"
+id:5 [] {} (new) ""
+id:4 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search text'
 xapers search --output=summary lorem >OUTPUT
 cat <<EOF >EXPECTED
-id:5 [] (new) ""
-id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
+id:5 [] {} (new) ""
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search prefix title:'
 xapers search title:cavity >OUTPUT
 cat <<EOF >EXPECTED
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search prefix author:'
 xapers search author:cruise >OUTPUT
 cat <<EOF >EXPECTED
-id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search prefix id:'
 xapers search id:3 >OUTPUT
 cat <<EOF >EXPECTED
-id:3 [] (qux) "When the liver meats the pavement"
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search prefix <source>:'
 xapers search doi:10.9999/FOO.1 >OUTPUT
 cat <<EOF >EXPECTED
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -207,24 +207,24 @@ test_begin_subtest 'search prefix bib:'
 test_subtest_known_broken
 xapers search key:Good_Bad_Up_Down_Left_Right_et_al._2012 >OUTPUT
 cat <<EOF >EXPECTED
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search *different?* prefix bib:'
 xapers search key:fake:1234 >OUTPUT
 cat <<EOF >EXPECTED
-id:3 [] (qux) "When the liver meats the pavement"
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search prefix tag:'
 xapers search tag:new >OUTPUT
 cat <<EOF >EXPECTED
-id:5 [] (new) ""
-id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
-id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
+id:5 [] {} (new) ""
+id:4 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -355,7 +355,7 @@ test_begin_subtest 'add tag'
 xapers tag +baz -- tag:foo
 xapers search tag:baz >OUTPUT
 cat <<EOF >EXPECTED
-id:1 [arxiv:1235] (baz foo new) "Creation of the γ-verses"
+id:1 [arxiv:1235] {arxiv:1235} (baz foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -423,11 +423,11 @@ test_expect_success 'restore to existing db' \
 test_begin_subtest 'database intact after restore'
 xapers search '*' >OUTPUT
 cat <<EOF >EXPECTED
-id:5 [] (new) ""
-id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
-id:3 [] (qux) "When the liver meats the pavement"
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
-id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
+id:5 [] {} (new) ""
+id:4 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -443,11 +443,11 @@ test_expect_success 'restore purged db' \
 test_begin_subtest 'database intact after restore'
 xapers search '*' >OUTPUT
 cat <<EOF >EXPECTED
-id:5 [] (new) ""
-id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
-id:3 [] (qux) "When the liver meats the pavement"
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
-id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
+id:5 [] {} (new) ""
+id:4 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -455,10 +455,10 @@ test_begin_subtest 'delete single document noprompt'
 xapers delete --noprompt id:2
 xapers search '*' >OUTPUT
 cat <<EOF >EXPECTED
-id:5 [] (new) ""
-id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
-id:3 [] (qux) "When the liver meats the pavement"
-id:1 [arxiv:1235] (foo new) "Creation of the γ-verses"
+id:5 [] {} (new) ""
+id:4 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
