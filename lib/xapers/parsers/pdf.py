@@ -1,5 +1,10 @@
+import pipes
+
 def parse_file(path):
     from subprocess import Popen, check_output, PIPE, CalledProcessError
+
+    path = pipes.quote(path)
+
     cmd = ['pdftotext', path, '-']
     #cmd = ['pdf2txt', path]
     # FIXME: figure out how to trap errors better
