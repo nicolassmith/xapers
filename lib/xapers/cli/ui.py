@@ -367,6 +367,10 @@ class UI():
             for source in osources:
                 print source
             return
+        if oformat == 'keys':
+            for key in okeys:
+                print key
+            return
 
     ############################################
 
