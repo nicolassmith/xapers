@@ -6,6 +6,11 @@ test_description='xapers.'
 
 ################################################################
 
+# FIXME: update with source already in db
+# FIXME: add with prompting
+
+################################################################
+
 test_expect_code 1 'fail search without database' \
     'xapers search tag:foo'
 
@@ -103,9 +108,6 @@ cat <<EOF >EXPECTED
 id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
-
-# FIXME: test update when attempting to add with existing sid (sources?)
-# FIXME: add with prompting
 
 test_expect_success 'add bib without file' \
     'xapers add \
