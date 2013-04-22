@@ -208,7 +208,7 @@ class Document():
 
         self._gen_terms(None, text)
 
-        summary = text[0:997].translate(None,'\n') + '...'
+        summary = text[0:997].translate(None, '\n') + '...'
 
         return summary
 
@@ -274,7 +274,7 @@ File will not copied in to docdir until sync()."""
 
     def add_sid(self, sid):
         """Add source sid to document."""
-        source,oid = sid.split(':',1)
+        source, oid = sid.split(':', 1)
         source = source.lower()
         # remove any existing terms for this source
         self._purge_sources_prefix(source)
