@@ -15,7 +15,7 @@ class SourceError(Exception):
 
 ##################################################
 
-class Source():
+class SourceBase():
     source = None
     netloc = None
     scan_regex = None
@@ -43,6 +43,7 @@ class Source():
 def list_sources():
     """List all available source modules."""
     sources = []
+    # FIXME: how do we register sources?
     for s in dir(xapers.sources):
         # skip the __init__ file when finding sources
         if '__' in s:
