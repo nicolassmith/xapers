@@ -24,8 +24,8 @@ import shutil
 import xapian
 
 from parser import parse_file
-import xapers.bibtex
-import xapers.source
+from source import list_sources, get_source
+from bibtex import Bibtex
 
 ##################################################
 
@@ -366,7 +366,7 @@ File will not copied in to docdir until sync()."""
             # FIXME: better way to do this?
             self._set_authors(' '.join(authors))
 
-        for source in xapers.source.list_sources():
+        for source in list_sources():
             if source in fields:
                 self.add_sid('%s:%s' % (source, fields[source]))
         # FIXME: how do we get around special exception for this?
@@ -377,7 +377,7 @@ File will not copied in to docdir until sync()."""
 
     def add_bibtex(self, bibtex):
         """Add bibtex to document, as string or file path."""
-        self.bibentry = xapers.bibtex.Bibtex(bibtex)[0]
+        self.bibentry = Bibtex(bibtex)[0]
         self._index_bibentry(self.bibentry)
 
     def _load_bib(self):
@@ -385,7 +385,7 @@ File will not copied in to docdir until sync()."""
             return
         bibpath = self.get_bibpath()
         if os.path.exists(bibpath):
-            self.bibentry = xapers.bibtex.Bibtex(bibpath)[0]
+            self.bibentry = Bibtex(bibpath)[0]
 
     def get_bibtex(self):
         """Get the bib for document as a bibtex string."""
@@ -426,7 +426,7 @@ File will not copied in to docdir until sync()."""
         urls = []
         # get urls associated with known sources
         for sid in self.get_sids():
-            smod = xapers.source.get_source(sid)
+            smod = get_source(sid)
             urls.append(smod.gen_url())
         # get urls from bibtex
         self._load_bib()
