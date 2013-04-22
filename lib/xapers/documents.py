@@ -19,7 +19,6 @@ Jameson Rollins <jrollins@finestructure.net>
 """
 
 import os
-import sys
 import shutil
 import xapian
 

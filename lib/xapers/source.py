@@ -1,10 +1,7 @@
-import os
-import sys
 import re
 from urlparse import urlparse
 
 import xapers.sources
-import xapers.bibtex
 from parser import parse_file
 
 ##################################################
