@@ -221,7 +221,6 @@ class UI():
             path = os.path.abspath(infile)
             try:
                 print >>sys.stderr, "Adding file '%s'..." % (path),
-                # FIXME: check if file already exists?
                 doc.add_file(path)
                 print >>sys.stderr, "done."
             except ParseError, e:
