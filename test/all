@@ -263,7 +263,6 @@ EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search --output=keys'
-test_subtest_known_broken
 xapers search --output=keys tag:bar >OUTPUT
 cat <<EOF >EXPECTED
 Good_Bad_Up_Down_Left_Right_et_al._2012
