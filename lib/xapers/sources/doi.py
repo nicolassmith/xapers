@@ -1,7 +1,6 @@
 import io
-import sys
 import urllib2
-import xapers.bibtex as bibparse
+from xapers.bibtex import json2bib
 
 class Source():
     source = 'doi'
@@ -64,7 +63,7 @@ class Source():
         f = urllib2.urlopen(req)
         json = f.read()
         f.close
-        bibentry = bibparse.json2bib(json, self.get_sid())
+        bibentry = json2bib(json, self.get_sid())
         return bibentry.as_string()
 
     def _get_bib_ads(self):

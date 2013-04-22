@@ -2,7 +2,7 @@ import sys
 import pycurl
 import cStringIO
 import tempfile
-import xapers.bibtex as bibparse
+from xapers.bibtex import data2bib
 
 def dccRetrieveXML(docid):
     url = 'https://dcc.ligo.org/Shibboleth.sso/Login?target=https%3A%2F%2Fdcc.ligo.org%2Fcgi-bin%2Fprivate%2FDocDB%2FShowDocument?docid=' + docid + '%26outformat=xml&entityID=https%3A%2F%2Flogin.ligo.org%2Fidp%2Fshibboleth'
@@ -75,7 +75,7 @@ class Source():
         if netloc != self.netloc:
             return False
         fullid = path.split('/')[1]
-        dccid, vers = fullid.replace('LIGO-','').split('-')
+        dccid, vers = fullid.replace('LIGO-', '').split('-')
         self.id = dccid
         if self.id:
             return True
@@ -85,7 +85,6 @@ class Source():
     def get_data(self):
         if 'file' in dir(self):
             f = open(self.file, 'r')
-            url = None
             xml = f.read()
             f.close()
         else:
@@ -119,5 +118,5 @@ class Source():
         data = self.get_data()
         key = self.get_sid()
         btype = '@techreport'
-        bibentry = bibparse.data2bib(data, self.get_sid(), type=btype)
+        bibentry = data2bib(data, key, type=btype)
         return bibentry.as_string()
