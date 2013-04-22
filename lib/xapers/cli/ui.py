@@ -29,6 +29,7 @@ import readline
 
 from xapers.database import Database, DatabaseError
 from xapers.documents import Document
+from xapers.parser import ParseError
 from xapers.bibtex import Bibtex, BibtexError
 import xapers.source
 
@@ -128,12 +129,6 @@ class UI():
         if prompt:
             infile = self.prompt_for_file(infile)
 
-        if infile:
-            infile = os.path.expanduser(infile)
-            if not os.path.exists(infile):
-                print >>sys.stderr, "Specified file '%s' not found." % infile
-                sys.exit(1)
-
         if prompt:
             sources = []
             if source:
@@ -141,8 +136,13 @@ class UI():
             # scan the file for source info
             if infile:
                 print >>sys.stderr, "Scanning document for source identifiers..."
-                ss = xapers.source.scan_for_sources(infile)
-                print >>sys.stderr, "%d source ids found:" % (len(sources))
+                try:
+                    ss = xapers.source.scan_for_sources(infile)
+                    print >>sys.stderr, "%d source ids found:" % (len(sources))
+                except ParseError, e:
+                    print >>sys.stderr, "\n"
+                    print >>sys.stderr, "Parse error: %s" % e
+                    sys.exit(1)
                 if len(sources) > 0:
                     for sid in ss:
                         print >>sys.stderr, "  %s" % (sid)
@@ -224,6 +224,10 @@ class UI():
                 # FIXME: check if file already exists?
                 doc.add_file(path)
                 print >>sys.stderr, "done."
+            except ParseError, e:
+                print >>sys.stderr, "\n"
+                print >>sys.stderr, "Parse error: %s" % e
+                sys.exit(1)
             except:
                 print >>sys.stderr, "\n"
                 raise

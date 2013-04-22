@@ -5,6 +5,7 @@ from urlparse import urlparse
 
 import xapers.sources
 import xapers.bibtex
+from parser import parse_file
 
 ##################################################
 
@@ -91,8 +92,7 @@ def get_source(string):
 def scan_for_sources(file):
     """Scan document file and return a list of source strings found
     therein."""
-    from .parsers import pdf as parser
-    text = parser.parse_file(file)
+    text = parse_file(file)
     sources = []
     for source in list_sources():
         smod = _load_source(source)()

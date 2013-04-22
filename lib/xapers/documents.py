@@ -23,6 +23,7 @@ import sys
 import shutil
 import xapian
 
+from parser import parse_file
 import xapers.bibtex
 import xapers.source
 
@@ -204,10 +205,7 @@ class Document():
 
     # index file for the document
     def _index_file(self, path):
-        # FIXME: pick parser based on mime type
-        from .parsers import pdf as parser
-
-        text = parser.parse_file(path)
+        text = parse_file(path)
 
         self._gen_terms(None, text)
 
