@@ -225,6 +225,10 @@ class Database():
             # parse the query string to produce a Xapian::Query object.
             query = self.query_parser.parse_query(query_string)
 
+        if os.getenv('XAPERS_DEBUG_QUERY'):
+            print >>sys.stderr, "query string:", query_string
+            print >>sys.stderr, "final query:", query
+
         # FIXME: need to catch Xapian::Error when using enquire
         enquire.set_query(query)
 
