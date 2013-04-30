@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-test_description='xapers.'
+test_description='basic command line usage.'
 
 . ./test-lib.sh
 
@@ -211,7 +211,7 @@ id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Mu
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_begin_subtest 'search *different?* prefix bib:'
+test_begin_subtest 'search different prefix bib:'
 xapers search key:fake:1234 >OUTPUT
 cat <<EOF >EXPECTED
 id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
