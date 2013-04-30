@@ -23,7 +23,7 @@ import shutil
 import xapian
 
 from parser import parse_file
-from source import list_sources, get_source
+from source import get_source, scan_bibentry_for_sources
 from bibtex import Bibtex
 
 ##################################################
@@ -365,12 +365,9 @@ File will not copied in to docdir until sync()."""
             # FIXME: better way to do this?
             self._set_authors(' '.join(authors))
 
-        for source in list_sources():
-            if source in fields:
-                self.add_sid('%s:%s' % (source, fields[source]))
-        # FIXME: how do we get around special exception for this?
-        if 'eprint' in fields:
-            self.add_sid('%s:%s' % ('arxiv', fields['eprint']))
+        # add any sources in the bibtex
+        for sid in scan_bibentry_for_sources(bibentry):
+            self.add_sid(sid)
 
         self._set_bibkey(bibentry.key)
 
