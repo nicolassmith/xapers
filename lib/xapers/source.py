@@ -101,3 +101,15 @@ def scan_file_for_sources(file):
             for match in matches:
                 sources.append('%s:%s' % (smod.source.lower(), match))
     return sources
+
+def scan_bibentry_for_sources(bibentry):
+    """Scan bibentry for source identifiers and return list of sid strings."""
+    fields = bibentry.get_fields()
+    sources = []
+    for source in list_sources():
+        if source in fields:
+            sources.append('%s:%s' % (source.lower(), fields[source]))
+    # FIXME: how do we get around special exception for this?
+    if 'eprint' in fields:
+        sources.append('%s:%s' % ('arxiv', fields['eprint']))
+    return sources
