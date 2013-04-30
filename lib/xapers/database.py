@@ -269,7 +269,7 @@ class Database():
         return self._doc_for_term(term)
 
     def doc_for_source(self, sid):
-        """Return document for bibtex key."""
+        """Return document for source id string."""
         source, oid = sid.split(':', 1)
         term = self._make_source_prefix(source) + oid
         return self._doc_for_term(term)
