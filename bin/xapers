@@ -307,7 +307,11 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['source2bib','s2b']:
-        string = sys.argv[2]
+        try:
+            string = sys.argv[2]
+        except IndexError:
+            print >>sys.stderr, "Must specify source to retrieve."
+            sys.exit(1)
 
         try:
             smod = xapers.source.get_source(string)
@@ -334,7 +338,12 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['scandoc','sd']:
-        infile = sys.argv[2]
+        try:
+            infile = sys.argv[2]
+        except IndexError:
+            print >>sys.stderr, "Must specify document to scan."
+            sys.exit(1)
+
         sources = xapers.source.scan_for_sources(infile)
         for ss in sources:
             print "%s" % (ss)
