@@ -371,10 +371,14 @@ File will not copied in to docdir until sync()."""
 
         self._set_bibkey(bibentry.key)
 
+    def add_bibentry(self, bibentry):
+        """Add bibentry object."""
+        self.bibentry = bibentry
+        self._index_bibentry(self.bibentry)
+
     def add_bibtex(self, bibtex):
         """Add bibtex to document, as string or file path."""
-        self.bibentry = Bibtex(bibtex)[0]
-        self._index_bibentry(self.bibentry)
+        self.add_bibentry(Bibtex(bibtex)[0])
 
     def _load_bib(self):
         if self.bibentry:
