@@ -270,6 +270,11 @@ class Database():
         term = self._make_source_prefix(source) + oid
         return self._doc_for_term(term)
 
+    def doc_for_bib(self, bibkey):
+        """Return document for bibtex key."""
+        term = self._find_prefix('key') + bibkey
+        return self._doc_for_term(term)
+
     ########################################
 
     def replace_document(self, docid, doc):
