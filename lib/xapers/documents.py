@@ -369,6 +369,8 @@ File will not copied in to docdir until sync()."""
         for sid in scan_bibentry_for_sources(bibentry):
             self.add_sid(sid)
 
+        # FIXME: index 'keywords' field as regular terms
+
         self._set_bibkey(bibentry.key)
 
     def add_bibentry(self, bibentry):
