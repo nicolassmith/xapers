@@ -107,7 +107,6 @@ class UI():
 
         doc = None
         bibtex = None
-        smod = None
 
         ##################################
         # open db and get doc
@@ -174,17 +173,14 @@ class UI():
                 sys.exit(1)
 
             # check that the source doesn't match an existing doc
-            for tdoc in self.db.search(sid):
-                if doc:
-                    if tdoc != doc:
-                        print >>sys.stderr, "Document already exists for source '%s'.  Aborting." % (sid)
-                        sys.exit(1)
-                else:
-                    print >>sys.stderr, "Updating existing document..."
-                    doc = tdoc
-                break
+            sdoc = self.db.doc_for_source(sid)
+            if sdoc:
+                if sdoc != doc:
+                    print >>sys.stderr, "Document already exists for source '%s'.  Aborting." % (sid)
+                    sys.exit(1)
+                print >>sys.stderr, "Updating existing document..."
+                doc = tdoc
 
-        if smod:
             try:
                 print >>sys.stderr, "Retrieving bibtex...",
                 bibtex = smod.get_bibtex()
