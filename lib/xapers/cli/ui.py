@@ -137,7 +137,7 @@ class UI():
             if infile:
                 print >>sys.stderr, "Scanning document for source identifiers..."
                 try:
-                    ss = xapers.source.scan_for_sources(infile)
+                    ss = xapers.source.scan_file_for_sources(infile)
                     print >>sys.stderr, "%d source ids found:" % (len(sources))
                 except ParseError, e:
                     print >>sys.stderr, "\n"

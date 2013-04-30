@@ -87,9 +87,8 @@ def get_source(string):
 
     return smod
 
-def scan_for_sources(file):
-    """Scan document file and return a list of source strings found
-    therein."""
+def scan_file_for_sources(file):
+    """Scan document file for source identifiers and return list of sid strings."""
     text = parse_file(file)
     sources = []
     for source in list_sources():
