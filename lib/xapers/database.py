@@ -264,6 +264,12 @@ class Database():
         term = self._find_prefix('file') + path
         return self._doc_for_term(term)
 
+    def doc_for_source(self, sid):
+        """Return document for bibtex key."""
+        source, oid = sid.split(':', 1)
+        term = self._make_source_prefix(source) + oid
+        return self._doc_for_term(term)
+
     ########################################
 
     def replace_document(self, docid, doc):
