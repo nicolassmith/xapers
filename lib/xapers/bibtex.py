@@ -94,6 +94,20 @@ class Bibentry():
             fields[field] = unicode(clean_bib_string(bibfields[field]))
         return fields
 
+    def get_file(self):
+        """Returns file path if file field exists.
+Expects either single path string or Mendeley/Jabref format."""
+        try:
+            parsed = self.entry.fields['file'].split(':')
+            if len(parsed) > 1:
+                return parsed[1]
+            else:
+                return parsed[0]
+        except KeyError:
+            return None
+        except IndexError:
+            return None
+
     def _entry2db(self):
         db = pybtex.database.BibliographyData()
         db.add_entry(self.key, self.entry)
