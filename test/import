@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+test_description='bibtex database importing.'
+
+. ./test-lib.sh
+
+################################################################
+
+test_expect_code 1 'fail import without bibtex' \
+    'xapers import'
+
+sed "s|__DOC_DIR__|$DOC_DIR|g" <"$DOC_DIR"/all.bib >all.bib
+
+# the following two tests provides entries so we can test that import
+# updates existing entries
+
+test_begin_subtest 'add initial documents'
+xapers add --tags=foo --source="$DOC_DIR"/2.bib
+xapers add --tags=bar --source="$DOC_DIR"/3.bib
+xapers search '*' >OUTPUT
+cat <<EOF >EXPECTED
+id:2 [] {fake:1234} (bar) "When the liver meats the pavement"
+id:1 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (foo) "Multicolor cavity sadness"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'import full bibtex with files'
+xapers import --tags=new all.bib
+xapers search '*' >OUTPUT
+cat <<EOF >EXPECTED
+id:5 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:4 [doi:10.9999/FOO.3] {30929} (new) "Circle are Squares"
+id:3 [arxiv:1235] {arxiv:1235} (new) "Creation of the γ-verses"
+id:2 [] {fake:1234} (bar new) "When the liver meats the pavement"
+id:1 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (foo new) "Multicolor cavity sadness"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search id:'
+xapers search id:3 >OUTPUT
+cat <<EOF >EXPECTED
+id:3 [arxiv:1235] {arxiv:1235} (new) "Creation of the γ-verses"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search bib:'
+xapers search key:30929234 >OUTPUT
+cat <<EOF >EXPECTED
+id:5 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search text'
+xapers search --output=summary lorem >OUTPUT
+cat <<EOF >EXPECTED
+id:2 [] {fake:1234} (bar new) "When the liver meats the pavement"
+id:3 [arxiv:1235] {arxiv:1235} (new) "Creation of the γ-verses"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 're-import produces identical results'
+xapers import --tags=new all.bib
+xapers search '*' >OUTPUT
+cat <<EOF >EXPECTED
+id:5 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:4 [doi:10.9999/FOO.3] {30929} (new) "Circle are Squares"
+id:3 [arxiv:1235] {arxiv:1235} (new) "Creation of the γ-verses"
+id:2 [] {fake:1234} (bar new) "When the liver meats the pavement"
+id:1 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (foo new) "Multicolor cavity sadness"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+################################################################
+
+test_done

@@ -252,6 +252,62 @@ class UI():
 
     ############################################
 
+    def importbib(self, bibfile, tags=[], overwrite=False):
+        self.db = initdb(self.xroot, writable=True, create=True)
+
+        nerrors = 0
+
+        for entry in sorted(Bibtex(bibfile)):
+            print >>sys.stderr, entry.key
+
+            try:
+                docs = []
+
+                # check for doc with this bibkey
+                bdoc = self.db.doc_for_bib(entry.key)
+                if bdoc:
+                    docs.append(bdoc)
+
+                # check for known sids
+                for sid in xapers.source.scan_bibentry_for_sources(entry):
+                    sdoc = self.db.doc_for_source(sid)
+                    # FIXME: why can't we match docs in list?
+                    if sdoc and sdoc.docid not in [doc.docid for doc in docs]:
+                        docs.append(sdoc)
+
+                if len(docs) == 0:
+                    doc = Document(self.db)
+                elif len(docs) > 0:
+                    if len(docs) > 1:
+                        print >>sys.stderr, "  Multiple distinct docs found for entry.  Using first found."
+                    doc = docs[0]
+                    print >>sys.stderr, "  Updating id:%s..." % (doc.docid)
+
+                doc.add_bibentry(entry)
+
+                filepath = entry.get_file()
+                if filepath:
+                    print >>sys.stderr, "  Adding file: %s" % filepath
+                    doc.add_file(filepath)
+
+                doc.add_tags(tags)
+
+                doc.sync()
+            except Exception, e:
+                print >>sys.stderr
+                print >>sys.stderr, "Error processing entry %s: %s" % (entry.key, e)
+                print >>sys.stderr
+                nerrors += 1
+
+        if nerrors > 0:
+            print >>sys.stderr
+            print >>sys.stderr, "Errors encountered processing bibtex."
+            sys.exit(1)
+        else:
+            sys.exit(0)
+
+    ############################################
+
     def delete(self, query_string, prompt=True):
         self.db = initdb(self.xroot, writable=True)
         count = self.db.count(query_string)

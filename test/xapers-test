@@ -19,6 +19,7 @@ cd $(dirname "$0")
 TESTS="
   basic
   all
+  import
 "
 TESTS_NET="
   sources

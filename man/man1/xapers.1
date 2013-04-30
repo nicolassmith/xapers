@@ -90,6 +90,21 @@ View resulting entry in curses UI when done.  See the \fBviewP\fR
 command below for more info.
 .RE
 
+.SS import [options] <bibtex>
+
+Import an existing bibtex database.  Each bibtex entry will be added
+as a new document.  If bibtex key, or any sources found in bibtex,
+match an existing document that document is instead updated (this
+makes the command effectively idempotent).  Any "file" fields will be
+parsed for document files to add.  Files can be specified as a single
+path, or in Mendeley/Jabref format.  Available options:
+.RS 4
+.TP 4
+.BR \-\-tags=<tag>[,...]
+Tags to apply to all imported documents.  Multiple tags can be
+specified, comma separated.
+.RE
+
 .SS tag +<tag>|-<tag> [...] [--] <search-terms>
 
 Add/remove tags from documents.  '--' can be used to separate tagging
