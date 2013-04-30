@@ -16,15 +16,17 @@ nci:
 * customizable palette
 
 sources:
-* allow for user source modules
+* allow for user source modules (inherit Source)
 * add method to download document file
 
 parser:
+* native python: https://gist.github.com/pazz/5455090
 * better handle parse errors
 * better pdf parser
 * parsers for other document types
 
 bib:
+* test for compiling bibtex
 * include file path in bibtex
 * do something about "container-title" from doi
 * provide bib output in other formats
@@ -47,4 +49,6 @@ BUGS
 
 * nci: 'b' on doc with no bib produces traceback
 
-* 'dcc:T00000' source strings not being index properly
+* capitalized prefixed terms are not searchable
+  - dcc:T00000
+  - key:HaEA2009a
