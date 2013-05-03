@@ -119,7 +119,15 @@ class Document():
 
     def _write_bibfile(self):
         bibpath = self.get_bibpath()
+        # reload bibtex only if we have new files
+        paths = self.get_fullpaths()
+        if paths:
+            self._load_bib()
         if self.bibentry:
+            # we put only the first file in the bibtex
+            # FIXME: does jabref/mendeley spec allow for multiple files?
+            if paths and not self.bibentry.get_file():
+                self.bibentry.set_file(paths[0])
             self.bibentry.to_file(bibpath)
 
     def _write_tagfile(self):
