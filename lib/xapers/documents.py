@@ -301,7 +301,7 @@ File will not copied in to docdir until sync()."""
 
     # BIBTEX KEYS
     def get_keys(self):
-        """Return a list of bibtex citation key associated with document."""
+        """Return a list of bibtex citation keys associated with document."""
         prefix = self.db._find_prefix('key')
         return self._get_terms(prefix)
 
