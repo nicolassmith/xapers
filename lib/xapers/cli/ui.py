@@ -255,7 +255,7 @@ class UI():
     def importbib(self, bibfile, tags=[], overwrite=False):
         self.db = initdb(self.xroot, writable=True, create=True)
 
-        nerrors = 0
+        errors = []
 
         for entry in sorted(Bibtex(bibfile)):
             print >>sys.stderr, entry.key
@@ -294,14 +294,20 @@ class UI():
 
                 doc.sync()
             except Exception, e:
+                print >>sys.stderr, "  Error processing entry %s: %s" % (entry.key, e)
                 print >>sys.stderr
-                print >>sys.stderr, "Error processing entry %s: %s" % (entry.key, e)
-                print >>sys.stderr
-                nerrors += 1
+                errors.append(entry.key)
 
-        if nerrors > 0:
+        if errors:
             print >>sys.stderr
-            print >>sys.stderr, "Errors encountered processing bibtex."
+            print >>sys.stderr, "Failed to import %d" % (len(errors)),
+            if len(errors) == 1:
+                print >>sys.stderr, "entry",
+            else:
+                print >>sys.stderr, "entries",
+            print >>sys.stderr, "from bibtex:"
+            for error in errors:
+                print >>sys.stderr, "  %s" % (error)
             sys.exit(1)
         else:
             sys.exit(0)
