@@ -94,6 +94,10 @@ class Bibentry():
             fields[field] = unicode(clean_bib_string(bibfields[field]))
         return fields
 
+    def set_file(self, path):
+        # FIXME: what's the REAL proper format for this
+        self.entry.fields['file'] = ':%s:%s' % (path, 'pdf')
+
     def get_file(self):
         """Returns file path if file field exists.
 Expects either single path string or Mendeley/Jabref format."""
