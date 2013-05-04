@@ -144,11 +144,15 @@ class Document():
         """Sync document to database."""
         # FIXME: add value for modification time
         # FIXME: catch db not writable errors
-        self.db.replace_document(self.docid, self.doc)
-        self._make_docdir()
-        self._write_files()
-        self._write_bibfile()
-        self._write_tagfile()
+        try:
+            self._make_docdir()
+            self._write_files()
+            self._write_bibfile()
+            self._write_tagfile()
+            self.db.replace_document(self.docid, self.doc)
+        except:
+            self._rm_docdir()
+            raise
 
     def purge(self):
         """Purge document from database and root."""
