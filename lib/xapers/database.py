@@ -31,11 +31,19 @@ from documents import Documents, Document
 
 class DatabaseError(Exception):
     """Base class for Xapers database exceptions."""
-    def __init__(self, msg, code):
+    def __init__(self, msg):
         self.msg = msg
-        self.code = code
     def __str__(self):
         return self.msg
+
+class DatabaseUninitializedError(DatabaseError):
+    pass
+
+class DatabaseInitializationError(DatabaseError):
+    pass
+
+class DatabaseLockError(DatabaseError):
+    pass
 
 ##################################################
 
@@ -101,18 +109,21 @@ class Database():
             if create:
                 if os.path.exists(self.root):
                     if os.listdir(self.root) and not force:
-                        raise DatabaseError('Uninitialized Xapers root directory exists but is not empty.', 1)
+                        raise DatabaseInitializationError('Uninitialized Xapers root directory exists but is not empty.')
                 os.makedirs(xapers_path)
             else:
                 if os.path.exists(self.root):
-                    raise DatabaseError("Xapers directory '%s' does not contain database." % (self.root), 1)
+                    raise DatabaseUninitializedError("Xapers directory '%s' does not contain database." % (self.root))
                 else:
-                    raise DatabaseError("Xapers directory '%s' not found." % (self.root), 1)
+                    raise DatabaseUninitializedError("Xapers directory '%s' not found." % (self.root))
 
         # the Xapian db
         xapian_path = os.path.join(xapers_path, 'xapian')
         if writable:
-            self.xapian = xapian.WritableDatabase(xapian_path, xapian.DB_CREATE_OR_OPEN)
+            try:
+                self.xapian = xapian.WritableDatabase(xapian_path, xapian.DB_CREATE_OR_OPEN)
+            except xapian.DatabaseLockError:
+                raise DatabaseLockError("Xapers database locked.")
         else:
             self.xapian = xapian.Database(xapian_path)
 
