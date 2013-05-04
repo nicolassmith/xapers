@@ -86,6 +86,12 @@ Command line interface
 The main interface to Xapers is the xapers command line utility.  From
 this interface you can import documents, search, tag, etc.
 
+The "add" command allows importing or updating single documents with
+sources.  The "import" command allows importing an entire bibtex
+databases (.bib file).  If the bibtex entries include "file" fields
+(ala. Mendeley or Jabref), then those files are retrieved, indexed,
+and imported as well.
+
 Curses interface
 ----------------
 
