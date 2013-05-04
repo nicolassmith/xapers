@@ -291,17 +291,7 @@ class Search(urwid.WidgetWrap):
 
     def archive(self):
         """archive document (remove 'new' tag)"""
-        entry = self.listbox.get_focus()[0]
-        if not entry: return
-        with Database(self.ui.xroot, writable=True) as db:
-            doc = db[entry.docid]
-            tag = 'new'
-            msg = "Removed tag '%s'." % (tag)
-            doc.remove_tags([tag])
-            doc.sync()
-        tags = doc.get_tags()
-        entry.fields['tags'].set_text(' '.join(tags))
-        self.ui.set_status(msg)
+        self._promptTag_done('new', '-')
 
     def keypress(self, size, key):
         if key in self.keys:
