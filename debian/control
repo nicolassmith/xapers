@@ -23,16 +23,17 @@ Recommends:
  xdg-utils,
  xclip
 Description: Personal journal article management and indexing system.
- Xapers is a document indexing system, geared towards academic journal
- articles.  Think of it as a local cache of online libraries.  It
- provides fast search of document text and bibliographic data and
- simple document and bibtex retrieval.
+ Xapers is a personal document indexing system, geared towards
+ academic journal articles.  Think of it as your own personal document
+ search engine, or a local cache of online libraries.  It provides
+ fast search of document text and bibliographic data and simple
+ document and bibtex retrieval.
  .
- Document files (as PDF) and source identifiers (e.g. DOI) are parsed
- and indexed into a Xapian search engine.  Document text is extracted
- from the PDF and fully indexed.  Bibliographic information downloaded
- from online libraries is indexed as prefixed search terms.  Documents
- can be arbitrarily tagged.  Original document files are easily
- retrievable from a simple curses search UI.  The command line
+ Document files (in PDF format) and source identifiers (e.g. DOI) are
+ parsed and indexed into a Xapian search engine.  Document text is
+ extracted from the PDF and fully indexed.  Bibliographic information
+ downloaded from online libraries is indexed as prefixed search terms.
+ Documents can be arbitrarily tagged.  Original document files are
+ easily retrievable from a simple curses search UI.  The command line
  interface allows for exporting bibtex from arbitrary searches,
  allowing seemless integration into LaTeX work flows.
