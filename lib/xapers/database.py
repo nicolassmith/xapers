@@ -1,3 +1,23 @@
+"""
+This file is part of xapers.
+
+Xapers is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version.
+
+Xapers is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
+
+Copyright 2012, 2013
+Jameson Rollins <jrollins@finestructure.net>
+"""
+
 import os
 import sys
 import xapian
@@ -11,11 +31,19 @@ from documents import Documents, Document
 
 class DatabaseError(Exception):
     """Base class for Xapers database exceptions."""
-    def __init__(self, msg, code):
+    def __init__(self, msg):
         self.msg = msg
-        self.code = code
     def __str__(self):
         return self.msg
+
+class DatabaseUninitializedError(DatabaseError):
+    pass
+
+class DatabaseInitializationError(DatabaseError):
+    pass
+
+class DatabaseLockError(DatabaseError):
+    pass
 
 ##################################################
 
@@ -34,7 +62,7 @@ class Database():
             
     BOOLEAN_PREFIX_EXTERNAL = {
         'id': 'Q',
-        'bib': 'XBIB|',
+        'key': 'XBIB|',
         'source': 'XSOURCE|',
         'tag': 'K',
 
@@ -81,18 +109,21 @@ class Database():
             if create:
                 if os.path.exists(self.root):
                     if os.listdir(self.root) and not force:
-                        raise DatabaseError('Uninitialized Xapers root directory exists but is not empty.', 1)
+                        raise DatabaseInitializationError('Uninitialized Xapers root directory exists but is not empty.')
                 os.makedirs(xapers_path)
             else:
                 if os.path.exists(self.root):
-                    raise DatabaseError("Xapers directory '%s' does not contain database." % (self.root), 1)
+                    raise DatabaseUninitializedError("Xapers directory '%s' does not contain database." % (self.root))
                 else:
-                    raise DatabaseError("Xapers directory '%s' not found." % (self.root), 1)
+                    raise DatabaseUninitializedError("Xapers directory '%s' not found." % (self.root))
 
         # the Xapian db
         xapian_path = os.path.join(xapers_path, 'xapian')
         if writable:
-            self.xapian = xapian.WritableDatabase(xapian_path, xapian.DB_CREATE_OR_OPEN)
+            try:
+                self.xapian = xapian.WritableDatabase(xapian_path, xapian.DB_CREATE_OR_OPEN)
+            except xapian.DatabaseLockError:
+                raise DatabaseLockError("Xapers database locked.")
         else:
             self.xapian = xapian.Database(xapian_path)
 
@@ -173,12 +204,12 @@ class Database():
     # return a list of terms for prefix
     # FIXME: is this the fastest way to do this?
     def _get_terms(self, prefix):
-        list = []
+        terms = []
         for term in self.xapian:
             if term.term.find(prefix.encode("utf-8")) == 0:
                 index = len(prefix)
-                list.append(term.term[index:])
-        return list
+                terms.append(term.term[index:])
+        return terms
 
     def get_terms(self, name):
         """Get terms associate with name."""
@@ -204,6 +235,10 @@ class Database():
         else:
             # parse the query string to produce a Xapian::Query object.
             query = self.query_parser.parse_query(query_string)
+
+        if os.getenv('XAPERS_DEBUG_QUERY'):
+            print >>sys.stderr, "query string:", query_string
+            print >>sys.stderr, "final query:", query
 
         # FIXME: need to catch Xapian::Error when using enquire
         enquire.set_query(query)
@@ -242,6 +277,17 @@ class Database():
     def doc_for_path(self, path):
         """Return document for specified path."""
         term = self._find_prefix('file') + path
+        return self._doc_for_term(term)
+
+    def doc_for_source(self, sid):
+        """Return document for source id string."""
+        source, oid = sid.split(':', 1)
+        term = self._make_source_prefix(source) + oid
+        return self._doc_for_term(term)
+
+    def doc_for_bib(self, bibkey):
+        """Return document for bibtex key."""
+        term = self._find_prefix('key') + bibkey
         return self._doc_for_term(term)
 
     ########################################
@@ -297,9 +343,7 @@ class Database():
                 if dfile == 'bibtex':
                     if log:
                         print >>sys.stderr, '  adding bibtex'
-                    with open(dpath, 'r') as f:
-                        bibtex = f.read()
-                    doc.add_bibtex(bibtex)
+                    doc.add_bibtex(dpath)
                 elif os.path.splitext(dpath)[1] == '.pdf':
                     if log:
                         print >>sys.stderr, '  adding file:', dfile

@@ -2,31 +2,31 @@ db:
 * add values: publication date, entry creation time, mod time, etc.
 
 cli:
-* --output=sids
 * update should re-pull from existing source if available
+* export should produce full mirror of xapers document structure
 * needs simplification (script + module is clunky)
 * improve command line parsing
 
 nci:
 * how to test??
 * asyncronously load search results
-* add update/add command
+* update/add in search
 * better entry highlighting (full entry)
 * fail gracefully if db has changed
 * customizable keybindings
 * customizable palette
 
 sources:
-* allow for user source modules
+* allow for user source modules (inherit Source)
 * add method to download document file
 
 parser:
-* handle parse errros
-* better pdf parser
+* better handle parse errors
+* better pdf parser (native python: https://gist.github.com/pazz/5455090)
 * parsers for other document types
 
 bib:
-* include file path in bibtex
+* test for compiling bibtex
 * do something about "container-title" from doi
 * provide bib output in other formats
 
@@ -42,3 +42,12 @@ emacs UI
 
 packaging:
 * set version in setup.py
+
+BUGS
+====
+
+* nci: 'b' on doc with no bib produces traceback
+
+* capitalized prefixed terms are not searchable
+  - dcc:T00000
+  - key:HaEA2009a

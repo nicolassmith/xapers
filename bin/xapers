@@ -36,7 +36,7 @@ def usage():
     print """
 Commands:
 
-  import [options] [<search-terms>]   Import new document or update existing.
+  add [options] [<search-terms>]      Add a new document or update existing.
                                       If provided, search should match a single
                                       document.
     --source=<source>                   source, for retrieving bibtex
@@ -44,6 +44,7 @@ Commands:
     --tags=<tag>[,...]                  initial tags
     --prompt                            prompt for unspecified options
     --view                              view entry after adding
+  import <bibtex-file>                Import all entries from a bibtex database.
   delete <search-terms>               Delete documents from database.
     --noprompt                          do not prompt to confirm deletion
   restore                             Restore database from xapers root.
@@ -52,7 +53,7 @@ Commands:
                                       Add/remove tags.
 
   search [options] <search-terms>     Search for documents.
-    --output=[summary|bibtex|tags|sources|files]
+    --output=[summary|bibtex|tags|sources|keys|files]
                                         output format (default is 'summary')
     --limit=N                           limit number of results returned
                                         (default is 20, 0 for all)
@@ -94,6 +95,7 @@ Other definitions:
       tag:<tag>                specific user tags
       <source>:<id>            specific sid string
       source:<lib>             specific source
+      key:<key>                specific bibtex citation key
 
   The string '*' will match all documents."""
 
@@ -110,7 +112,7 @@ if __name__ == '__main__':
                       os.path.expanduser(os.path.join('~','.xapers','docs')))
 
     ########################################
-    if cmd in ['add','a','import','i','update','u']:
+    if cmd in ['add','a']:
         cli = xapers.cli.UI(xroot)
 
         tags = None
@@ -156,6 +158,36 @@ if __name__ == '__main__':
             xapers.nci.UI(xroot, cmd=['search', 'id:'+docid])
 
     ########################################
+    elif cmd in ['import','i']:
+        cli = xapers.cli.UI(xroot)
+
+        tags = []
+
+        argc = 2
+        while True:
+            if argc >= len(sys.argv):
+                break
+            elif '--tags=' in sys.argv[argc]:
+                tags = sys.argv[argc].split('=',1)[1].split(',')
+            elif '--overwrite' in sys.argv[argc]:
+                overwrite = True
+            else:
+                break
+            argc += 1
+
+        try:
+            bibfile = sys.argv[argc]
+        except IndexError:
+            print >>sys.stderr, "Must specify bibtex file to import."
+            sys.exit(1)
+
+        try:
+            cli.importbib(bibfile, tags=tags)
+        except KeyboardInterrupt:
+            print >>sys.stderr, ''
+            sys.exit(1)
+
+    ########################################
     elif cmd in ['update-all']:
         cli = xapers.cli.UI(xroot)
         cli.update_all()
@@ -175,7 +207,11 @@ if __name__ == '__main__':
             argc += 1
 
         cli = xapers.cli.UI(xroot)
-        cli.delete(make_query_string(sys.argv[argc:]), prompt=prompt)
+        try:
+            cli.delete(make_query_string(sys.argv[argc:]), prompt=prompt)
+        except KeyboardInterrupt:
+            print >>sys.stderr, ''
+            sys.exit(1)
 
     ########################################
     elif cmd in ['search','s']:
@@ -195,6 +231,10 @@ if __name__ == '__main__':
             else:
                 break
             argc += 1
+
+        if oformat not in ['summary','bibtex','tags','sources','keys','files']:
+                print >>sys.stderr, "Unknown output format."
+                sys.exit(1)
 
         query = make_query_string(sys.argv[argc:])
         try:
@@ -302,7 +342,11 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['source2bib','s2b']:
-        string = sys.argv[2]
+        try:
+            string = sys.argv[2]
+        except IndexError:
+            print >>sys.stderr, "Must specify source to retrieve."
+            sys.exit(1)
 
         try:
             smod = xapers.source.get_source(string)
@@ -320,17 +364,21 @@ if __name__ == '__main__':
             sys.exit(1)
 
         try:
-            print xapers.bibtex.Bibentry(bibtex).as_string()
+            print xapers.bibtex.Bibtex(bibtex)[0].as_string()
         except Exception, e:
-            print >>sys.stderr, "Error parsing bibtex:"
-            print >>sys.stderr, e
+            print >>sys.stderr, "Error parsing bibtex: %s" % e
             print >>sys.stderr, "Outputting raw..."
             print bibtex
             sys.exit(1)
 
     ########################################
     elif cmd in ['scandoc','sd']:
-        infile = sys.argv[2]
+        try:
+            infile = sys.argv[2]
+        except IndexError:
+            print >>sys.stderr, "Must specify document to scan."
+            sys.exit(1)
+
         sources = xapers.source.scan_for_sources(infile)
         for ss in sources:
             print "%s" % (ss)
@@ -346,6 +394,6 @@ if __name__ == '__main__':
 
     ########################################
     else:
-        print >>sys.stderr, "unknown sub command '%s'." % cmd
-        usage()
+        print >>sys.stderr, "Unknown command '%s'." % cmd
+        print >>sys.stderr, "See \"help\" for more information."
         sys.exit(1)

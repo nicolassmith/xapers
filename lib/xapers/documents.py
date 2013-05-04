@@ -14,17 +14,17 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 
-Copyright 2012
+Copyright 2012, 2013
 Jameson Rollins <jrollins@finestructure.net>
 """
 
 import os
-import sys
 import shutil
 import xapian
 
-import xapers.bibtex
-import xapers.source
+from parser import parse_file
+from source import get_source, scan_bibentry_for_sources
+from bibtex import Bibtex
 
 ##################################################
 
@@ -95,6 +95,9 @@ class Document():
         # specify a directory in the Xapers root for document data
         self.docdir = os.path.join(self.root, '%010d' % int(self.docid))
 
+        #
+        self.bibentry = None
+
     def get_docid(self):
         """Return document id of document."""
         return self.docid
@@ -116,7 +119,15 @@ class Document():
 
     def _write_bibfile(self):
         bibpath = self.get_bibpath()
-        if 'bibentry' in dir(self):
+        # reload bibtex only if we have new files
+        paths = self.get_fullpaths()
+        if paths:
+            self._load_bib()
+        if self.bibentry:
+            # we put only the first file in the bibtex
+            # FIXME: does jabref/mendeley spec allow for multiple files?
+            if paths and not self.bibentry.get_file():
+                self.bibentry.set_file(paths[0])
             self.bibentry.to_file(bibpath)
 
     def _write_tagfile(self):
@@ -201,14 +212,11 @@ class Document():
 
     # index file for the document
     def _index_file(self, path):
-        # FIXME: pick parser based on mime type
-        from .parsers import pdf as parser
-
-        text = parser.parse_file(path)
+        text = parse_file(path)
 
         self._gen_terms(None, text)
 
-        summary = text[0:997].translate(None,'\n') + '...'
+        summary = text[0:997].translate(None, '\n') + '...'
 
         return summary
 
@@ -274,7 +282,7 @@ File will not copied in to docdir until sync()."""
 
     def add_sid(self, sid):
         """Add source sid to document."""
-        source,oid = sid.split(':',1)
+        source, oid = sid.split(':', 1)
         source = source.lower()
         # remove any existing terms for this source
         self._purge_sources_prefix(source)
@@ -290,6 +298,12 @@ File will not copied in to docdir until sync()."""
             for oid in self._get_terms(self.db._make_source_prefix(source)):
                 sids.append('%s:%s' % (source, oid))
         return sids
+
+    # BIBTEX KEYS
+    def get_keys(self):
+        """Return a list of bibtex citation keys associated with document."""
+        prefix = self.db._find_prefix('key')
+        return self._get_terms(prefix)
 
     # TAGS
     def add_tags(self, tags):
@@ -342,7 +356,7 @@ File will not copied in to docdir until sync()."""
         return os.path.join(self.docdir, 'bibtex')
 
     def _set_bibkey(self, key):
-        prefix = self.db._find_prefix('bib')
+        prefix = self.db._find_prefix('key')
         for term in self._get_terms(prefix):
             self._remove_term(prefix, term)
         self._add_term(prefix, key)
@@ -359,27 +373,29 @@ File will not copied in to docdir until sync()."""
             # FIXME: better way to do this?
             self._set_authors(' '.join(authors))
 
-        for source in xapers.source.list_sources():
-            if source in fields:
-                self.add_sid('%s:%s' % (source, fields[source]))
-        # FIXME: how do we get around special exception for this?
-        if 'eprint' in fields:
-            self.add_sid('%s:%s' % ('arxiv', fields['eprint']))
+        # add any sources in the bibtex
+        for sid in scan_bibentry_for_sources(bibentry):
+            self.add_sid(sid)
+
+        # FIXME: index 'keywords' field as regular terms
 
         self._set_bibkey(bibentry.key)
 
-    def add_bibtex(self, bibtex):
-        """Add bibtex to document."""
-        self.bibentry = xapers.bibtex.Bibentry(bibtex)
+    def add_bibentry(self, bibentry):
+        """Add bibentry object."""
+        self.bibentry = bibentry
         self._index_bibentry(self.bibentry)
 
+    def add_bibtex(self, bibtex):
+        """Add bibtex to document, as string or file path."""
+        self.add_bibentry(Bibtex(bibtex)[0])
+
     def _load_bib(self):
-        if 'bibentry' in dir(self):
+        if self.bibentry:
             return
         bibpath = self.get_bibpath()
-        self.bibentry = None
         if os.path.exists(bibpath):
-            self.bibentry = xapers.bibtex.Bibentry(bibpath)
+            self.bibentry = Bibtex(bibpath)[0]
 
     def get_bibtex(self):
         """Get the bib for document as a bibtex string."""
@@ -420,7 +436,7 @@ File will not copied in to docdir until sync()."""
         urls = []
         # get urls associated with known sources
         for sid in self.get_sids():
-            smod = xapers.source.get_source(sid)
+            smod = get_source(sid)
             urls.append(smod.gen_url())
         # get urls from bibtex
         self._load_bib()

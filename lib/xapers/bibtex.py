@@ -14,30 +14,67 @@ def clean_bib_string(string):
         string = string.replace(char,'')
     return string
 
+##################################################
+
+class BibtexError(Exception):
+    """Base class for Xapers bibtex exceptions."""
+    def __init__(self, msg):
+        self.msg = msg
+    def __str__(self):
+        return self.msg
+
+##################################################
+
+class Bibtex():
+    """Represents a bibtex database."""
+
+    # http://www.bibtex.org/Format/
+
+    def __init__(self, bibtex):
+
+        parser = inparser.Parser(encoding='utf-8')
+
+        if os.path.exists(bibtex):
+            try:
+                bibdata = parser.parse_file(bibtex)
+            except Exception, e:
+                raise BibtexError('Error loading bibtex from file: %s' % e )
+        else:
+            try:
+                with io.StringIO(unicode(bibtex)) as stream:
+                    bibdata = parser.parse_stream(stream)
+            except Exception, e:
+                raise BibtexError('Error loading bibtex string: %s' % e )
+
+        self.keys = bibdata.entries.keys()
+        self.entries = bibdata.entries.values()
+
+        self.index = -1
+        self.max = len(self.entries)
+
+    def __getitem__(self, index):
+        key = self.keys[index]
+        entry = self.entries[index]
+        return Bibentry(key, entry)
+
+    def __iter__(self):
+        return self
+
+    def __len__(self):
+        return self.max
+
+    def next(self):
+        self.index = self.index + 1
+        if self.index == self.max:
+            raise StopIteration
+        return self[self.index]
+
+##################################################
 
 class Bibentry():
-    def __init__(self, bibtex=None, entry=None, key=None):
-        if entry and key:
-            self.entry = entry
-            self.key = key
-        elif bibtex:
-            parser = inparser.Parser(encoding='UTF-8')
-            if os.path.exists(bibtex):
-                self.bibdata = parser.parse_file(bibtex)
-            else:
-                stream = io.StringIO(unicode(bibtex.decode('utf-8')))
-                self.bibdata = parser.parse_stream(stream)
-                stream.close()
-            self.key = self.bibdata.entries.keys()[0]
-            self.entry = self.bibdata.entries.values()[0]
-        else:
-            # FIXME: do something here?
-            pass
-
-    def _entry2db(self):
-        db = pybtex.database.BibliographyData()
-        db.add_entry(self.key, self.entry)
-        return db
+    def __init__(self, key, entry):
+        self.key = key
+        self.entry = entry
 
     def get_authors(self):
         """Return a list of authors."""
@@ -57,30 +94,50 @@ class Bibentry():
             fields[field] = unicode(clean_bib_string(bibfields[field]))
         return fields
 
+    def set_file(self, path):
+        # FIXME: what's the REAL proper format for this
+        self.entry.fields['file'] = ':%s:%s' % (path, 'pdf')
+
+    def get_file(self):
+        """Returns file path if file field exists.
+Expects either single path string or Mendeley/Jabref format."""
+        try:
+            parsed = self.entry.fields['file'].split(':')
+            if len(parsed) > 1:
+                return parsed[1]
+            else:
+                return parsed[0]
+        except KeyError:
+            return None
+        except IndexError:
+            return None
+
+    def _entry2db(self):
+        db = pybtex.database.BibliographyData()
+        db.add_entry(self.key, self.entry)
+        return db
+
     def as_string(self):
         """Return entry as formatted bibtex string."""
         writer = outparser.Writer()
-        f = io.StringIO()
-        writer.write_stream(self._entry2db(), f)
-        string = f.getvalue()
-        f.close()
+        with io.StringIO() as stream:
+            writer.write_stream(self._entry2db(), stream)
+            string = stream.getvalue()
         string = string.strip()
         return string
 
     def to_file(self, path):
         """Write entry bibtex to file."""
-        writer = outparser.Writer()
+        writer = outparser.Writer(encoding='utf-8')
         writer.write_file(self._entry2db(), path)
 
+##################################################
 
-def data2bib(data, key):
+def data2bib(data, key, type='article'):
     """Convert a python dict into a Bibentry object."""
 
     if not data:
         return
-
-    # FIXME: what should this be for undefined?
-    btype = 'article'
 
     # need to remove authors field from data
     authors = None
@@ -92,24 +149,21 @@ def data2bib(data, key):
                 authors = authors[0].split(',')
         del data['authors']
 
-    entry = Entry(btype, fields=data)
+    entry = Entry(type, fields=data)
     if authors:
         for p in authors:
             entry.add_person(Person(p), 'author')
 
-    return Bibentry(entry=entry, key=key)
+    return Bibentry(key, entry)
 
 
-def json2bib(jsonstring, key):
+def json2bib(jsonstring, key, type='article'):
     """Convert a json string into a Bibentry object."""
 
     if not json:
         return
 
     data = json.loads(jsonstring)
-
-    # FIXME: determine this somehow
-    btype = 'article'
 
     # need to remove authors field from data
     authors = None
@@ -124,10 +178,10 @@ def json2bib(jsonstring, key):
     # delete other problematic fields
     del data['editor']
 
-    entry = Entry(btype, fields=data)
+    entry = Entry(type, fields=data)
 
     if authors:
         for author in authors:
             entry.add_person(Person(first=author['given'], last=author['family']), 'author')
 
-    return Bibentry(entry=entry, key=key)
+    return Bibentry(key, entry)

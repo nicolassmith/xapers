@@ -1,10 +1,8 @@
-import os
-import sys
 import re
 from urlparse import urlparse
 
 import xapers.sources
-import xapers.bibtex
+from parser import parse_file
 
 ##################################################
 
@@ -17,7 +15,7 @@ class SourceError(Exception):
 
 ##################################################
 
-class Source():
+class SourceBase():
     source = None
     netloc = None
     scan_regex = None
@@ -45,6 +43,7 @@ class Source():
 def list_sources():
     """List all available source modules."""
     sources = []
+    # FIXME: how do we register sources?
     for s in dir(xapers.sources):
         # skip the __init__ file when finding sources
         if '__' in s:
@@ -88,11 +87,9 @@ def get_source(string):
 
     return smod
 
-def scan_for_sources(file):
-    """Scan document file and return a list of source strings found
-    therein."""
-    from .parsers import pdf as parser
-    text = parser.parse_file(file)
+def scan_file_for_sources(file):
+    """Scan document file for source identifiers and return list of sid strings."""
+    text = parse_file(file)
     sources = []
     for source in list_sources():
         smod = _load_source(source)()
@@ -103,4 +100,16 @@ def scan_for_sources(file):
         if matches:
             for match in matches:
                 sources.append('%s:%s' % (smod.source.lower(), match))
+    return sources
+
+def scan_bibentry_for_sources(bibentry):
+    """Scan bibentry for source identifiers and return list of sid strings."""
+    fields = bibentry.get_fields()
+    sources = []
+    for source in list_sources():
+        if source in fields:
+            sources.append('%s:%s' % (source.lower(), fields[source]))
+    # FIXME: how do we get around special exception for this?
+    if 'eprint' in fields:
+        sources.append('%s:%s' % ('arxiv', fields['eprint']))
     return sources

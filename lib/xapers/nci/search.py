@@ -2,7 +2,7 @@ import os
 import subprocess
 import urwid
 
-from xapers.database import Database, DatabaseError
+from xapers.database import Database, DatabaseLockError
 
 ############################################################
 
@@ -140,6 +140,7 @@ class Search(urwid.WidgetWrap):
         for doc in docs:
             items.append(DocListItem(doc))
 
+        self.lenitems = len(items)
         self.listwalker = urwid.SimpleListWalker(items)
         self.listbox = urwid.ListBox(self.listwalker)
         w = self.listbox
@@ -152,6 +153,7 @@ class Search(urwid.WidgetWrap):
         """next entry"""
         entry, pos = self.listbox.get_focus()
         if not entry: return
+        if pos + 1 >= self.lenitems: return
         self.listbox.set_focus(pos + 1)
 
     def prevEntry(self):
@@ -270,33 +272,26 @@ class Search(urwid.WidgetWrap):
             self.ui.set_status('No tags set.')
             return
         entry = self.listbox.get_focus()[0]
-        with Database(self.ui.xroot, writable=True) as db:
-            doc = db[entry.docid]
-            tags = tag_string.split()
-            if sign is '+':
-                doc.add_tags(tags)
-                msg = "Added tags: %s" % (tag_string)
-            elif sign is '-':
-                doc.remove_tags(tags)
-                msg = "Removed tags: %s" % (tag_string)
-            doc.sync()
-        tags = doc.get_tags()
-        entry.fields['tags'].set_text(' '.join(tags))
+        try:
+            with Database(self.ui.xroot, writable=True) as db:
+                doc = db[entry.docid]
+                tags = tag_string.split()
+                if sign is '+':
+                    doc.add_tags(tags)
+                    msg = "Added tags: %s" % (tag_string)
+                elif sign is '-':
+                    doc.remove_tags(tags)
+                    msg = "Removed tags: %s" % (tag_string)
+                doc.sync()
+            tags = doc.get_tags()
+            entry.fields['tags'].set_text(' '.join(tags))
+        except DatabaseLockError as e:
+            msg = e.msg
         self.ui.set_status(msg)
 
     def archive(self):
         """archive document (remove 'new' tag)"""
-        entry = self.listbox.get_focus()[0]
-        if not entry: return
-        with Database(self.ui.xroot, writable=True) as db:
-            doc = db[entry.docid]
-            tag = 'new'
-            msg = "Removed tag '%s'." % (tag)
-            doc.remove_tags([tag])
-            doc.sync()
-        tags = doc.get_tags()
-        entry.fields['tags'].set_text(' '.join(tags))
-        self.ui.set_status(msg)
+        self._promptTag_done('new', '-')
 
     def keypress(self, size, key):
         if key in self.keys:

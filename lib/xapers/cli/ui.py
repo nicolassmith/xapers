@@ -14,20 +14,23 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 
-Copyright 2012
+Copyright 2012, 2013
 Jameson Rollins <jrollins@finestructure.net>
 """
 
 import os
 import sys
+import codecs
+SYS_STDOUT = sys.stdout
+sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 import sets
 import shutil
 import readline
-from subprocess import call
 
-from xapers.database import Database, DatabaseError
+from xapers.database import Database
 from xapers.documents import Document
-import xapers.bibtex as bibparse
+from xapers.parser import ParseError
+from xapers.bibtex import Bibtex, BibtexError
 import xapers.source
 
 ############################################################
@@ -35,10 +38,13 @@ import xapers.source
 def initdb(xroot, writable=False, create=False, force=False):
     try:
         return Database(xroot, writable=writable, create=create, force=force)
-    except DatabaseError as e:
+    except xapers.DatabaseUninitializedError as e:
         print >>sys.stderr, e.msg
-        print >>sys.stderr, 'Import a document to initialize.'
-        sys.exit(e.code)
+        print >>sys.stderr, "Import a document to initialize."
+        sys.exit(1)
+    except xapers.DatabaseError as e:
+        print >>sys.stderr, e.msg
+        sys.exit(1)
 
 ############################################################
 
@@ -104,7 +110,6 @@ class UI():
 
         doc = None
         bibtex = None
-        smod = None
 
         ##################################
         # open db and get doc
@@ -126,12 +131,6 @@ class UI():
         if prompt:
             infile = self.prompt_for_file(infile)
 
-        if infile:
-            infile = os.path.expanduser(infile)
-            if not os.path.exists(infile):
-                print >>sys.stderr, "Specified file '%s' not found." % infile
-                sys.exit(1)
-
         if prompt:
             sources = []
             if source:
@@ -139,8 +138,13 @@ class UI():
             # scan the file for source info
             if infile:
                 print >>sys.stderr, "Scanning document for source identifiers..."
-                ss = xapers.source.scan_for_sources(infile)
-                print >>sys.stderr, "%d source ids found:" % (len(sources))
+                try:
+                    ss = xapers.source.scan_file_for_sources(infile)
+                    print >>sys.stderr, "%d source ids found:" % (len(sources))
+                except ParseError, e:
+                    print >>sys.stderr, "\n"
+                    print >>sys.stderr, "Parse error: %s" % e
+                    sys.exit(1)
                 if len(sources) > 0:
                     for sid in ss:
                         print >>sys.stderr, "  %s" % (sid)
@@ -153,18 +157,11 @@ class UI():
             sys.exit(1)
 
         ##################################
-        # process source
+        # process source and get bibtex
 
-        # check if source is a file load bibtex from file
+        # check if source is a file, in which case interpret it as bibtex
         if source and os.path.exists(source):
-            try:
-                print >>sys.stderr, "Reading bibtex...",
-                with open(os.path.expanduser(source), 'r') as f:
-                    bibtex = f.read()
-                print >>sys.stderr, "done."
-            except:
-                print >>sys.stderr, "\n"
-                raise
+            bibtex = source
 
         elif source:
             try:
@@ -179,26 +176,14 @@ class UI():
                 sys.exit(1)
 
             # check that the source doesn't match an existing doc
-            for tdoc in self.db.search(sid):
-                if doc:
-                    if tdoc != doc:
-                        print >>sys.stderr, "Document already exists for source '%s'.  Aborting." % (sid)
-                        sys.exit(1)
-                else:
-                    print >>sys.stderr, "Updating existing document..."
-                    doc = tdoc
-                break
+            sdoc = self.db.doc_for_source(sid)
+            if sdoc:
+                if sdoc != doc:
+                    print >>sys.stderr, "Document already exists for source '%s'.  Aborting." % (sid)
+                    sys.exit(1)
+                print >>sys.stderr, "Updating existing document..."
+                doc = tdoc
 
-        ##################################
-
-        # if we still don't have a doc, create a new one
-        if not doc:
-            doc = Document(self.db)
-
-        ##################################
-        # not fetch the bibtex
-
-        if smod:
             try:
                 print >>sys.stderr, "Retrieving bibtex...",
                 bibtex = smod.get_bibtex()
@@ -209,24 +194,38 @@ class UI():
                 sys.exit(1)
 
         ##################################
-        # add stuff to the doc
 
-        if infile:
-            path = os.path.abspath(infile)
-            try:
-                print >>sys.stderr, "Adding file '%s'..." % (path),
-                # FIXME: check if file already exists?
-                doc.add_file(path)
-                print >>sys.stderr, "done."
-            except:
-                print >>sys.stderr, "\n"
-                raise
+        # if we still don't have a doc, create a new one
+        if not doc:
+            doc = Document(self.db)
+
+        ##################################
+        # add stuff to the doc
 
         if bibtex:
             try:
                 print >>sys.stderr, "Adding bibtex...",
                 doc.add_bibtex(bibtex)
                 print >>sys.stderr, "done."
+            except BibtexError, e:
+                print >>sys.stderr, "\n"
+                print >>sys.stderr, e
+                print >>sys.stderr, "Bibtex must be a plain text file with a single bibtex entry."
+                sys.exit(1)
+            except:
+                print >>sys.stderr, "\n"
+                raise
+
+        if infile:
+            path = os.path.abspath(infile)
+            try:
+                print >>sys.stderr, "Adding file '%s'..." % (path),
+                doc.add_file(path)
+                print >>sys.stderr, "done."
+            except ParseError, e:
+                print >>sys.stderr, "\n"
+                print >>sys.stderr, "Parse error: %s" % e
+                sys.exit(1)
             except:
                 print >>sys.stderr, "\n"
                 raise
@@ -253,6 +252,68 @@ class UI():
 
         print "id:%s" % doc.docid
         return doc.docid
+
+    ############################################
+
+    def importbib(self, bibfile, tags=[], overwrite=False):
+        self.db = initdb(self.xroot, writable=True, create=True)
+
+        errors = []
+
+        for entry in sorted(Bibtex(bibfile), key=lambda entry: entry.key):
+            print >>sys.stderr, entry.key
+
+            try:
+                docs = []
+
+                # check for doc with this bibkey
+                bdoc = self.db.doc_for_bib(entry.key)
+                if bdoc:
+                    docs.append(bdoc)
+
+                # check for known sids
+                for sid in xapers.source.scan_bibentry_for_sources(entry):
+                    sdoc = self.db.doc_for_source(sid)
+                    # FIXME: why can't we match docs in list?
+                    if sdoc and sdoc.docid not in [doc.docid for doc in docs]:
+                        docs.append(sdoc)
+
+                if len(docs) == 0:
+                    doc = Document(self.db)
+                elif len(docs) > 0:
+                    if len(docs) > 1:
+                        print >>sys.stderr, "  Multiple distinct docs found for entry.  Using first found."
+                    doc = docs[0]
+                    print >>sys.stderr, "  Updating id:%s..." % (doc.docid)
+
+                doc.add_bibentry(entry)
+
+                filepath = entry.get_file()
+                if filepath:
+                    print >>sys.stderr, "  Adding file: %s" % filepath
+                    doc.add_file(filepath)
+
+                doc.add_tags(tags)
+
+                doc.sync()
+            except Exception, e:
+                print >>sys.stderr, "  Error processing entry %s: %s" % (entry.key, e)
+                print >>sys.stderr
+                errors.append(entry.key)
+
+        if errors:
+            print >>sys.stderr
+            print >>sys.stderr, "Failed to import %d" % (len(errors)),
+            if len(errors) == 1:
+                print >>sys.stderr, "entry",
+            else:
+                print >>sys.stderr, "entries",
+            print >>sys.stderr, "from bibtex:"
+            for error in errors:
+                print >>sys.stderr, "  %s" % (error)
+            sys.exit(1)
+        else:
+            sys.exit(0)
 
     ############################################
 
@@ -296,7 +357,7 @@ class UI():
 
     ############################################
 
-    def search(self, query_string, oformat='simple', limit=None):
+    def search(self, query_string, oformat='summary', limit=None):
         self.db = initdb(self.xroot)
 
         if oformat == 'tags' and query_string == '*':
@@ -307,9 +368,15 @@ class UI():
             for source in self.db.get_sids():
                 print source
             return
+        if oformat == 'keys' and query_string == '*':
+            for key in self.db.get_terms('key'):
+                print key
+            return
 
         otags = set([])
         osources = set([])
+        okeys = set([])
+
         for doc in self.db.search(query_string, limit=limit):
             docid = doc.get_docid()
 
@@ -321,6 +388,7 @@ class UI():
 
             tags = doc.get_tags()
             sources = doc.get_sids()
+            keys = doc.get_keys()
 
             if oformat == 'tags':
                 otags = otags | set(tags)
@@ -328,17 +396,22 @@ class UI():
             if oformat == 'sources':
                 osources = osources | set(sources)
                 continue
+            if oformat == 'keys':
+                okeys = okeys | set(keys)
+                continue
 
             title = doc.get_title()
             if not title:
                 title = ''
 
             if oformat in ['summary']:
-                print "id:%s [%s] (%s) \"%s\"" % (docid,
-                                                   ' '.join(sources),
-                                                   ' '.join(tags),
-                                                   title,
-                                                   )
+                print "id:%s [%s] {%s} (%s) \"%s\"" % (
+                    docid,
+                    ' '.join(sources),
+                    ' '.join(keys),
+                    ' '.join(tags),
+                    title,
+                    )
                 continue
 
             if oformat == 'bibtex':
@@ -357,6 +430,10 @@ class UI():
         if oformat == 'sources':
             for source in osources:
                 print source
+            return
+        if oformat == 'keys':
+            for key in okeys:
+                print key
             return
 
     ############################################
@@ -386,10 +463,10 @@ class UI():
         except:
             pass
         for doc in self.db.search(query_string):
+            title = doc.get_title()
             origpaths = doc.get_fullpaths()
             nfiles = len(origpaths)
             for path in origpaths:
-                title = doc.get_title()
                 if not title:
                     name = os.path.basename(os.path.splitext(path)[0])
                 else:
@@ -401,7 +478,7 @@ class UI():
                 name += '.pdf'
                 outpath = os.path.join(outdir,name)
                 print outpath
-                shutil.copyfile(path, outpath)
+                shutil.copyfile(path, outpath.encode('utf-8'))
 
     ############################################
 

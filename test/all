@@ -1,19 +1,24 @@
 #!/usr/bin/env bash
 
-test_description='xapers.'
+test_description='basic command line usage.'
 
 . ./test-lib.sh
+
+################################################################
+
+# FIXME: update with source already in db
+# FIXME: add with prompting
 
 ################################################################
 
 test_expect_code 1 'fail search without database' \
     'xapers search tag:foo'
 
-test_expect_code 1 'fail to import without file or source' \
-    'xapers import --tags=new'
+test_expect_code 1 'fail to add without file or source' \
+    'xapers add --tags=new'
 
-test_expect_success 'import file without source' \
-    'xapers import \
+test_expect_success 'add file without source' \
+    'xapers add \
     --file=$DOC_DIR/1.pdf \
     --tags=new,foo'
 
@@ -27,12 +32,12 @@ new
 EOF
 test_expect_equal_file "$XAPERS_ROOT"/0000000001/tags EXPECTED
 
-test_expect_code 1 'fail to import non-bibtex file as source' \
-    'xapers import \
+test_expect_code 1 'fail to add non-bibtex file as source' \
+    'xapers add \
      --source=$DOC_DIR/1.pdf'
 
-test_expect_success 'import bib without file' \
-    'xapers import \
+test_expect_success 'add bib without file' \
+    'xapers add \
     --source=$DOC_DIR/2.bib \
     --tags=new,bar'
 
@@ -56,34 +61,37 @@ cat <<EOF >EXPECTED
 EOF
 test_expect_equal_file "$XAPERS_ROOT"/0000000002/bibtex EXPECTED
 
-test_expect_success 'import with file and bib' \
-    'xapers import \
+test_expect_success 'add with file and bib' \
+    'xapers add \
     --file=$DOC_DIR/3.pdf \
     --source=$DOC_DIR/3.bib \
     --tags=qux'
 
-test_expect_code 1 'fail to import non-existant file' \
-    'xapers import --file=foo.pdf'
+test_expect_code 1 'fail to add non-existant file' \
+    'xapers add --file=foo.pdf'
 
-test_expect_code 1 'fail to import non-existant source' \
-    'xapers import --source=foo.bib'
+test_expect_code 1 'fail to add non-existant source' \
+    'xapers add --source=foo.bib'
+
+test_expect_code 1 'fail to add non-bibtex file as source' \
+    'xapers add --source=$DOC_DIR/3.pdf'
 
 test_expect_code 1 'fail to add source doc already associated with different doc' \
     'xapers add --source=doi:10.9999/FOO.1 id:1'
 
 test_begin_subtest 'update doc with bib'
-xapers update --source=$DOC_DIR/1.bib id:1
+xapers add --source=$DOC_DIR/1.bib id:1
 xapers search id:1 >OUTPUT
 cat <<EOF >EXPECTED
-id:1 [arxiv:1234] (foo new) "Creation of the Universe"
+id:1 [arxiv:1234] {arxiv:1234} (foo new) "Creation of the Universe"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'update with different bib overwrites previous'
-xapers update --source=$DOC_DIR/1a.bib id:1
+xapers add --source=$DOC_DIR/1a.bib id:1
 xapers search id:1 >OUTPUT
 cat <<EOF >EXPECTED
-id:1 [arxiv:1235] (foo new) "Creation of the Universes"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -94,23 +102,20 @@ EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'update doc with file'
-xapers update --file=$DOC_DIR/2.pdf doi:10.9999/FOO.1
+xapers add --file=$DOC_DIR/2\ file.pdf doi:10.9999/FOO.1
 xapers search pellentesque >OUTPUT
 cat <<EOF >EXPECTED
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-# FIXME: test update when attempting to add with existing sid (sources?)
-# FIXME: add with prompting
-
-test_expect_success 'import bib without file' \
-    'xapers import \
+test_expect_success 'add bib without file' \
+    'xapers add \
     --source=$DOC_DIR/4.bib \
     --tags=new'
 
-test_expect_success 'import file without source' \
-    'xapers import \
+test_expect_success 'add file without source' \
+    'xapers add \
     --file=$DOC_DIR/5.pdf \
     --tags=new'
 
@@ -134,66 +139,92 @@ test_expect_code 1 'fail search without query' \
 test_begin_subtest 'search all'
 xapers search '*' >OUTPUT
 cat <<EOF >EXPECTED
-id:5 [] (new) ""
-id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
-id:3 [] (qux) "When the liver meats the pavement"
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
-id:1 [arxiv:1235] (foo new) "Creation of the Universes"
+id:5 [] {} (new) ""
+id:4 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search all pipe'
+xapers search '*' | cat >OUTPUT
+cat <<EOF >EXPECTED
+id:5 [] {} (new) ""
+id:4 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search all --limit'
 xapers search --limit=3 '*' >OUTPUT
 cat <<EOF >EXPECTED
-id:5 [] (new) ""
-id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
-id:3 [] (qux) "When the liver meats the pavement"
+id:5 [] {} (new) ""
+id:4 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search text'
 xapers search --output=summary lorem >OUTPUT
 cat <<EOF >EXPECTED
-id:5 [] (new) ""
-id:1 [arxiv:1235] (foo new) "Creation of the Universes"
+id:5 [] {} (new) ""
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_begin_subtest 'search title'
+test_begin_subtest 'search prefix title:'
 xapers search title:cavity >OUTPUT
 cat <<EOF >EXPECTED
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_begin_subtest 'search author'
+test_begin_subtest 'search prefix author:'
 xapers search author:cruise >OUTPUT
 cat <<EOF >EXPECTED
-id:1 [arxiv:1235] (foo new) "Creation of the Universes"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_begin_subtest 'search id'
+test_begin_subtest 'search prefix id:'
 xapers search id:3 >OUTPUT
 cat <<EOF >EXPECTED
-id:3 [] (qux) "When the liver meats the pavement"
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_begin_subtest 'search sid'
+test_begin_subtest 'search prefix <source>:'
 xapers search doi:10.9999/FOO.1 >OUTPUT
 cat <<EOF >EXPECTED
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_begin_subtest 'search tag'
+test_begin_subtest 'search prefix bib:'
+test_subtest_known_broken
+xapers search key:Good_Bad_Up_Down_Left_Right_et_al._2012 >OUTPUT
+cat <<EOF >EXPECTED
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search different prefix bib:'
+xapers search key:fake:1234 >OUTPUT
+cat <<EOF >EXPECTED
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search prefix tag:'
 xapers search tag:new >OUTPUT
 cat <<EOF >EXPECTED
-id:5 [] (new) ""
-id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
-id:1 [arxiv:1235] (foo new) "Creation of the Universes"
+id:5 [] {} (new) ""
+id:4 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -231,24 +262,42 @@ doi:10.9999/FOO.2
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
+test_begin_subtest 'search --output=keys'
+xapers search --output=keys tag:bar >OUTPUT
+cat <<EOF >EXPECTED
+Good_Bad_Up_Down_Left_Right_et_al._2012
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search --output=keys all'
+xapers search --output=keys '*' >OUTPUT
+cat <<EOF >EXPECTED
+30929234
+Good_Bad_Up_Down_Left_Right_et_al._2012
+arxiv:1235
+fake:1234
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
 test_begin_subtest 'search --output=files'
 xapers search --output=files '*' | sed "s|$XAPERS_ROOT|XAPERS_ROOT|" >OUTPUT
 cat <<EOF >EXPECTED
 XAPERS_ROOT/0000000005/5.pdf
 XAPERS_ROOT/0000000003/3.pdf
-XAPERS_ROOT/0000000002/2.pdf
+XAPERS_ROOT/0000000002/2 file.pdf
 XAPERS_ROOT/0000000001/1.pdf
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search --output=bibtex single'
-xapers search --output=bibtex tag:foo >OUTPUT
+xapers search --output=bibtex tag:foo | sed "s|$XAPERS_ROOT|XAPERS_ROOT|" >OUTPUT
 cat <<EOF >EXPECTED
 @article{
     arxiv:1235,
     author = "Dole, Bob and Cruise, Tim",
-    title = "Creation of the Universes",
+    title = "Creation of the γ-verses",
     eprint = "1235",
+    file = ":XAPERS_ROOT/0000000001/1.pdf:pdf",
     year = "2012"
 }
 
@@ -256,7 +305,7 @@ EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'bibtex multiple'
-xapers bibtex tag:new >OUTPUT
+xapers bibtex tag:new | sed "s|$XAPERS_ROOT|XAPERS_ROOT|" >OUTPUT
 cat <<EOF >EXPECTED
 @article{
     30929234,
@@ -279,6 +328,7 @@ cat <<EOF >EXPECTED
     number = "10",
     month = "Sep",
     volume = "29",
+    file = ":XAPERS_ROOT/0000000002/2 file.pdf:pdf",
     year = "2012",
     pages = "2092"
 }
@@ -286,8 +336,9 @@ cat <<EOF >EXPECTED
 @article{
     arxiv:1235,
     author = "Dole, Bob and Cruise, Tim",
-    title = "Creation of the Universes",
+    title = "Creation of the γ-verses",
     eprint = "1235",
+    file = ":XAPERS_ROOT/0000000001/1.pdf:pdf",
     year = "2012"
 }
 
@@ -306,7 +357,7 @@ test_begin_subtest 'add tag'
 xapers tag +baz -- tag:foo
 xapers search tag:baz >OUTPUT
 cat <<EOF >EXPECTED
-id:1 [arxiv:1235] (baz foo new) "Creation of the Universes"
+id:1 [arxiv:1235] {arxiv:1235} (baz foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -353,7 +404,7 @@ cat <<EOF | sort >EXPECTED
 TMP_DIRECTORY/export/5.pdf
 TMP_DIRECTORY/export/When_the_liver_meats_the_pavement.pdf
 TMP_DIRECTORY/export/Multicolor_cavity_sadness.pdf
-TMP_DIRECTORY/export/Creation_of_the_Universes.pdf
+TMP_DIRECTORY/export/Creation_of_the_γ-verses.pdf
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -364,7 +415,7 @@ xapers export "$TMP_DIRECTORY"/export lorem
 find "$TMP_DIRECTORY"/export -mindepth 1 | sed "s|$TMP_DIRECTORY|TMP_DIRECTORY|" | sort >OUTPUT
 cat <<EOF | sort >EXPECTED
 TMP_DIRECTORY/export/5.pdf
-TMP_DIRECTORY/export/Creation_of_the_Universes.pdf
+TMP_DIRECTORY/export/Creation_of_the_γ-verses.pdf
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -374,11 +425,11 @@ test_expect_success 'restore to existing db' \
 test_begin_subtest 'database intact after restore'
 xapers search '*' >OUTPUT
 cat <<EOF >EXPECTED
-id:5 [] (new) ""
-id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
-id:3 [] (qux) "When the liver meats the pavement"
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
-id:1 [arxiv:1235] (foo new) "Creation of the Universes"
+id:5 [] {} (new) ""
+id:4 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
@@ -394,36 +445,37 @@ test_expect_success 'restore purged db' \
 test_begin_subtest 'database intact after restore'
 xapers search '*' >OUTPUT
 cat <<EOF >EXPECTED
-id:5 [] (new) ""
-id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
-id:3 [] (qux) "When the liver meats the pavement"
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
-id:1 [arxiv:1235] (foo new) "Creation of the Universes"
+id:5 [] {} (new) ""
+id:4 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_begin_subtest 'delete document noprompt'
-xapers delete --noprompt id:1
+test_begin_subtest 'delete single document noprompt'
+xapers delete --noprompt id:2
 xapers search '*' >OUTPUT
 cat <<EOF >EXPECTED
-id:5 [] (new) ""
-id:4 [doi:10.9999/FOO.2] (new) "The Circle and the Square: Forbidden Love"
-id:3 [] (qux) "When the liver meats the pavement"
-id:2 [doi:10.9999/FOO.1] (bar new) "Multicolor cavity sadness"
+id:5 [] {} (new) ""
+id:4 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_begin_subtest 'delete document w/ prompt'
+test_begin_subtest 'delete document search w/ prompt'
 echo 'yes' | xapers delete lorem
 xapers search lorem >OUTPUT
 cat <<EOF >EXPECTED
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_expect_code 1 'check for deleted docdir' \
-    "test -d $XAPERS_ROOT/0000000001"
-
-# FIXME: test for multi delete
+test_expect_code 1 'check for deleted docdirs' "
+test -d $XAPERS_ROOT/0000000001 \
+|| test -d $XAPERS_ROOT/0000000002 \
+|| test -d $XAPERS_ROOT/0000000005
+"
 
 ################################################################
 

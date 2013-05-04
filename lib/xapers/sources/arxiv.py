@@ -1,6 +1,6 @@
 import urllib
 from HTMLParser import HTMLParser
-import xapers.bibtex as bibparse
+from xapers.bibtex import data2bib
 
 # html parser override to override handler methods
 class MyHTMLParser(HTMLParser):
@@ -25,7 +25,6 @@ class MyHTMLParser(HTMLParser):
             return
 
         for attr in attrs:
-            #print "     attr:", attr
             if attr[0] == 'name':
                 if attr[1] == 'citation_title':
                     title = True
@@ -41,7 +40,6 @@ class MyHTMLParser(HTMLParser):
                     self.title = attr[1]
                 if author:
                     self.author.append(attr[1])
-                    #self.author = self.author.append(attr[1])
                 if date:
                     self.year = attr[1].split('/')[0]
                 if sid:
@@ -108,5 +106,5 @@ class Source():
 
     def get_bibtex(self):
         data = self.get_data()
-        bibentry = bibparse.data2bib(data, self.get_sid())
+        bibentry = data2bib(data, self.get_sid())
         return bibentry.as_string()

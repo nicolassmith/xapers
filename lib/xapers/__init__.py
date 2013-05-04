@@ -17,3 +17,9 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright 2012
 Jameson Rollins <jrollins@finestructure.net>
 """
+
+from database import Database
+from database import DatabaseError
+from database import DatabaseUninitializedError
+from database import DatabaseLockError
+from documents import Documents, Document
