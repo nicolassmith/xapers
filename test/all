@@ -290,13 +290,14 @@ EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'search --output=bibtex single'
-xapers search --output=bibtex tag:foo >OUTPUT
+xapers search --output=bibtex tag:foo | sed "s|$XAPERS_ROOT|XAPERS_ROOT|" >OUTPUT
 cat <<EOF >EXPECTED
 @article{
     arxiv:1235,
     author = "Dole, Bob and Cruise, Tim",
     title = "Creation of the γ-verses",
     eprint = "1235",
+    file = ":XAPERS_ROOT/0000000001/1.pdf:pdf",
     year = "2012"
 }
 
@@ -304,7 +305,7 @@ EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'bibtex multiple'
-xapers bibtex tag:new >OUTPUT
+xapers bibtex tag:new | sed "s|$XAPERS_ROOT|XAPERS_ROOT|" >OUTPUT
 cat <<EOF >EXPECTED
 @article{
     30929234,
@@ -327,6 +328,7 @@ cat <<EOF >EXPECTED
     number = "10",
     month = "Sep",
     volume = "29",
+    file = ":XAPERS_ROOT/0000000002/2 file.pdf:pdf",
     year = "2012",
     pages = "2092"
 }
@@ -336,6 +338,7 @@ cat <<EOF >EXPECTED
     author = "Dole, Bob and Cruise, Tim",
     title = "Creation of the γ-verses",
     eprint = "1235",
+    file = ":XAPERS_ROOT/0000000001/1.pdf:pdf",
     year = "2012"
 }
 
