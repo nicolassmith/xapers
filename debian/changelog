@@ -1,3 +1,10 @@
+xapers (0.5-1) unstable; urgency=low
+
+  * New release.
+  * Update control description.
+
+ -- Jameson Rollins <jrollins@finestructure.net>  Sat, 04 May 2013 11:10:06 -0700
+
 xapers (0.4-1) unstable; urgency=low
 
   * New release.
