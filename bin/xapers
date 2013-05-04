@@ -207,7 +207,11 @@ if __name__ == '__main__':
             argc += 1
 
         cli = xapers.cli.UI(xroot)
-        cli.delete(make_query_string(sys.argv[argc:]), prompt=prompt)
+        try:
+            cli.delete(make_query_string(sys.argv[argc:]), prompt=prompt)
+        except KeyboardInterrupt:
+            print >>sys.stderr, ''
+            sys.exit(1)
 
     ########################################
     elif cmd in ['search','s']:
