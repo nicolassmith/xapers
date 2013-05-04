@@ -27,7 +27,7 @@ import sets
 import shutil
 import readline
 
-from xapers.database import Database, DatabaseError
+from xapers.database import Database
 from xapers.documents import Document
 from xapers.parser import ParseError
 from xapers.bibtex import Bibtex, BibtexError
@@ -38,10 +38,13 @@ import xapers.source
 def initdb(xroot, writable=False, create=False, force=False):
     try:
         return Database(xroot, writable=writable, create=create, force=force)
-    except DatabaseError as e:
+    except xapers.DatabaseUninitializedError as e:
         print >>sys.stderr, e.msg
-        print >>sys.stderr, 'Import a document to initialize.'
-        sys.exit(e.code)
+        print >>sys.stderr, "Import a document to initialize."
+        sys.exit(1)
+    except xapers.DatabaseError as e:
+        print >>sys.stderr, e.msg
+        sys.exit(1)
 
 ############################################################
 
