@@ -33,7 +33,9 @@ Description: Personal journal article management and indexing system.
  parsed and indexed into a Xapian search engine.  Document text is
  extracted from the PDF and fully indexed.  Bibliographic information
  downloaded from online libraries is indexed as prefixed search terms.
- Documents can be arbitrarily tagged.  Original document files are
- easily retrievable from a simple curses search UI.  The command line
+ Existing bibtex databases can be easily imported as well, including
+ import of pdf files specified in Jabref/Mendeley format.  Documents
+ can be arbitrarily tagged.  Original document files are easily
+ retrievable from a simple curses search UI.  The command line
  interface allows for exporting bibtex from arbitrary searches,
  allowing seemless integration into LaTeX work flows.
