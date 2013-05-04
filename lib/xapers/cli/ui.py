@@ -257,7 +257,7 @@ class UI():
 
         errors = []
 
-        for entry in sorted(Bibtex(bibfile)):
+        for entry in sorted(Bibtex(bibfile), key=lambda entry: entry.key):
             print >>sys.stderr, entry.key
 
             try:
