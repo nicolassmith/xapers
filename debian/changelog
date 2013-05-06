@@ -1,3 +1,9 @@
+xapers (0.5-2) UNRELEASED; urgency=low
+
+  * Fix missing dependency on python-pycurl (thanks Daniel Kahn Gillmor).
+
+ -- Jameson Rollins <jrollins@finestructure.net>  Sun, 05 May 2013 23:06:58 -0700
+
 xapers (0.5-1) unstable; urgency=low
 
   * New release.
