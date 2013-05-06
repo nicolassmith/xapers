@@ -1,8 +1,10 @@
-xapers (0.5-2) UNRELEASED; urgency=low
+xapers (0.5.1-1) unstable; urgency=low
 
   * Fix missing dependency on python-pycurl (thanks Daniel Kahn Gillmor).
+  * Rename xapers-importer -> xapers-adder.
+  * Add xapers-adder man page.
 
- -- Jameson Rollins <jrollins@finestructure.net>  Sun, 05 May 2013 23:06:58 -0700
+ -- Jameson Rollins <jrollins@finestructure.net>  Sun, 05 May 2013 23:36:36 -0700
 
 xapers (0.5-1) unstable; urgency=low
 
