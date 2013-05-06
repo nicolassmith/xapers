@@ -1,0 +1,39 @@
+.\" xapers - journal article indexing system
+.\"
+.\" Copyright © 2013 Jameson Rollins
+.\"
+.\" Xapers is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" Xapers is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see http://www.gnu.org/licenses/ .
+.\"
+.\" Author: Jameson Rollins <jrollins@finestructure.net>
+.TH XAPERS 1
+.SH NAME
+xapers-adder \- "gui" to import individual documents into Xapers database
+.SH SYNOPSIS
+.B xapers-adder
+.IR file.pdf
+.SH DESCRIPTION
+The specified PDF file is displayed (using \fBxdg-open\fR(1)), then a
+terminal is opened (\fBx-terminal-emulator\fR(1)) executing the
+following command:
+
+    xapers add --file=<file.pdf> --tags=new --prompt --view
+
+This program is useful to use as your PDF handler in your browser.
+
+See \fBxapers\fR(1) for more information.
+
+.SH CONTACT
+Feel free to email the author:
+
+    Jameson Rollins <jrollins@finestructure.net>

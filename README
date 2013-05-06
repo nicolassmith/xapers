@@ -20,8 +20,8 @@ allowing seamless integration into LaTeX work flows.
 
 Xapers provides source modules for some common online libraries:
 
-  * DOI        http://www.doi.org/
-  * arXiv      http://arxiv.org/
+  * DOI: http://www.doi.org/
+  * arXiv: http://arxiv.org/
 
 Contributions of additional library interface modules is highly
 encouraged.
@@ -37,28 +37,31 @@ Source
 
 Clone the repo:
 
-$ git clone git://finestructure.net/xapers
-$ cd xapers
+    $ git clone git://finestructure.net/xapers
+    $ cd xapers
 
-Dependencies:
+Dependencies :
   * python (>= 2.6)
   * python-xapian - Python Xapian search engine bindings
-  * pybtex - Python bibtex parser
   * poppler-utils - PDF processing tools
+  * pycurl - Python bindings to libcurl
+  * pybtex - Python bibtex parser
 
-Recommends (for curses UI):
+Recommends (for curses UI) :
   * python-urwid - Python Urwid curses library
   * xdg-utils - Desktop tools for opening files and URLs
   * xclip - X clipboard support for copying document fields
 
-$ sudo apt-get install python-xapian pybtex poppler-utils python-urwid xdg-utils xclip
+On Debian:
+
+    $ sudo apt-get install python-xapian poppler-utils python-pycurl pybtex python-urwid xdg-utils xclip
 
 Tests
 -----
 
 Run the tests:
 
-$ make test
+    $ make test
 
 Debian
 ------
@@ -67,13 +70,13 @@ Debian/Ubuntu snapshot packages can be easily made from the git
 source.  You can build the package from any branch but it requires an
 up-to-date local branch of origin/debian, e.g.:
 
-$ git branch debian origin/debian
+    $ git branch debian origin/debian
 
 Then:
 
-$ sudo apt-get install build-essential devscripts pkg-config python-all-dev python-setuptools debhelper dpkg-dev fakeroot
-$ make debian-snapshot
-$ sudo dpkg -i build/xapers_0.1_amd64.deb
+    $ sudo apt-get install build-essential devscripts pkg-config python-all-dev python-setuptools debhelper dpkg-dev fakeroot
+    $ make debian-snapshot
+    $ sudo dpkg -i build/xapers_0.1_amd64.deb
 
 
 Using Xapers
@@ -103,16 +106,16 @@ matching searches are displayed with their bibliographic information
 and a short text summary.  Document tags can be manipulated, files can
 be viewed, and source URLs can be opened in a browser.
 
-xapers-importer
----------------
+xapers-adder
+------------
 
-xapers-importer is a simple script that helps the importing of
-documents.  It can be used e.g. as a PDF handler in your favorite
-browser.  It displays the PDF then presents the user with the option
-to import the document into Xapers.  The user is prompted for any
-sources to retrieve and any initial tags to add.  If the source is
-known, bibtex is retrieved and indexed.  The resulting xapers entry
-for the document is displayed.
+xapers-adder is a simple script that helps the adding of individual
+documents to your Xapers database.  It can be used e.g. as a PDF
+handler in your favorite browser.  It displays the PDF then presents
+the user with the option to import the document into Xapers.  The user
+is prompted for any sources to retrieve and any initial tags to add.
+If the source is known, bibtex is retrieved and indexed.  The
+resulting xapers entry for the document is displayed.
 
 Development of more clever import methods is highly encouraged.
 
@@ -121,13 +124,13 @@ Python library
 
 Xapers is really a python library interface under the hood:
 
->>> import xapers
->>> db = xapers.Database('~/.xapers/docs')
->>> docs = db.search('tag:new')
->>> for doc in docs:
-        doc.add_tags(['foo'])
-        ...
->>> 
+    >>> import xapers
+    >>> db = xapers.Database('~/.xapers/docs')
+    >>> docs = db.search('tag:new')
+    >>> for doc in docs:
+            doc.add_tags(['foo'])
+            ...
+    >>> 
 
 Development of new interfaces to the underlying library is highly
 encouraged.

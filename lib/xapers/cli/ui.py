@@ -358,6 +358,11 @@ class UI():
     ############################################
 
     def search(self, query_string, oformat='summary', limit=None):
+
+        if oformat not in ['summary','bibtex','tags','sources','keys','files']:
+            print >>sys.stderr, "Unknown output format."
+            sys.exit(1)
+
         self.db = initdb(self.xroot)
 
         if oformat == 'tags' and query_string == '*':

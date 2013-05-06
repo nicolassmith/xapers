@@ -181,6 +181,10 @@ if __name__ == '__main__':
             print >>sys.stderr, "Must specify bibtex file to import."
             sys.exit(1)
 
+        if not os.path.exists(bibfile):
+            print >>sys.stderr, "File not found: %s" % bibfile
+            sys.exit(1)
+
         try:
             cli.importbib(bibfile, tags=tags)
         except KeyboardInterrupt:
@@ -231,10 +235,6 @@ if __name__ == '__main__':
             else:
                 break
             argc += 1
-
-        if oformat not in ['summary','bibtex','tags','sources','keys','files']:
-                print >>sys.stderr, "Unknown output format."
-                sys.exit(1)
 
         query = make_query_string(sys.argv[argc:])
         try:
