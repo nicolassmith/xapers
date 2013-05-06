@@ -43,8 +43,9 @@ Clone the repo:
 Dependencies :
   * python (>= 2.6)
   * python-xapian - Python Xapian search engine bindings
-  * pybtex - Python bibtex parser
   * poppler-utils - PDF processing tools
+  * pycurl - Python bindings to libcurl
+  * pybtex - Python bibtex parser
 
 Recommends (for curses UI) :
   * python-urwid - Python Urwid curses library
@@ -53,7 +54,7 @@ Recommends (for curses UI) :
 
 On Debian:
 
-    $ sudo apt-get install python-xapian pybtex poppler-utils python-urwid xdg-utils xclip
+    $ sudo apt-get install python-xapian poppler-utils python-pycurl pybtex python-urwid xdg-utils xclip
 
 Tests
 -----
@@ -105,16 +106,16 @@ matching searches are displayed with their bibliographic information
 and a short text summary.  Document tags can be manipulated, files can
 be viewed, and source URLs can be opened in a browser.
 
-xapers-importer
----------------
+xapers-adder
+------------
 
-xapers-importer is a simple script that helps the importing of
-documents.  It can be used e.g. as a PDF handler in your favorite
-browser.  It displays the PDF then presents the user with the option
-to import the document into Xapers.  The user is prompted for any
-sources to retrieve and any initial tags to add.  If the source is
-known, bibtex is retrieved and indexed.  The resulting xapers entry
-for the document is displayed.
+xapers-adder is a simple script that helps the adding of individual
+documents to your Xapers database.  It can be used e.g. as a PDF
+handler in your favorite browser.  It displays the PDF then presents
+the user with the option to import the document into Xapers.  The user
+is prompted for any sources to retrieve and any initial tags to add.
+If the source is known, bibtex is retrieved and indexed.  The
+resulting xapers entry for the document is displayed.
 
 Development of more clever import methods is highly encouraged.
 
