@@ -379,7 +379,13 @@ if __name__ == '__main__':
             print >>sys.stderr, "Must specify document to scan."
             sys.exit(1)
 
-        sources = xapers.source.scan_for_sources(infile)
+        try:
+            sources = xapers.source.scan_file_for_sources(infile)
+        except xapers.parser.ParseError as e:
+            print >>sys.stderr, "Parse error: %s" % e
+            print >>sys.stderr, "Is file '%s' a PDF?" % infile
+            sys.exit(1)
+
         for ss in sources:
             print "%s" % (ss)
 
