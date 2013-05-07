@@ -40,7 +40,7 @@ Commands:
                                       If provided, search should match a single
                                       document.
     --source=<source>                   source, for retrieving bibtex
-    --file=<file>                       file to index and archive
+    --file=<file>                       PDF file to index and archive
     --tags=<tag>[,...]                  initial tags
     --prompt                            prompt for unspecified options
     --view                              view entry after adding
@@ -67,7 +67,7 @@ Commands:
   sources                             List available sources.
   source2bib <source>                 Retrieve bibtex for source and
                                       print to stdout.
-  scandoc <file>                      Scan a file for source IDs.
+  scandoc <file>                      Scan PDF file for source IDs.
 
   version                             Print version number.
   help                                This help.
