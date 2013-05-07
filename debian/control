@@ -8,6 +8,8 @@ Build-Depends:
  python-setuptools,
  debhelper (>= 9)
 Standards-Version: 3.9.4
+Homepage: http://finestructure.net/xapers
+Vcs-Git: git://finestructure.net/xapers
 
 Package: xapers
 Architecture: any
