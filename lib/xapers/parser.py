@@ -16,9 +16,6 @@ class ParserBase():
     def __init__(self, path):
         self.path = os.path.expanduser(path)
 
-        if not os.path.exists(self.path):
-            raise ParseError("File %s not found." % self.path)
-
     def extract(self):
         pass
 
@@ -33,6 +30,13 @@ def parse_file(path):
         pmod = getattr(mod, 'Parser')
     except ImportError:
         raise ParseError("Unknown parser '%s'." % mimetype)
+
+
+    if not os.path.exists(path):
+        raise ParseError("File '%s' not found." % path)
+
+    if not os.path.isfile(path):
+        raise ParseError("File '%s' is not a regular file." % path)
 
     try:
         text = pmod(path).extract()
