@@ -78,19 +78,6 @@ Then:
     $ make debian-snapshot
     $ sudo dpkg -i build/xapers_0.1_amd64.deb
 
-Contact
--------
-
-Xapers was written by:
-
-  Jameson Graef Rollins <jrollins@finestructure.net>
-
-Feel free to contact him directly with any questions, comments,
-feedback, patches, etc.  He also hangs out on IRC:
-
-  server:   irc.freenode.net
-  channel:  #xapers
-
 
 Using Xapers
 ============
@@ -147,3 +134,17 @@ Xapers is really a python library interface under the hood:
 
 Development of new interfaces to the underlying library is highly
 encouraged.
+
+
+Contact
+=======
+
+Xapers was written by:
+
+    Jameson Graef Rollins <jrollins@finestructure.net>
+
+Feel free to contact him directly with any questions, comments,
+feedback, patches, etc.  He also hangs out on IRC:
+
+    server:   irc.freenode.net
+    channel:  #xapers
