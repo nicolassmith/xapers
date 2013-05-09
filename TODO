@@ -2,6 +2,7 @@ db:
 * add values: publication date, entry creation time, mod time, etc.
 
 cli:
+* utilize meta-data pulled from parser
 * update should re-pull from existing source if available
 * export should produce full mirror of xapers document structure
 * needs simplification (script + module is clunky)
@@ -21,6 +22,7 @@ sources:
 * add method to download document file
 
 parser:
+* extract any metadata from pdfs
 * better handle parse errors
 * better pdf parser (native python: https://gist.github.com/pazz/5455090)
 * parsers for other document types
