@@ -2,6 +2,8 @@
 
 import os
 import sys
+import pkg_resources
+
 import xapers
 import xapers.cli
 import xapers.source
@@ -390,8 +392,8 @@ if __name__ == '__main__':
             print "%s" % (ss)
 
     ########################################
-    elif cmd in ['version']:
-        print "Ha!"
+    elif cmd in ['version','--version','-v']:
+        print 'xapers', pkg_resources.get_distribution('xapers').version
 
     ########################################
     elif cmd in ['help','h']:
