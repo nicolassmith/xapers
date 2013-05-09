@@ -2,6 +2,8 @@
 
 VERSION:=$(shell git describe --tags | sed -e s/_/~/ -e s/-/+/ -e s/-/~/)
 
+PV_FILE=lib/xapers/version.py
+
 .PHONY: all
 all:
 
@@ -11,14 +13,16 @@ test:
 
 .PHONY: update-version
 update-version:
-	echo "__version__ = '$(VERSION)'" >lib/xapers/version.py
+	echo "__version__ = '$(VERSION)'" >$(PV_FILE)
 
 .PHONY: release
 ifdef V
 update-version: VERSION:=$(V)
+release: VERSION:=$(V)
 release: update-version
 	make test
-	git tag --sign -m "Xapers $(VERSION) release." $(V)
+	git commit -m "Update version for release $(VERSION)." $(PV_FILE)
+	git tag --sign -m "Xapers $(VERSION) release." $(VERSION)
 else
 release:
 	git tag -l | grep -v debian/
