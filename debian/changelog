@@ -1,4 +1,10 @@
-xapers (0.5.1-1) unstable; urgency=low
+xapers (0.5.2-1) unstable; urgency=low
+
+  * New release.  Update dependencies.
+
+ -- Jameson Rollins <jrollins@finestructure.net>  Thu, 09 May 2013 00:09:20 -0700
+
+Xapers (0.5.1-1) unstable; urgency=low
 
   * Fix missing dependency on python-pycurl (thanks Daniel Kahn Gillmor).
   * Rename xapers-importer -> xapers-adder.

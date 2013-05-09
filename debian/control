@@ -17,6 +17,7 @@ Depends:
  ${shlibs:Depends},
  ${misc:Depends},
  ${python:Depends},
+ python-pkg-resources,
  python-xapian,
  poppler-utils,
  python-pycurl,
