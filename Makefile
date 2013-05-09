@@ -9,6 +9,10 @@ all:
 test:
 	./test/xapers-test
 
+.PHONY: update-version
+update-version:
+	echo "__version__ = '$(VERSION)'" >lib/xapers/version.py
+
 .PHONY: debian-snapshot
 debian-snapshot:
 	rm -rf build/snapshot
