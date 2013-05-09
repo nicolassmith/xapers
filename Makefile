@@ -19,6 +19,7 @@ debian-snapshot:
 	mkdir -p build/snapshot/debian
 	git archive HEAD | tar -x -C build/snapshot/
 	git archive debian:debian | tar -x -C build/snapshot/debian/
+	cd build/snapshot; make update-version
 	cd build/snapshot; dch -b -v $(VERSION) -D UNRELEASED 'test build, not for upload'
 	cd build/snapshot; echo '3.0 (native)' > debian/source/format
 	cd build/snapshot; debuild -us -uc
