@@ -13,6 +13,17 @@ test:
 update-version:
 	echo "__version__ = '$(VERSION)'" >lib/xapers/version.py
 
+.PHONY: release
+ifdef V
+update-version: VERSION:=$(V)
+release: update-version
+	make test
+	git tag --sign -m "Xapers $(VERSION) release." $(V)
+else
+release:
+	git tag -l | grep -v debian/
+endif
+
 .PHONY: debian-snapshot
 debian-snapshot:
 	rm -rf build/snapshot
