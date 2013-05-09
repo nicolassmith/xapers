@@ -1,7 +1,7 @@
 Source: xapers
 Section: python
 Priority: optional
-Maintainer: Jameson Graef Rollins <jrollins@finestructure.net>
+Maintainer: Jameson Rollins <jrollins@finestructure.net>
 Build-Depends:
  pkg-config,
  python-all-dev (>= 2.6.6-3~),
