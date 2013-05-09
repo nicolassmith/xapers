@@ -2,9 +2,11 @@
 
 from distutils.core import setup
 
+execfile('lib/xapers/version.py')
+
 setup(
     name = 'xapers',
-    version = '0.0',
+    version = __version__,
     description = 'Xapian article indexing system.',
     author = 'Jameson Rollins',
     author_email = 'jrollins@finestructure.net',
