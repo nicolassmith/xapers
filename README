@@ -32,6 +32,28 @@ Xapers is heavily inspired by the notmuch mail indexing system [2].
 [1] http://www.bibtex.org/
 [2] http://notmuchmail.org/
 
+
+Contact
+=======
+
+Xapers was written by:
+
+    Jameson Graef Rollins <jrollins@finestructure.net>
+
+Xapers has a mailing list:
+
+    xapers@lists.mayfirst.org
+    https://lists.mayfirst.org/mailman/listinfo/xapers
+
+We also hang out on IRC:
+
+    server:  irc.freenode.net
+    channel: #xapers
+
+
+Getting Xapers
+==============
+
 Source
 ------
 
@@ -55,9 +77,6 @@ Recommends (for curses UI) :
 On Debian:
 
     $ sudo apt-get install python-xapian poppler-utils python-pycurl pybtex python-urwid xdg-utils xclip
-
-Tests
------
 
 Run the tests:
 
@@ -134,17 +153,3 @@ Xapers is really a python library interface under the hood:
 
 Development of new interfaces to the underlying library is highly
 encouraged.
-
-
-Contact
-=======
-
-Xapers was written by:
-
-    Jameson Graef Rollins <jrollins@finestructure.net>
-
-Feel free to contact him directly with any questions, comments,
-feedback, patches, etc.  He also hangs out on IRC:
-
-    server:   irc.freenode.net
-    channel:  #xapers
