@@ -119,7 +119,8 @@ class UI():
         # if query provided, find single doc to update
         if query_string:
             if self.db.count(query_string) != 1:
-                print >>sys.stderr, "Search did not match a single document.  Aborting."
+                print >>sys.stderr, "Search '%s' did not match a single document." % query_string
+                print >>sys.stderr, "Aborting."
                 sys.exit(1)
 
             for doc in self.db.search(query_string):
@@ -178,11 +179,12 @@ class UI():
             # check that the source doesn't match an existing doc
             sdoc = self.db.doc_for_source(sid)
             if sdoc:
-                if sdoc != doc:
-                    print >>sys.stderr, "Document already exists for source '%s'.  Aborting." % (sid)
+                if doc and sdoc != doc:
+                    print >>sys.stderr, "A different document already exists for source '%s'." % (sid)
+                    print >>sys.stderr, "Aborting."
                     sys.exit(1)
-                print >>sys.stderr, "Updating existing document..."
-                doc = tdoc
+                print >>sys.stderr, "Source '%s' found in database.  Updating existing document..." % (sid)
+                doc = sdoc
 
             try:
                 print >>sys.stderr, "Retrieving bibtex...",
