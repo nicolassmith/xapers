@@ -24,12 +24,7 @@ import urwid
 
 import subprocess
 
-# FIXME: what the hell?  Why do we have to do this?
-# it's because of
-# sys.stdout = codecs.getwriter('utf8')(sys.stdout)
-# in cli.ui, but i don't understand why
-from xapers.cli.ui import initdb, SYS_STDOUT
-sys.stdout = SYS_STDOUT
+from xapers.cli.ui import initdb
 
 from search import Search
 from bibview import Bibview
