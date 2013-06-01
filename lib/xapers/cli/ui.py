@@ -21,8 +21,6 @@ Jameson Rollins <jrollins@finestructure.net>
 import os
 import sys
 import codecs
-SYS_STDOUT = sys.stdout
-sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 import sets
 import shutil
 import readline
@@ -34,6 +32,11 @@ from xapers.bibtex import Bibtex, BibtexError
 import xapers.source
 
 ############################################################
+
+def set_stdout_codec():
+    # set the stdout codec to properly handle utf8 characters
+    SYS_STDOUT = sys.stdout
+    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 
 def initdb(xroot, writable=False, create=False, force=False):
     try:
@@ -77,6 +80,7 @@ class UI():
         readline.parse_and_bind("tab: complete")
         completer = Completer(sources)
         readline.set_completer(completer.terms)
+        readline.set_completer_delims(' ')
         source = raw_input('source: ')
         if source == '':
             source = None
@@ -96,6 +100,7 @@ class UI():
         readline.parse_and_bind("tab: complete")
         completer = Completer(itags)
         readline.set_completer(completer.terms)
+        readline.set_completer_delims(' ')
         while True:
             tag = raw_input('tag: ')
             if tag and tag != '':
@@ -119,7 +124,8 @@ class UI():
         # if query provided, find single doc to update
         if query_string:
             if self.db.count(query_string) != 1:
-                print >>sys.stderr, "Search did not match a single document.  Aborting."
+                print >>sys.stderr, "Search '%s' did not match a single document." % query_string
+                print >>sys.stderr, "Aborting."
                 sys.exit(1)
 
             for doc in self.db.search(query_string):
@@ -140,15 +146,20 @@ class UI():
                 print >>sys.stderr, "Scanning document for source identifiers..."
                 try:
                     ss = xapers.source.scan_file_for_sources(infile)
-                    print >>sys.stderr, "%d source ids found:" % (len(sources))
                 except ParseError, e:
                     print >>sys.stderr, "\n"
                     print >>sys.stderr, "Parse error: %s" % e
                     sys.exit(1)
-                if len(sources) > 0:
+                if len(ss) > 0:
+                    if len(ss) == 1:
+                        print >>sys.stderr, "1 source id found:"
+                    else:
+                        print >>sys.stderr, "%d source ids found:" % (len(ss))
                     for sid in ss:
                         print >>sys.stderr, "  %s" % (sid)
                     sources += ss
+                else:
+                    print >>sys.stderr, "0 source ids found."
             source = self.prompt_for_source(sources)
             tags = self.prompt_for_tags(tags)
 
@@ -178,11 +189,12 @@ class UI():
             # check that the source doesn't match an existing doc
             sdoc = self.db.doc_for_source(sid)
             if sdoc:
-                if sdoc != doc:
-                    print >>sys.stderr, "Document already exists for source '%s'.  Aborting." % (sid)
+                if doc and sdoc != doc:
+                    print >>sys.stderr, "A different document already exists for source '%s'." % (sid)
+                    print >>sys.stderr, "Aborting."
                     sys.exit(1)
-                print >>sys.stderr, "Updating existing document..."
-                doc = tdoc
+                print >>sys.stderr, "Source '%s' found in database.  Updating existing document..." % (sid)
+                doc = sdoc
 
             try:
                 print >>sys.stderr, "Retrieving bibtex...",
@@ -363,6 +375,8 @@ class UI():
             print >>sys.stderr, "Unknown output format."
             sys.exit(1)
 
+        set_stdout_codec()
+
         self.db = initdb(self.xroot)
 
         if oformat == 'tags' and query_string == '*':
@@ -444,6 +458,8 @@ class UI():
     ############################################
 
     def count(self, query_string):
+        set_stdout_codec()
+
         self.db = initdb(self.xroot)
 
         count = self.db.count(query_string)
@@ -452,6 +468,8 @@ class UI():
     ############################################
 
     def dumpterms(self, query_string):
+        set_stdout_codec()
+
         self.db = initdb(self.xroot)
 
         for doc in self.db.search(query_string):
@@ -461,6 +479,8 @@ class UI():
     ############################################
 
     def export(self, outdir, query_string):
+        set_stdout_codec()
+
         self.db = initdb(self.xroot)
 
         try:

@@ -162,9 +162,10 @@ class Database():
         pass
 
     def __getitem__(self, docid):
+        docid = str(docid)
         if docid.find('id:') == 0:
             docid = docid.split(':')[1]
-        term = self._find_prefix('id') + str(docid)
+        term = self._find_prefix('id') + docid
         return self._doc_for_term(term)
 
     ########################################

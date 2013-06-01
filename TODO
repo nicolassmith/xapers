@@ -1,5 +1,10 @@
 db:
 * add values: publication date, entry creation time, mod time, etc.
+* use bib abstract as data if available?
+
+doc:
+* add ability to remove source sid
+* add ability to replace/remove file
 
 cli:
 * utilize meta-data pulled from parser
@@ -42,8 +47,6 @@ emacs UI
 * clear old indexed terms when importing new file/bib?
 * vcs integration (git of root)?
 
-packaging:
-* set version in setup.py
 
 BUGS
 ====

@@ -1,8 +1,15 @@
 #!/bin/bash -e
 
 if [ -z "$1" ] || [[ "$1" == '--help' ]] || [[ "$1" == '-h' ]]; then
-    echo "usage: $(basename $0) <file.pdf>" >&2
+    echo "usage: $(basename $0) [--noterm] <file.pdf>" >&2
     exit 1
+fi
+
+if [[ "$1" == '--noterm' ]]; then
+    term=false
+    shift
+else
+    term=true
 fi
 
 infile="$1"
@@ -13,13 +20,22 @@ if [ ! -e "$infile" ] ;then
 fi
 
 # open the file with preferred application
-xdg-open "$infile" &
+nohup xdg-open "$infile" &>/dev/null &
 
-# prompt for xapers import
-x-terminal-emulator \
-    -title "xapers-adder" \
-    -e bash -c "
-echo 'Type C-c at any time to cancel.'
-xapers add --file=\"$infile\" --tags=new --prompt --view
-read -N1 -p 'any key to quit:' OK
+cmd="
+echo 'Xapers-adder'
+echo '============'
+echo 'Type C-c at any time to cancel...'
+echo
+if ! xapers add --file=\"$infile\" --tags=new --prompt --view; then
+    read -N1 -p 'any key to quit:' OK
+fi
 "
+
+if [[ "$term" == 'true' ]] ; then
+    exec x-terminal-emulator \
+	-title "xapers-adder" \
+	-e bash -c "$cmd"
+else
+    eval "$cmd"
+fi
