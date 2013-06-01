@@ -77,6 +77,7 @@ class UI():
         readline.parse_and_bind("tab: complete")
         completer = Completer(sources)
         readline.set_completer(completer.terms)
+        readline.set_completer_delims(' ')
         source = raw_input('source: ')
         if source == '':
             source = None
@@ -96,6 +97,7 @@ class UI():
         readline.parse_and_bind("tab: complete")
         completer = Completer(itags)
         readline.set_completer(completer.terms)
+        readline.set_completer_delims(' ')
         while True:
             tag = raw_input('tag: ')
             if tag and tag != '':
