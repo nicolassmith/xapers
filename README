@@ -1,5 +1,5 @@
-Xapers
-======
+Xapers - personal journal article management system
+===================================================
 
 Xapers is a personal document indexing system, geared towards academic
 journal articles.  Think of it as your own personal document search
@@ -47,8 +47,8 @@ Xapers has a mailing list:
 
 We also hang out on IRC:
 
-    server:  irc.freenode.net
     channel: #xapers
+    server:  irc.oftc.net
 
 
 Getting Xapers
