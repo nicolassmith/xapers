@@ -1,14 +1,10 @@
 db:
 * add values: publication date, entry creation time, mod time, etc.
+* use bib abstract as data if available?
 
 doc:
 * add ability to remove source sid
 * add ability to replace/remove file
-* what to do with doc 'data' field:
-  * snippet/summary (current)
-  * bib abstract
-  * custom annotations/notes
-  * nothing
 
 cli:
 * utilize meta-data pulled from parser
@@ -19,8 +15,6 @@ cli:
 
 nci:
 * how to test??
-* add indicator that file is available
-* display bib or summary, not both
 * asyncronously load search results
 * update/add in search
 * better entry highlighting (full entry)
@@ -49,6 +43,7 @@ emacs UI
 ?
 * rename file when importing and copying into docdir?
 * store bib in different form (json instead of bibtex)?
+* should something other than summary go in document "data"?
 * clear old indexed terms when importing new file/bib?
 * vcs integration (git of root)?
 

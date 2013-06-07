@@ -379,16 +379,17 @@ class UI():
 
         self.db = initdb(self.xroot)
 
-        if query_string == '*':
-            if oformat == 'tags' and 
-                for tag in self.db.get_terms('tag'):
-                    print tag
-            elif oformat == 'sources':
-                for source in self.db.get_sids():
-                    print source
-            elif oformat == 'keys':
-                for key in self.db.get_terms('key'):
-                    print key
+        if oformat == 'tags' and query_string == '*':
+            for tag in self.db.get_terms('tag'):
+                print tag
+            return
+        if oformat == 'sources' and query_string == '*':
+            for source in self.db.get_sids():
+                print source
+            return
+        if oformat == 'keys' and query_string == '*':
+            for key in self.db.get_terms('key'):
+                print key
             return
 
         otags = set([])
