@@ -30,6 +30,7 @@ nci:
 
 sources:
 * allow for user source modules (inherit Source)
+* add 'hdl': http://handle.net/proxy.html
 * add method to download document file
 
 parser:
