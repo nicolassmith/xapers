@@ -9,6 +9,6 @@ class Parser(ParserBase):
 
         cmd = ['pdftotext', path, '-']
 
-        text = check_output(' '.join(cmd), shell=True, stderr=open('/dev/null','w'))
+        text = check_output(cmd, stderr=open('/dev/null','w'))
 
         return text

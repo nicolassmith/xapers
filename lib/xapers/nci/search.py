@@ -14,8 +14,7 @@ def xclip(text, isfile=False):
         sin = f
     else:
         sin = subprocess.PIPE
-    p = subprocess.Popen(' '.join(["xclip", "-i"]),
-                         shell=True,
+    p = subprocess.Popen(["xclip", "-i"],
                          stdin=sin)
     p.communicate(text)
     if f:
@@ -171,15 +170,15 @@ class Search(urwid.WidgetWrap):
         if not path:
             self.ui.set_status('No file for document id:%s.' % entry.docid)
             return
-        path = path[0].replace(' ','\ ')
+        path = path[0]
         if not os.path.exists(path):
             self.ui.set_status('ERROR: id:%s: file not found.' % entry.docid)
             return
         self.ui.set_status('opening file: %s...' % path)
-        subprocess.call(' '.join(['nohup', 'xdg-open', path, '&']),
-                        shell=True,
-                        stdout=open('/dev/null','w'),
-                        stderr=open('/dev/null','w'))
+        subprocess.Popen(['xdg-open', path],
+                         stdin=self.ui.devnull,
+                         stdout=self.ui.devnull,
+                         stderr=self.ui.devnull)
 
     def viewURL(self):
         """open document URL in browser"""
@@ -192,10 +191,10 @@ class Search(urwid.WidgetWrap):
         # FIXME: open all instead of just first?
         url = urls[0]
         self.ui.set_status('opening url: %s...' % url)
-        subprocess.call(' '.join(['nohup', 'xdg-open', url, '&']),
-                        shell=True,
-                        stdout=open('/dev/null','w'),
-                        stderr=open('/dev/null','w'))
+        subprocess.call(['xdg-open', url],
+                         stdin=self.ui.devnull,
+                         stdout=self.ui.devnull,
+                         stderr=self.ui.devnull)
 
     def viewBibtex(self):
         """view document bibtex"""
