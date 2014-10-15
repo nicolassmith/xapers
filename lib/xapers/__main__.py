@@ -1,0 +1,408 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import pkg_resources
+
+import xapers
+import xapers.cli
+import xapers.source
+
+########################################################################
+
+# combine a list of terms with spaces between, so that simple queries
+# don't have to be quoted at the shell level.
+def make_query_string(terms, require=True):
+    string = str.join(' ', terms)
+    if string == '':
+        if require:
+            print >>sys.stderr, "Must specify a search term."
+            sys.exit(1)
+        else:
+            string = '*'
+    return string
+
+def import_nci():
+    try:
+        import xapers.nci
+    except ImportError:
+        print >>sys.stderr, "The python-urwid package does not appear to be installed."
+        print >>sys.stderr, "Please install to be able to use the curses UI."
+        sys.exit(1)
+
+########################################################################
+
+PROG = 'xapers'
+
+def usage():
+    print "Usage:", PROG, "<command> [args...]"
+    print """
+Commands:
+
+  add [options] [<search-terms>]      Add a new document or update existing.
+                                      If provided, search should match a single
+                                      document.
+    --source=<source>                   source, for retrieving bibtex
+    --file=<file>                       PDF file to index and archive
+    --tags=<tag>[,...]                  initial tags
+    --prompt                            prompt for unspecified options
+    --view                              view entry after adding
+  import <bibtex-file>                Import all entries from a bibtex database.
+  delete <search-terms>               Delete documents from database.
+    --noprompt                          do not prompt to confirm deletion
+  restore                             Restore database from xapers root.
+
+  tag +<tag>|-<tag> [...] [--] <search-terms>
+                                      Add/remove tags.
+
+  search [options] <search-terms>     Search for documents.
+    --output=[summary|bibtex|tags|sources|keys|files]
+                                        output format (default is 'summary')
+    --limit=N                           limit number of results returned
+                                        (default is 20, use '0' for all)
+  bibtex <search-terms>               Short for \"search --output=bibtex\".
+  view <search-terms>                 View search in curses UI.
+  count <search-terms>                Count matches.
+
+  export <dir> <search-terms>         Export documents to a directory of
+                                      files named for document titles.
+
+  sources                             List available sources.
+  source2bib <source>                 Retrieve bibtex for source and
+                                      print to stdout.
+  scandoc <file>                      Scan PDF file for source IDs.
+
+  version                             Print version number.
+  help                                This help.
+
+The xapers document store is specified by the XAPERS_ROOT environment
+variable, or defaults to '~/.xapers/docs' if not specified (the
+directory is allowed to be a symlink).
+
+Other definitions:
+
+  <docid>: Documents are assigned unique integer IDs.
+
+  <source>: A source can be either a URL, a source ID string of the
+    form '<source>:<id>', or a bibtex file.  Currently recognized
+    sources:
+      doi:<Digital Object Id>
+      arxiv:<arXiv Article Id>
+
+  <search-terms>: Free-form text to match against indexed document
+    text, or the following prefixes can be used to match against
+    specific document metadata:
+      id:<docid>               Xapers document id
+      author:<string>          string in authors (also a:)
+      title:<string>           string in title (also t:)
+      tag:<tag>                specific user tags
+      <source>:<id>            specific sid string
+      source:<lib>             specific source
+      key:<key>                specific bibtex citation key
+
+  The string '*' will match all documents."""
+
+########################################################################
+
+if __name__ == '__main__':
+
+    if len(sys.argv) > 1:
+        cmd = sys.argv[1]
+    else:
+        cmd = []
+
+    xroot = os.getenv('XAPERS_ROOT',
+                      os.path.expanduser(os.path.join('~','.xapers','docs')))
+
+    ########################################
+    if cmd in ['add','a']:
+        cli = xapers.cli.UI(xroot)
+
+        tags = None
+        infile = None
+        source = None
+        prompt = False
+        view = False
+        query_string = None
+
+        argc = 2
+        while True:
+            if argc >= len(sys.argv):
+                break
+            elif '--source=' in sys.argv[argc]:
+                source = sys.argv[argc].split('=',1)[1]
+            elif '--file=' in sys.argv[argc]:
+                infile = sys.argv[argc].split('=',1)[1]
+            elif '--tags=' in sys.argv[argc]:
+                tags = sys.argv[argc].split('=',1)[1].split(',')
+            elif '--prompt' in sys.argv[argc]:
+                prompt = True
+            elif '--view' in sys.argv[argc]:
+                view = True
+            else:
+                break
+            argc += 1
+
+        if argc == (len(sys.argv) - 1):
+            query_string = make_query_string(sys.argv[argc:])
+
+        try:
+            docid = cli.add(query_string, infile=infile, source=source, tags=tags, prompt=prompt)
+        except KeyboardInterrupt:
+            print >>sys.stderr, ''
+            sys.exit(1)
+
+        # dereference the cli object so that the database is flushed
+        # FIXME: is there a better way to handle this?
+        cli = None
+
+        if view and docid:
+            import_nci()
+            xapers.nci.UI(xroot, cmd=['search', 'id:'+docid])
+
+    ########################################
+    elif cmd in ['import','i']:
+        cli = xapers.cli.UI(xroot)
+
+        tags = []
+
+        argc = 2
+        while True:
+            if argc >= len(sys.argv):
+                break
+            elif '--tags=' in sys.argv[argc]:
+                tags = sys.argv[argc].split('=',1)[1].split(',')
+            elif '--overwrite' in sys.argv[argc]:
+                overwrite = True
+            else:
+                break
+            argc += 1
+
+        try:
+            bibfile = sys.argv[argc]
+        except IndexError:
+            print >>sys.stderr, "Must specify bibtex file to import."
+            sys.exit(1)
+
+        if not os.path.exists(bibfile):
+            print >>sys.stderr, "File not found: %s" % bibfile
+            sys.exit(1)
+
+        try:
+            cli.importbib(bibfile, tags=tags)
+        except KeyboardInterrupt:
+            print >>sys.stderr, ''
+            sys.exit(1)
+
+    ########################################
+    elif cmd in ['update-all']:
+        cli = xapers.cli.UI(xroot)
+        cli.update_all()
+
+    ########################################
+    elif cmd in ['delete']:
+        prompt = True
+
+        argc = 2
+        while True:
+            if argc >= len(sys.argv):
+                break
+            elif '--noprompt' in sys.argv[argc]:
+                prompt = False
+            else:
+                break
+            argc += 1
+
+        cli = xapers.cli.UI(xroot)
+        try:
+            cli.delete(make_query_string(sys.argv[argc:]), prompt=prompt)
+        except KeyboardInterrupt:
+            print >>sys.stderr, ''
+            sys.exit(1)
+
+    ########################################
+    elif cmd in ['search','s']:
+        cli = xapers.cli.UI(xroot)
+
+        oformat = 'summary'
+        limit = 20
+
+        argc = 2
+        while True:
+            if argc >= len(sys.argv):
+                break
+            if '--output=' in sys.argv[argc]:
+                oformat = sys.argv[argc].split('=')[1]
+            elif '--limit=' in sys.argv[argc]:
+                limit = int(sys.argv[argc].split('=')[1])
+            else:
+                break
+            argc += 1
+
+        query = make_query_string(sys.argv[argc:])
+        try:
+            cli.search(query, oformat=oformat, limit=limit)
+        except KeyboardInterrupt:
+            print >>sys.stderr, ''
+            sys.exit(1)
+
+    ########################################
+    elif cmd in ['bibtex','bib','b']:
+        cli = xapers.cli.UI(xroot)
+        argc = 2
+        query = make_query_string(sys.argv[argc:])
+        try:
+            cli.search(query, oformat='bibtex')
+        except KeyboardInterrupt:
+            print >>sys.stderr, ''
+            sys.exit(1)
+
+    ########################################
+    elif cmd in ['nci','view','show','select']:
+        import_nci()
+
+        if cmd == 'nci':
+            args = sys.argv[2:]
+        else:
+            query = make_query_string(sys.argv[2:], require=False)
+            args = ['search', query]
+
+        try:
+            xapers.nci.UI(xroot, cmd=args)
+        except KeyboardInterrupt:
+            print >>sys.stderr, ''
+            sys.exit(1)
+
+    ########################################
+    elif cmd in ['tag','t']:
+        cli = xapers.cli.UI(xroot)
+
+        add_tags = []
+        remove_tags = []
+
+        argc = 2
+        for arg in sys.argv[argc:]:
+            if argc >= len(sys.argv):
+                break
+            if arg == '--':
+                argc += 1
+                continue
+            if arg[0] == '+':
+                add_tags.append(arg[1:])
+            elif arg[0] == '-':
+                remove_tags.append(arg[1:])
+            else:
+                break
+            argc += 1
+
+        if not add_tags and not remove_tags:
+            print >>sys.stderr, "Must specify tags to add or remove."
+            sys.exit(1)
+
+        if '' in add_tags:
+            print >>sys.stderr, "Null tags not allowed."
+            sys.exit(1)
+
+        query = make_query_string(sys.argv[argc:])
+        cli.tag(query, add_tags, remove_tags)
+
+    ########################################
+    elif cmd in ['dumpterms']:
+        cli = xapers.cli.UI(xroot)
+        query = make_query_string(sys.argv[2:], require=False)
+        cli.dumpterms(query)
+
+    ########################################
+    elif cmd in ['maxid']:
+        db = xapers.cli.initdb(xroot)
+        docid = 0
+        for doc in db.search('*'):
+            docid = max(docid, int(doc.docid))
+        print 'id:%d' % docid
+
+    ########################################
+    elif cmd in ['count']:
+        cli = xapers.cli.UI(xroot)
+        query = make_query_string(sys.argv[2:], require=False)
+        cli.count(query)
+
+    ########################################
+    elif cmd in ['export']:
+        cli = xapers.cli.UI(xroot)
+        outdir = sys.argv[2]
+        query = make_query_string(sys.argv[3:])
+        cli.export(outdir, query)
+
+    ########################################
+    elif cmd in ['restore']:
+        cli = xapers.cli.UI(xroot)
+        cli.restore()
+
+    ########################################
+    elif cmd in ['sources']:
+        for source in xapers.source.list_sources():
+            print source
+
+    ########################################
+    elif cmd in ['source2bib','s2b']:
+        try:
+            string = sys.argv[2]
+        except IndexError:
+            print >>sys.stderr, "Must specify source to retrieve."
+            sys.exit(1)
+
+        try:
+            smod = xapers.source.get_source(string)
+        except xapers.source.SourceError as e:
+            print >>sys.stderr, e
+            sys.exit(1)
+
+        try:
+            print >>sys.stderr, "Retrieving bibtex...",
+            bibtex = smod.get_bibtex()
+            print >>sys.stderr, "done."
+        except Exception, e:
+            print >>sys.stderr, "\n"
+            print >>sys.stderr, "Could not retrieve bibtex: %s" % e
+            sys.exit(1)
+
+        try:
+            print xapers.bibtex.Bibtex(bibtex)[0].as_string()
+        except Exception, e:
+            print >>sys.stderr, "Error parsing bibtex: %s" % e
+            print >>sys.stderr, "Outputting raw..."
+            print bibtex
+            sys.exit(1)
+
+    ########################################
+    elif cmd in ['scandoc','sd']:
+        try:
+            infile = sys.argv[2]
+        except IndexError:
+            print >>sys.stderr, "Must specify document to scan."
+            sys.exit(1)
+
+        try:
+            sources = xapers.source.scan_file_for_sources(infile)
+        except xapers.parser.ParseError as e:
+            print >>sys.stderr, "Parse error: %s" % e
+            print >>sys.stderr, "Is file '%s' a PDF?" % infile
+            sys.exit(1)
+
+        for ss in sources:
+            print "%s" % (ss)
+
+    ########################################
+    elif cmd in ['version','--version','-v']:
+        print 'xapers', pkg_resources.get_distribution('xapers').version
+
+    ########################################
+    elif cmd in ['help','h','--help','-h']:
+        usage()
+        sys.exit(0)
+
+    ########################################
+    else:
+        print >>sys.stderr, "Unknown command '%s'." % cmd
+        print >>sys.stderr, "See \"help\" for more information."
+        sys.exit(1)
