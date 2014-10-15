@@ -403,6 +403,9 @@ if __name__ == '__main__':
 
     ########################################
     else:
-        print >>sys.stderr, "Unknown command '%s'." % cmd
+        if cmd:
+            print >>sys.stderr, "Unknown command '%s'." % cmd
+        else:
+            print >>sys.stderr, "Command not specified."
         print >>sys.stderr, "See \"help\" for more information."
         sys.exit(1)
