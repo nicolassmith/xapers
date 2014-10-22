@@ -17,10 +17,14 @@ test_expect_code 1 'fail search without database' \
 test_expect_code 1 'fail to add without file or source' \
     'xapers add --tags=new'
 
-test_expect_success 'add file without source' \
-    'xapers add \
+test_begin_subtest 'add file without source'
+xapers add \
     --file=$DOC_DIR/1.pdf \
-    --tags=new,foo'
+    --tags=new,foo >OUTPUT
+cat <<EOF >EXPECTED
+id:1 [] {} (foo new) ""
+EOF
+test_expect_equal_file OUTPUT EXPECTED
 
 test_expect_success 'new docdir exists' \
     'test -d $XAPERS_ROOT/0000000001'
@@ -36,10 +40,14 @@ test_expect_code 1 'fail to add non-bibtex file as source' \
     'xapers add \
      --source=$DOC_DIR/1.pdf'
 
-test_expect_success 'add bib without file' \
-    'xapers add \
+test_begin_subtest 'add bib without file'
+xapers add \
     --source=$DOC_DIR/2.bib \
-    --tags=new,bar'
+    --tags=new,bar >OUTPUT
+cat <<EOF >EXPECTED
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'bib file exists and is correct'
 cat <<EOF >EXPECTED
@@ -60,11 +68,15 @@ cat <<EOF >EXPECTED
 EOF
 test_expect_equal_file "$XAPERS_ROOT"/0000000002/bibtex EXPECTED
 
-test_expect_success 'add with file and bib' \
-    'xapers add \
+test_begin_subtest 'add with file and bib'
+xapers add \
     --file=$DOC_DIR/3.pdf \
     --source=$DOC_DIR/3.bib \
-    --tags=qux'
+    --tags=qux >OUTPUT
+cat <<EOF >EXPECTED
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
 
 test_expect_code 1 'fail to add non-existant file' \
     'xapers add --file=foo.pdf'
@@ -101,22 +113,31 @@ EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'update doc with file'
-xapers add --file=$DOC_DIR/2\ file.pdf doi:10.9999/FOO.1
-xapers search pellentesque >OUTPUT
+xapers add \
+    --file=$DOC_DIR/2\ file.pdf \
+    doi:10.9999/FOO.1 >OUTPUT
 cat <<EOF >EXPECTED
 id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
-test_expect_success 'add bib without file' \
-    'xapers add \
+test_begin_subtest 'add bib without file'
+xapers add \
     --source=$DOC_DIR/4.bib \
-    --tags=new'
+    --tags=new
+cat <<EOF >EXPECTED
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
 
-test_expect_success 'add file without source' \
-    'xapers add \
+test_begin_subtest 'add file without source'
+xapers add \
     --file=$DOC_DIR/5.pdf \
-    --tags=new'
+    --tags=new
+cat <<EOF >EXPECTED
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
 
 ################################################################
 
