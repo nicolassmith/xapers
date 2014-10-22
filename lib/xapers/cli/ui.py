@@ -281,7 +281,7 @@ class UI():
             print >>sys.stderr, "\n"
             raise
 
-        print "id:%s" % doc.docid
+        print_doc_summary(doc)
         return doc.docid
 
     ############################################
