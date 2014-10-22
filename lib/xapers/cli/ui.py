@@ -51,6 +51,25 @@ def initdb(xroot, writable=False, create=False, force=False):
 
 ############################################################
 
+def print_doc_summary(doc):
+    docid = doc.get_docid()
+    title = doc.get_title()
+    if not title:
+        title = ''
+    tags = doc.get_tags()
+    sources = doc.get_sids()
+    keys = doc.get_keys()
+
+    print "id:%s [%s] {%s} (%s) \"%s\"" % (
+        docid,
+        ' '.join(sources),
+        ' '.join(keys),
+        ' '.join(tags),
+        title,
+    )
+
+############################################################
+
 class UI():
     """Xapers command-line UI."""
 
