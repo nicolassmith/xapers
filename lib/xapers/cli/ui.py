@@ -389,7 +389,6 @@ class UI():
     ############################################
 
     def search(self, query_string, oformat='summary', limit=None):
-
         if oformat not in ['summary','bibtex','tags','sources','keys','files']:
             print >>sys.stderr, "Unknown output format."
             sys.exit(1)
@@ -415,63 +414,40 @@ class UI():
         okeys = set([])
 
         for doc in self.db.search(query_string, limit=limit):
-            docid = doc.get_docid()
+            if oformat in ['summary']:
+                print_doc_summary(doc)
+                continue
 
-            if oformat in ['file','files']:
-                # FIXME: could this be multiple paths?
+            elif oformat in ['file','files']:
                 for path in doc.get_fullpaths():
                     print "%s" % (path)
                 continue
 
-            tags = doc.get_tags()
-            sources = doc.get_sids()
-            keys = doc.get_keys()
-
-            if oformat == 'tags':
-                otags = otags | set(tags)
-                continue
-            if oformat == 'sources':
-                osources = osources | set(sources)
-                continue
-            if oformat == 'keys':
-                okeys = okeys | set(keys)
-                continue
-
-            title = doc.get_title()
-            if not title:
-                title = ''
-
-            if oformat in ['summary']:
-                print "id:%s [%s] {%s} (%s) \"%s\"" % (
-                    docid,
-                    ' '.join(sources),
-                    ' '.join(keys),
-                    ' '.join(tags),
-                    title,
-                    )
-                continue
-
-            if oformat == 'bibtex':
+            elif oformat == 'bibtex':
                 bibtex = doc.get_bibtex()
                 if not bibtex:
-                    print >>sys.stderr, "No bibtex for doc id:%s." % docid
+                    print >>sys.stderr, "No bibtex for doc id:%s." % doc.docid
                 else:
                     print bibtex
                     print
                 continue
 
+            if oformat == 'tags':
+                otags = otags | set(doc.get_tags())
+            elif oformat == 'sources':
+                osources = osources | set(doc.get_sids())
+            elif oformat == 'keys':
+                okeys = okeys | set(doc.get_keys())
+
         if oformat == 'tags':
             for tag in otags:
                 print tag
-            return
-        if oformat == 'sources':
+        elif oformat == 'sources':
             for source in osources:
                 print source
-            return
-        if oformat == 'keys':
+        elif oformat == 'keys':
             for key in okeys:
                 print key
-            return
 
     ############################################
 
