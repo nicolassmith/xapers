@@ -379,7 +379,7 @@ class UI():
 
         self.db = initdb(self.xroot)
 
-        if query_string == '*':
+        if query_string == '*' and oformat in ['tags','sources','keys']:
             if oformat == 'tags':
                 for tag in self.db.get_terms('tag'):
                     print tag
