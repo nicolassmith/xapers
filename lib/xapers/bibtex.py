@@ -176,7 +176,8 @@ def json2bib(jsonstring, key, type='article'):
         del data['issued']
 
     # delete other problematic fields
-    del data['editor']
+    if 'editor' in data:
+        del data['editor']
 
     entry = Entry(type, fields=data)
 
