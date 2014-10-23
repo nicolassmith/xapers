@@ -107,8 +107,9 @@ def scan_bibentry_for_sources(bibentry):
     fields = bibentry.get_fields()
     sources = []
     for source in list_sources():
-        if source in fields:
-            sources.append('%s:%s' % (source.lower(), fields[source]))
+        for field, value in fields.iteritems():
+            if source.lower() == field.lower():
+                sources.append('%s:%s' % (source.lower(), value))
     # FIXME: how do we get around special exception for this?
     if 'eprint' in fields:
         sources.append('%s:%s' % ('arxiv', fields['eprint']))
