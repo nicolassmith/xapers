@@ -41,7 +41,7 @@ class Bibtex():
                 raise BibtexError('Error loading bibtex from file: %s' % e )
         else:
             try:
-                with io.StringIO(unicode(bibtex)) as stream:
+                with io.StringIO(bibtex.decode('utf-8')) as stream:
                     bibdata = parser.parse_stream(stream)
             except Exception, e:
                 raise BibtexError('Error loading bibtex string: %s' % e )
