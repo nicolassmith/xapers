@@ -121,7 +121,11 @@ Other definitions:
       source:<lib>             specific source
       key:<key>                specific bibtex citation key
 
-  The string '*' will match all documents."""
+  The string '*' will match all documents.
+
+See the following for more information on search terms:
+
+  http://xapian.org/docs/queryparser.html"""
 
 ########################################################################
 
