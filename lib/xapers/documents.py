@@ -23,7 +23,7 @@ import shutil
 import xapian
 
 from parser import parse_file
-from source import get_source, scan_bibentry_for_sources
+from source import Sources
 from bibtex import Bibtex
 
 ##################################################
@@ -248,7 +248,9 @@ class Document():
 
     def add_file(self, infile):
         """Add a file to document.
-File will not copied in to docdir until sync()."""
+
+        File will not copied in to docdir until sync().
+        """
 
         # FIXME: should load entire file into {name: file} to be
         # written as file>docdir/name
@@ -378,8 +380,8 @@ File will not copied in to docdir until sync()."""
             self._set_authors(' '.join(authors))
 
         # add any sources in the bibtex
-        for sid in scan_bibentry_for_sources(bibentry):
-            self.add_sid(sid)
+        for source in Sources().scan_bibentry(bibentry):
+            self.add_sid(source.sid)
 
         # FIXME: index 'keywords' field as regular terms
 
@@ -437,11 +439,11 @@ File will not copied in to docdir until sync()."""
 
     def get_urls(self):
         """Get all URLs associated with document."""
+        sources = Sources()
         urls = []
         # get urls associated with known sources
         for sid in self.get_sids():
-            smod = get_source(sid)
-            urls.append(smod.gen_url())
+            urls.append(sources[sid].url())
         # get urls from bibtex
         self._load_bib()
         if self.bibentry:

@@ -41,7 +41,7 @@ class Bibtex():
                 raise BibtexError('Error loading bibtex from file: %s' % e )
         else:
             try:
-                with io.StringIO(unicode(bibtex)) as stream:
+                with io.StringIO(bibtex.decode('utf-8')) as stream:
                     bibdata = parser.parse_stream(stream)
             except Exception, e:
                 raise BibtexError('Error loading bibtex string: %s' % e )
@@ -72,6 +72,8 @@ class Bibtex():
 ##################################################
 
 class Bibentry():
+    """Represents an individual entry in a bibtex database"""
+
     def __init__(self, key, entry):
         self.key = key
         self.entry = entry
@@ -176,7 +178,8 @@ def json2bib(jsonstring, key, type='article'):
         del data['issued']
 
     # delete other problematic fields
-    del data['editor']
+    if 'editor' in data:
+        del data['editor']
 
     entry = Entry(type, fields=data)
 

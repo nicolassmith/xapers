@@ -27,9 +27,9 @@ echo 'Xapers-adder'
 echo '============'
 echo 'Type C-c at any time to cancel...'
 echo
-if ! xapers add --file=\"$infile\" --tags=new --prompt --view; then
-    read -N1 -p 'any key to quit:' OK
-fi
+while ! xapers add --file=\"$infile\" --tags=new --prompt --view; do
+    read -N1 -p 'ENTER to try again, or C-c to quit:' OK
+done
 "
 
 if [[ "$term" == 'true' ]] ; then
