@@ -137,6 +137,10 @@ class UI():
 
         sources = Sources()
         doc_sid = sid
+
+        if infile:
+            infile = os.path.expanduser(infile)
+
         ##################################
         # open db and get doc
 
