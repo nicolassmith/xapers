@@ -133,9 +133,9 @@ class Sources(object):
             vals = sid.split(':')
         except ValueError:
             raise SourceError("could not parse sid string")
-        name = val[0]
-        if len(val) > 1:
-            id = ':'.join(val)
+        name = vals[0]
+        if len(vals) > 1:
+            id = ':'.join(vals)
         return self.get_source(name, id)
 
     def __iter__(self):
