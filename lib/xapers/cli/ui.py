@@ -130,11 +130,12 @@ class UI():
 
     ############################################
 
-    def add(self, query_string, infile=None, source=None, tags=None, prompt=False):
+    def add(self, query_string, infile=None, sid=None, tags=None, prompt=False):
 
         doc = None
         bibtex = None
 
+        doc_sid = sid
         ##################################
         # open db and get doc
 
@@ -157,9 +158,9 @@ class UI():
             infile = self.prompt_for_file(infile)
 
         if prompt:
-            sources = []
-            if source:
-                sources = [source]
+            doc_sids = []
+            if doc_sid:
+                doc_sids = [doc_sid]
             # scan the file for source info
             if infile:
                 print >>sys.stderr, "Scanning document for source identifiers..."
@@ -169,20 +170,20 @@ class UI():
                     print >>sys.stderr, "\n"
                     print >>sys.stderr, "Parse error: %s" % e
                     sys.exit(1)
-                if len(ss) > 0:
+                if len(ss) == 0:
+                    print >>sys.stderr, "0 source ids found."
+                else:
                     if len(ss) == 1:
                         print >>sys.stderr, "1 source id found:"
                     else:
                         print >>sys.stderr, "%d source ids found:" % (len(ss))
                     for sid in ss:
                         print >>sys.stderr, "  %s" % (sid)
-                    sources += ss
-                else:
-                    print >>sys.stderr, "0 source ids found."
-            source = self.prompt_for_source(sources)
+                    doc_sids += [s.sid for s in ss]
+            doc_sid = self.prompt_for_source(doc_sids)
             tags = self.prompt_for_tags(tags)
 
-        if not query_string and not infile and not source:
+        if not query_string and not infile and not doc_sid:
             print >>sys.stderr, "Must specify file or source to import, or query to update existing document."
             sys.exit(1)
 
@@ -190,12 +191,12 @@ class UI():
         # process source and get bibtex
 
         # check if source is a file, in which case interpret it as bibtex
-        if source and os.path.exists(source):
-            bibtex = source
+        if doc_sid and os.path.exists(doc_sid):
+            bibtex = doc_sid
 
-        elif source:
+        elif doc_sid:
             try:
-                smod = xapers.source.get_source(source)
+                smod = xapers.source.get_source(doc_sid)
             except xapers.source.SourceError as e:
                 print >>sys.stderr, e
                 sys.exit(1)

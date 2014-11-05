@@ -120,7 +120,7 @@ if __name__ == '__main__':
 
         tags = None
         infile = None
-        source = None
+        sid = None
         prompt = False
         view = False
         query_string = None
@@ -130,7 +130,7 @@ if __name__ == '__main__':
             if argc >= len(sys.argv):
                 break
             elif '--source=' in sys.argv[argc]:
-                source = sys.argv[argc].split('=',1)[1]
+                sid = sys.argv[argc].split('=',1)[1]
             elif '--file=' in sys.argv[argc]:
                 infile = sys.argv[argc].split('=',1)[1]
             elif '--tags=' in sys.argv[argc]:
@@ -147,7 +147,7 @@ if __name__ == '__main__':
             query_string = make_query_string(sys.argv[argc:])
 
         try:
-            docid = cli.add(query_string, infile=infile, source=source, tags=tags, prompt=prompt)
+            docid = cli.add(query_string, infile=infile, sid=sid, tags=tags, prompt=prompt)
         except KeyboardInterrupt:
             print >>sys.stderr, ''
             sys.exit(1)
