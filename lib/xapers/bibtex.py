@@ -72,6 +72,8 @@ class Bibtex():
 ##################################################
 
 class Bibentry():
+    """Represents an individual entry in a bibtex database"""
+
     def __init__(self, key, entry):
         self.key = key
         self.entry = entry

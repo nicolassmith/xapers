@@ -248,7 +248,9 @@ class Document():
 
     def add_file(self, infile):
         """Add a file to document.
-File will not copied in to docdir until sync()."""
+
+        File will not copied in to docdir until sync().
+        """
 
         # FIXME: should load entire file into {name: file} to be
         # written as file>docdir/name
