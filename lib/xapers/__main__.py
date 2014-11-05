@@ -6,7 +6,7 @@ import pkg_resources
 
 import xapers
 import xapers.cli
-import xapers.source
+from source import Sources, SourceError
 
 ########################################################################
 
@@ -340,8 +340,17 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['sources']:
-        for source in xapers.source.list_sources():
-            print source
+        for source in Sources():
+            name = source.name
+            if source.is_builtin():
+                path = 'builtin'
+            else:
+                path = source.path()
+            try:
+                desc = '%s ' % source.description
+            except AttributeError:
+                desc = ''
+            print '%s - %s[%s]' % (name, desc, path)
 
     ########################################
     elif cmd in ['source2bib','s2b']:
@@ -352,15 +361,13 @@ if __name__ == '__main__':
             sys.exit(1)
 
         try:
-            smod = xapers.source.get_source(string)
-        except xapers.source.SourceError as e:
+            item = Sources().match_source(string)
+        except SourceError as e:
             print >>sys.stderr, e
             sys.exit(1)
 
         try:
-            print >>sys.stderr, "Retrieving bibtex...",
-            bibtex = smod.get_bibtex()
-            print >>sys.stderr, "done."
+            bibtex = item.fetch_bibtex()
         except Exception, e:
             print >>sys.stderr, "\n"
             print >>sys.stderr, "Could not retrieve bibtex: %s" % e
@@ -383,14 +390,14 @@ if __name__ == '__main__':
             sys.exit(1)
 
         try:
-            sources = xapers.source.scan_file_for_sources(infile)
+            items = Sources().scan_file(infile)
         except xapers.parser.ParseError as e:
             print >>sys.stderr, "Parse error: %s" % e
             print >>sys.stderr, "Is file '%s' a PDF?" % infile
             sys.exit(1)
 
-        for ss in sources:
-            print "%s" % (ss)
+        for item in items:
+            print item
 
     ########################################
     elif cmd in ['version','--version','-v']:

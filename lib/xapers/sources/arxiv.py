@@ -2,6 +2,12 @@ import urllib
 from HTMLParser import HTMLParser
 from xapers.bibtex import data2bib
 
+description = "Open access e-print service"
+
+url_format = 'http://arxiv.org/abs/%s'
+
+url_regex = 'http://arxiv.org/(?:abs|pdf|format)/([^/]*)'
+
 # html parser override to override handler methods
 class MyHTMLParser(HTMLParser):
     def __init__(self):
@@ -49,62 +55,28 @@ class MyHTMLParser(HTMLParser):
         if tag == 'head':
             self.lefthead = True
 
-class Source():
-    source = 'arxiv'
-    netloc = 'arxiv.org'
+def fetch_bibtex(id):
+    url = url_format % id
 
-    def __init__(self, id=None):
-        self.id = id
+    f = urllib.urlopen(url)
+    html = f.read()
+    f.close()
 
-    def get_sid(self):
-        if self.id:
-            return '%s:%s' % (self.source, self.id)
+    # instantiate the parser and fed it some HTML
+    try:
+        parser = MyHTMLParser()
+        parser.feed(html)
+    except:
+        return None
 
-    def gen_url(self):
-        if self.id:
-            return 'http://%s/abs/%s' % (self.netloc, self.id)
+    data = {
+        'arxiv':   id,
+        'title':   parser.title,
+        'authors': parser.author,
+        'year':    parser.year,
+        'eprint':  id,
+        'url':     url_format % id,
+        }
 
-    def match(self, netloc, path):
-        if netloc.find(self.netloc) < 0:
-            return False
-        for prefix in ['/abs/', '/pdf/', '/format/']:
-            index = path.find(prefix)
-            if index == 0:
-                break
-        index = len(prefix)
-        # FIXME: strip anything else?
-        self.id = path[index:].strip('/')
-        return True
-
-    def get_data(self):
-        if 'file' in dir(self):
-            url = None
-            f = open(self.file, 'r')
-        else:
-            url = self.gen_url()
-            f = urllib.urlopen(url)
-        html = f.read()
-        f.close()
-
-        # instantiate the parser and fed it some HTML
-        try:
-            parser = MyHTMLParser()
-            parser.feed(html)
-        except:
-            return None
-
-        data = {
-            'arxiv':   self.id,
-            'title':   parser.title,
-            'authors': parser.author,
-            'year':    parser.year,
-            'eprint':  self.id,
-            'url':     self.gen_url(),
-            }
-
-        return data
-
-    def get_bibtex(self):
-        data = self.get_data()
-        bibentry = data2bib(data, self.get_sid())
-        return bibentry.as_string()
+    bibentry = data2bib(data, 'arxiv:%s' % id)
+    return bibentry.as_string()

@@ -1,116 +1,203 @@
+import os
 import re
+import pkgutil
 from urlparse import urlparse
 
-import xapers.sources
+import sources
 from parser import parse_file
 
 ##################################################
 
 class SourceError(Exception):
-    """Base class for Xapers source exceptions."""
-    def __init__(self, msg):
-        self.msg = msg
+    pass
+
+##################################################
+
+class Source(object):
+    """Xapers class representing an online document source.
+
+    The Source object is build from a source nickname (name) and
+    possibly user-defined source module.
+
+    """
+    def __init__(self, name, module):
+        self.name = name
+        self.module = module
+
+    def __repr__(self):
+        return '%s(%s, %s)' % (self.__class__, self.name, self.module)
+
     def __str__(self):
-        return self.msg
+        return self.name
 
-##################################################
+    def __getitem__(self, id):
+        return SourceItem(self, id)
 
-class SourceBase():
-    source = None
-    netloc = None
-    scan_regex = None
+    def path(self):
+        return self.module.__file__
 
-    def __init__(self, id=None):
+    def is_builtin(self):
+        bpath = os.path.dirname(sources.__file__)
+        spath = os.path.dirname(self.path())
+        return os.path.commonprefix([bpath, spath]) == bpath
+
+    @property
+    def description(self):
+        return self.module.description
+
+    @property
+    def url_regex(self):
+        return self.module.url_regex
+
+    @property
+    def scan_regex(self):
+        return self.module.scan_regex
+
+    def url(self, id):
+        return self.module.url_format % id
+
+    def fetch_bibtex(self, id):
+        return self.module.fetch_bibtex(id)
+
+class SourceItem(Source):
+    """Xapers class representing an item from an online source.
+
+    """
+    def __init__(self, source, id):
+        super(SourceItem, self).__init__(source.name, source.module)
         self.id = id
+        self.sid = '%s:%s' % (self.name, self.id)
 
-    def get_sid(self):
-        if self.id:
-            return '%s:%s' % (self.source, self.id)
+    def __repr__(self):
+        s = super(SourceItem, self).__repr__()
+        return '%s(%s, %s)' % (self.__class__, s, self.id)
 
-    def gen_url(self):
-        """Return url string for source ID."""
-        if self.netloc and self.id:
-            return 'http://%s/%s' % (self.netloc, self.id)
+    def __hash__(self):
+        return hash(self.sid)
 
-    def match(self, netloc, path):
-        """Return True if netloc/path belongs to this source and a sid can be determined."""
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.sid == other.sid
+        return NotImplemented
 
-    def get_bibtex(self):
-        """Download source bibtex, and return as string."""
+    def __str__(self):
+        return self.sid
+
+    def url(self):
+        return super(SourceItem, self).url(self.id)
+
+    def fetch_bibtex(self):
+        return super(SourceItem, self).fetch_bibtex(self.id)
 
 ##################################################
 
-def list_sources():
-    """List all available source modules."""
-    sources = []
-    # FIXME: how do we register sources?
-    for s in dir(xapers.sources):
-        # skip the __init__ file when finding sources
-        if '__' in s:
-            continue
-        sources.append(s)
-    return sources
+class Sources(object):
+    def __init__(self):
+        self.sourcespath = sources.__path__
+        extra = os.getenv('XAPERS_SOURCE_PATH', None)
+        if extra:
+            for path in extra.split(':'):
+                if path:
+                    sourcespath.insert(0, path)
+        else:
+            self.sourcespath.insert(0, os.path.expanduser(os.path.join('~','.xapers','sources')))
 
-def _load_source(source):
-    try:
-        mod = __import__('xapers.sources.' + source, fromlist=['Source'])
-        return getattr(mod, 'Source')
-    except ImportError:
-        raise SourceError("Unknown source '%s'." % source)
+        self._sources = {}
+        for (loader, name, ispkg) in pkgutil.walk_packages(self.sourcespath):
+            if ispkg:
+                continue
+            #self._modules[name] = loader.find_module(name).load_module(name)
+            module = loader.find_module(name).load_module(name)
+            self._sources[name] = Source(name, module)
 
-def get_source(string):
-    """Return Source class object for URL or source identifier string. """
-    smod = None
+    def __repr__(self):
+        return '%s(%s)' % (self.__class__, self.sourcespath)
 
-    o = urlparse(string)
+    def get_source(self, name, id=None):
+        try:
+            source = self._sources[name]
+        except KeyError:
+            raise SourceError("unknown source: %s" % name)
+        if id:
+            return source[id]
+        else:
+            return source
 
-    # if the scheme is http, look for source match
-    if o.scheme in ['http', 'https']:
-        for source in list_sources():
-            smod = _load_source(source)()
-            # if matches, id will be set
-            if smod.match(o.netloc, o.path):
-                break
-            else:
-                smod = None
-        if not smod:
-            raise SourceError('URL matches no known source.')
+    def __getitem__(self, sid):
+        name = None
+        id = None
+        try:
+            vals = sid.split(':')
+        except ValueError:
+            raise SourceError("could not parse sid string")
+        name = val[0]
+        if len(val) > 1:
+            id = ':'.join(val)
+        return self.get_source(name, id)
 
-    elif o.scheme == '':
-        source = o.path
-        smod = _load_source(source)()
+    def __iter__(self):
+        return self._sources.itervalues()
 
-    else:
-        source = o.scheme
-        oid = o.path
-        smod = _load_source(source)(oid)
+    def match_source(self, string):
+        """Return Source object from URL or source identifier string.
 
-    return smod
+        """
+        o = urlparse(string)
 
-def scan_file_for_sources(file):
-    """Scan document file for source identifiers and return list of sid strings."""
-    text = parse_file(file)
-    sources = []
-    for source in list_sources():
-        smod = _load_source(source)()
-        if 'scan_regex' not in dir(smod):
-            continue
-        prog = re.compile(smod.scan_regex)
-        matches = prog.findall(text)
-        if matches:
+        # if the scheme is http, look for source match
+        if o.scheme in ['http', 'https']:
+            for source in self:
+                try:
+                    match = re.match(source.url_regex, string)
+                except AttributeError:
+                    # FIXME: warning?
+                    continue
+                if match:
+                    return source[match.group(1)]
+
+        elif o.scheme != '' and o.path != '':
+            return self.get_source(o.scheme, o.path)
+
+        raise SourceError('String matches no known source.')
+
+    def scan_file(self, file):
+        """Scan document file for source identifiers
+
+        Source 'scan_regex' attributes are used.
+        Returns a list of SourceItem objects.
+
+        """
+        text = parse_file(file)
+        items = set()
+        for source in self:
+            try:
+                regex = re.compile(source.scan_regex)
+            except AttributeError:
+                # FIXME: warning?
+                continue
+            matches = regex.findall(text)
+            if not matches:
+                continue
             for match in matches:
-                sources.append('%s:%s' % (smod.source.lower(), match))
-    return sources
+                items.add(source[match])
+        return list(items)
 
-def scan_bibentry_for_sources(bibentry):
-    """Scan bibentry for source identifiers and return list of sid strings."""
-    fields = bibentry.get_fields()
-    sources = []
-    for source in list_sources():
+    def scan_bibentry(self, bibentry):
+        """Scan bibentry for source identifiers.
+
+        Bibentry keys are searched for source names, and bibentry
+        values are assumed to be individual identifier strings.
+        Returns a list of SourceItem objects.
+
+        """
+        fields = bibentry.get_fields()
+        items = set()
         for field, value in fields.iteritems():
-            if source.lower() == field.lower():
-                sources.append('%s:%s' % (source.lower(), value))
-    # FIXME: how do we get around special exception for this?
-    if 'eprint' in fields:
-        sources.append('%s:%s' % ('arxiv', fields['eprint']))
-    return sources
+            for source in self:
+                # FIXME: should we be case sensitive?
+                if source.name.lower() == field.lower():
+                    items.add(source[value])
+        # FIXME: how do we get around special exception for this?
+        if 'eprint' in fields:
+            items.add(self.get_source('arxiv', fields['eprint']))
+        return list(items)

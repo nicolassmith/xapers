@@ -4,6 +4,12 @@ import cStringIO
 import tempfile
 from xapers.bibtex import data2bib
 
+description = "LIGO Document Control Center"
+
+url_format = 'https://dcc.ligo.org/%s'
+
+url_regex = 'https://dcc.ligo.org/(?:LIGO-)?([^/]*)'
+
 def dccRetrieveXML(docid):
     url = 'https://dcc.ligo.org/Shibboleth.sso/Login?target=https%3A%2F%2Fdcc.ligo.org%2Fcgi-bin%2Fprivate%2FDocDB%2FShowDocument?docid=' + docid + '%26outformat=xml&entityID=https%3A%2F%2Flogin.ligo.org%2Fidp%2Fshibboleth'
 
@@ -55,68 +61,34 @@ def dccXMLExtract(xmlstring):
     year = None
     return title, authors, year, abstract
 
+def fetch_bibtex(id):
+    xml = dccRetrieveXML(id)
 
-class Source():
-    source = 'dcc'
-    netloc = 'dcc.ligo.org'
+    try:
+        title, authors, year, abstract = dccXMLExtract(xml)
+    except:
+        print >>sys.stderr, xml
+        raise
 
-    def __init__(self, id=None):
-        self.id = id
+    data = {
+        'institution': 'LIGO Laboratory',
+        'number': id,
+        'dcc': id,
+        'url': url_format % id
+        }
 
-    def get_sid(self):
-        if self.id:
-            return '%s:%s' % (self.source, self.id)
+    if title:
+        data['title'] = title
+    if authors:
+        data['authors'] = authors
+    if abstract:
+        data['abstract'] = abstract
+    if year:
+        data['year'] = year
 
-    def gen_url(self):
-        if self.id:
-            return 'http://%s/%s' % (self.netloc, self.id)
+    key = 'dcc:%s' % id
 
-    def match(self, netloc, path):
-        if netloc != self.netloc:
-            return False
-        fullid = path.split('/')[1]
-        dccid, vers = fullid.replace('LIGO-', '').split('-')
-        self.id = dccid
-        if self.id:
-            return True
-        else:
-            return False
+    btype = '@techreport'
+    bibentry = data2bib(data, key, type=btype)
 
-    def get_data(self):
-        if 'file' in dir(self):
-            f = open(self.file, 'r')
-            xml = f.read()
-            f.close()
-        else:
-            xml = dccRetrieveXML(self.id)
-
-        try:
-            title, authors, year, abstract = dccXMLExtract(xml)
-        except:
-            print >>sys.stderr, xml
-            raise
-
-        data = {
-            'institution': 'LIGO Laboratory',
-            'number': self.id,
-            'dcc': self.id,
-            'url': self.gen_url()
-            }
-
-        if title:
-            data['title'] = title
-        if authors:
-            data['authors'] = authors
-        if abstract:
-            data['abstract'] = abstract
-        if year:
-            data['year'] = year
-
-        return data
-
-    def get_bibtex(self):
-        data = self.get_data()
-        key = self.get_sid()
-        btype = '@techreport'
-        bibentry = data2bib(data, key, type=btype)
-        return bibentry.as_string()
+    return bibentry.as_string()

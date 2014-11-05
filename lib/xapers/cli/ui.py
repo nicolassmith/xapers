@@ -29,7 +29,7 @@ from xapers.database import Database
 from xapers.documents import Document
 from xapers.parser import ParseError
 from xapers.bibtex import Bibtex, BibtexError
-import xapers.source
+from ..source import Sources, SourceError
 
 ############################################################
 
@@ -135,6 +135,7 @@ class UI():
         doc = None
         bibtex = None
 
+        sources = Sources()
         doc_sid = sid
         ##################################
         # open db and get doc
@@ -165,7 +166,7 @@ class UI():
             if infile:
                 print >>sys.stderr, "Scanning document for source identifiers..."
                 try:
-                    ss = xapers.source.scan_file_for_sources(infile)
+                    ss = sources.scan_file(infile)
                 except ParseError, e:
                     print >>sys.stderr, "\n"
                     print >>sys.stderr, "Parse error: %s" % e
@@ -195,19 +196,15 @@ class UI():
             bibtex = doc_sid
 
         elif doc_sid:
+            # get source object for sid string
             try:
-                smod = xapers.source.get_source(doc_sid)
-            except xapers.source.SourceError as e:
+                source = sources.match_source(doc_sid)
+            except SourceError as e:
                 print >>sys.stderr, e
                 sys.exit(1)
 
-            sid = smod.get_sid()
-            if not sid:
-                print >>sys.stderr, "Source ID not specified."
-                sys.exit(1)
-
             # check that the source doesn't match an existing doc
-            sdoc = self.db.doc_for_source(sid)
+            sdoc = self.db.doc_for_source(source.sid)
             if sdoc:
                 if doc and sdoc != doc:
                     print >>sys.stderr, "A different document already exists for source '%s'." % (sid)
@@ -218,7 +215,7 @@ class UI():
 
             try:
                 print >>sys.stderr, "Retrieving bibtex...",
-                bibtex = smod.get_bibtex()
+                bibtex = source.fetch_bibtex()
                 print >>sys.stderr, "done."
             except Exception, e:
                 print >>sys.stderr, "\n"
@@ -292,6 +289,8 @@ class UI():
 
         errors = []
 
+        sources = Sources()
+
         for entry in sorted(Bibtex(bibfile), key=lambda entry: entry.key):
             print >>sys.stderr, entry.key
 
@@ -304,8 +303,8 @@ class UI():
                     docs.append(bdoc)
 
                 # check for known sids
-                for sid in xapers.source.scan_bibentry_for_sources(entry):
-                    sdoc = self.db.doc_for_source(sid)
+                for source in sources.scan_bibentry(entry):
+                    sdoc = self.db.doc_for_source(source.sid)
                     # FIXME: why can't we match docs in list?
                     if sdoc and sdoc.docid not in [doc.docid for doc in docs]:
                         docs.append(sdoc)

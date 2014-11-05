@@ -22,7 +22,7 @@ import os
 import sys
 import xapian
 
-from source import list_sources
+from source import Sources
 from documents import Documents, Document
 
 # FIXME: add db schema documentation
@@ -152,8 +152,9 @@ class Database():
         # FIXME: can we do this by just finding all XSOURCE terms in
         #        db?  Would elliminate dependence on source modules at
         #        search time.
-        for source in list_sources():
-            self.query_parser.add_boolean_prefix(source, self._make_source_prefix(source))
+        for source in Sources():
+            name = source.name
+            self.query_parser.add_boolean_prefix(name, self._make_source_prefix(name))
 
     def __enter__(self):
         return self

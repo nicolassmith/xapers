@@ -1,34 +1,43 @@
 #!/usr/bin/env bash
 
-test_description='sources.'
+test_description='Sources interface'
 
 . ./test-lib.sh
+
+export XAPERS_SOURCE_PATH=':'
 
 ################################################################
 
 # FIXME: add test for source2bib
 # FIXME: add test for scandoc
 
-test_begin_subtest 'source2bib doi'
-xapers source2bib 'doi:10.1364/JOSAA.29.002092' >OUTPUT
+test_begin_subtest 'list sources'
+xapers sources | sort >OUTPUT
 cat <<EOF >EXPECTED
-@article{
-    Izumi_Arai_Barr_Betzwieser_Brooks_Dahl_Doravari_Driggers_Korth_Miao_et_al._2012,
-    author = "Izumi, Kiwamu and Arai, Koji and Barr, Bryan and Betzwieser, Joseph and Brooks, Aidan and Dahl, Katrin and Doravari, Suresh and Driggers, Jennifer C. and Korth, W. Zach and Miao, Haixing and et al.",
-    publisher = "Optical Society of America",
-    doi = "10.1364/JOSAA.29.002092",
-    title = "Multicolor cavity metrology",
-    url = "http://dx.doi.org/10.1364/JOSAA.29.002092",
-    journal = "Journal of the Optical Society of America A",
-    number = "10",
-    month = "Sep",
-    volume = "29",
-    year = "2012",
-    pages = "2092"
-}
-
+  dcc: LIGO Document Control Center [builtin]
+  doi: Digital Object Identifier [builtin]
+arxiv: Open access e-print service [builtin]
 EOF
 test_expect_equal_file OUTPUT EXPECTED
+
+# test_begin_subtest 'source2bib doi'
+# xapers source2bib 'doi:10.1364/JOSAA.29.002092' >OUTPUT
+# cat <<EOF >EXPECTED
+# @article{Izumi_2012,
+#     author = "Izumi, Kiwamu and Arai, Koji and Barr, Bryan and Betzwieser, Joseph and Brooks, Aidan and Dahl, Katrin and Doravari, Suresh and Driggers, Jennifer C. and Korth, W. Zach and Miao, Haixing and et al.",
+#     title = "Multicolor cavity metrology",
+#     volume = "29",
+#     ISSN = "1520-8532",
+#     url = "http://dx.doi.org/10.1364/JOSAA.29.002092",
+#     DOI = "10.1364/josaa.29.002092",
+#     number = "10",
+#     journal = "Journal of the Optical Society of America A",
+#     publisher = "Optical Society of America (OSA)",
+#     year = "2012",
+#     pages = "2092"
+# }
+# EOF
+# test_expect_equal_file OUTPUT EXPECTED
 
 ################################################################
 
