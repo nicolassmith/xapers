@@ -361,6 +361,11 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['sources']:
+        sources = Sources()
+        w = 0
+        for source in Sources():
+            w = max(len(source.name), w)
+        format = '%'+str(w)+'s: %s[%s]'
         for source in Sources():
             name = source.name
             if source.is_builtin():
@@ -371,7 +376,7 @@ if __name__ == '__main__':
                 desc = '%s ' % source.description
             except AttributeError:
                 desc = ''
-            print '%s - %s[%s]' % (name, desc, path)
+            print format % (name, desc, path)
 
     ########################################
     elif cmd in ['source2bib','s2b']:
