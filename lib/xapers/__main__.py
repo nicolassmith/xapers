@@ -21,7 +21,6 @@ Jameson Rollins <jrollins@finestructure.net>
 
 import os
 import sys
-import pkg_resources
 
 from cli import UI, initdb
 from source import Sources, SourceError
@@ -430,7 +429,8 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['version','--version','-v']:
-        print 'xapers', pkg_resources.get_distribution('xapers').version
+        import version
+        print 'xapers', version.__version__
 
     ########################################
     elif cmd in ['help','h','--help','-h']:
