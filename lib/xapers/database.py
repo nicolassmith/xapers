@@ -139,6 +139,7 @@ class Database():
         self.query_parser.set_database(self.xapian)
         self.query_parser.set_stemmer(stemmer)
         self.query_parser.set_stemming_strategy(xapian.QueryParser.STEM_SOME)
+        self.query_parser.set_default_op(xapian.Query.OP_AND)
 
         # add boolean internal prefixes
         for name, prefix in self.BOOLEAN_PREFIX_EXTERNAL.iteritems():
