@@ -25,11 +25,11 @@ import sets
 import shutil
 import readline
 
-from xapers.database import Database
-from xapers.documents import Document
-from xapers.parser import ParseError
-from xapers.bibtex import Bibtex, BibtexError
+from ..database import Database, DatabaseUninitializedError, DatabaseError
+from ..documents import Document
 from ..source import Sources, SourceError
+from ..parser import ParseError
+from ..bibtex import Bibtex, BibtexError
 
 ############################################################
 
@@ -41,11 +41,11 @@ def set_stdout_codec():
 def initdb(xroot, writable=False, create=False, force=False):
     try:
         return Database(xroot, writable=writable, create=create, force=force)
-    except xapers.DatabaseUninitializedError as e:
+    except DatabaseUninitializedError as e:
         print >>sys.stderr, e.msg
         print >>sys.stderr, "Import a document to initialize."
         sys.exit(1)
-    except xapers.DatabaseError as e:
+    except DatabaseError as e:
         print >>sys.stderr, e.msg
         sys.exit(1)
 
@@ -167,7 +167,7 @@ class UI():
                 print >>sys.stderr, "Scanning document for source identifiers..."
                 try:
                     ss = sources.scan_file(infile)
-                except ParseError, e:
+                except ParseError as e:
                     print >>sys.stderr, "\n"
                     print >>sys.stderr, "Parse error: %s" % e
                     sys.exit(1)
@@ -236,7 +236,7 @@ class UI():
                 print >>sys.stderr, "Adding bibtex...",
                 doc.add_bibtex(bibtex)
                 print >>sys.stderr, "done."
-            except BibtexError, e:
+            except BibtexError as e:
                 print >>sys.stderr, "\n"
                 print >>sys.stderr, e
                 print >>sys.stderr, "Bibtex must be a plain text file with a single bibtex entry."
@@ -251,7 +251,7 @@ class UI():
                 print >>sys.stderr, "Adding file '%s'..." % (path),
                 doc.add_file(path)
                 print >>sys.stderr, "done."
-            except ParseError, e:
+            except ParseError as e:
                 print >>sys.stderr, "\n"
                 print >>sys.stderr, "Parse error: %s" % e
                 sys.exit(1)

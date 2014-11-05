@@ -24,7 +24,7 @@ import urwid
 
 import subprocess
 
-from xapers.cli.ui import initdb
+from ..cli.ui import initdb
 
 from search import Search
 from bibview import Bibview

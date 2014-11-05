@@ -4,9 +4,10 @@ import os
 import sys
 import pkg_resources
 
-import xapers
-import xapers.cli
+from cli import UI, initdb
 from source import Sources, SourceError
+from bibtex import Bibtex, BibtexError
+from parser import ParseError
 
 ########################################################################
 
@@ -24,11 +25,12 @@ def make_query_string(terms, require=True):
 
 def import_nci():
     try:
-        import xapers.nci
+        import nci
     except ImportError:
         print >>sys.stderr, "The python-urwid package does not appear to be installed."
         print >>sys.stderr, "Please install to be able to use the curses UI."
         sys.exit(1)
+    return nci
 
 ########################################################################
 
@@ -116,7 +118,7 @@ if __name__ == '__main__':
 
     ########################################
     if cmd in ['add','a']:
-        cli = xapers.cli.UI(xroot)
+        cli = UI(xroot)
 
         tags = None
         infile = None
@@ -157,12 +159,12 @@ if __name__ == '__main__':
         cli = None
 
         if view and docid:
-            import_nci()
-            xapers.nci.UI(xroot, cmd=['search', 'id:'+docid])
+            nci = import_nci()
+            nci.UI(xroot, cmd=['search', 'id:'+docid])
 
     ########################################
     elif cmd in ['import','i']:
-        cli = xapers.cli.UI(xroot)
+        cli = UI(xroot)
 
         tags = []
 
@@ -196,7 +198,7 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['update-all']:
-        cli = xapers.cli.UI(xroot)
+        cli = UI(xroot)
         cli.update_all()
 
     ########################################
@@ -213,7 +215,7 @@ if __name__ == '__main__':
                 break
             argc += 1
 
-        cli = xapers.cli.UI(xroot)
+        cli = UI(xroot)
         try:
             cli.delete(make_query_string(sys.argv[argc:]), prompt=prompt)
         except KeyboardInterrupt:
@@ -222,7 +224,7 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['search','s']:
-        cli = xapers.cli.UI(xroot)
+        cli = UI(xroot)
 
         oformat = 'summary'
         limit = 20
@@ -248,7 +250,7 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['bibtex','bib','b']:
-        cli = xapers.cli.UI(xroot)
+        cli = UI(xroot)
         argc = 2
         query = make_query_string(sys.argv[argc:])
         try:
@@ -259,7 +261,7 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['nci','view','show','select']:
-        import_nci()
+        nci = import_nci()
 
         if cmd == 'nci':
             args = sys.argv[2:]
@@ -268,14 +270,14 @@ if __name__ == '__main__':
             args = ['search', query]
 
         try:
-            xapers.nci.UI(xroot, cmd=args)
+            nci.UI(xroot, cmd=args)
         except KeyboardInterrupt:
             print >>sys.stderr, ''
             sys.exit(1)
 
     ########################################
     elif cmd in ['tag','t']:
-        cli = xapers.cli.UI(xroot)
+        cli = UI(xroot)
 
         add_tags = []
         remove_tags = []
@@ -308,13 +310,13 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['dumpterms']:
-        cli = xapers.cli.UI(xroot)
+        cli = UI(xroot)
         query = make_query_string(sys.argv[2:], require=False)
         cli.dumpterms(query)
 
     ########################################
     elif cmd in ['maxid']:
-        db = xapers.cli.initdb(xroot)
+        db = initdb(xroot)
         docid = 0
         for doc in db.search('*'):
             docid = max(docid, int(doc.docid))
@@ -322,20 +324,20 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['count']:
-        cli = xapers.cli.UI(xroot)
+        cli = UI(xroot)
         query = make_query_string(sys.argv[2:], require=False)
         cli.count(query)
 
     ########################################
     elif cmd in ['export']:
-        cli = xapers.cli.UI(xroot)
+        cli = UI(xroot)
         outdir = sys.argv[2]
         query = make_query_string(sys.argv[3:])
         cli.export(outdir, query)
 
     ########################################
     elif cmd in ['restore']:
-        cli = xapers.cli.UI(xroot)
+        cli = UI(xroot)
         cli.restore()
 
     ########################################
@@ -374,7 +376,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
         try:
-            print xapers.bibtex.Bibtex(bibtex)[0].as_string()
+            print Bibtex(bibtex)[0].as_string()
         except Exception, e:
             print >>sys.stderr, "Error parsing bibtex: %s" % e
             print >>sys.stderr, "Outputting raw..."
@@ -391,7 +393,7 @@ if __name__ == '__main__':
 
         try:
             items = Sources().scan_file(infile)
-        except xapers.parser.ParseError as e:
+        except ParseError as e:
             print >>sys.stderr, "Parse error: %s" % e
             print >>sys.stderr, "Is file '%s' a PDF?" % infile
             sys.exit(1)

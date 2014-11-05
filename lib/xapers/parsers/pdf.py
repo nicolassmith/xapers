@@ -1,4 +1,4 @@
-from xapers.parser import ParserBase
+from ..parser import ParserBase
 
 from subprocess import check_output
 

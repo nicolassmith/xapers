@@ -2,7 +2,7 @@ import os
 import subprocess
 import urwid
 
-from xapers.database import Database, DatabaseLockError
+from ..database import Database, DatabaseLockError
 
 ############################################################
 
