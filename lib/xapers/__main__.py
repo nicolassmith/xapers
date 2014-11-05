@@ -389,14 +389,13 @@ if __name__ == '__main__':
 
         try:
             bibtex = item.fetch_bibtex()
-        except Exception, e:
-            print >>sys.stderr, "\n"
+        except SourceError as e:
             print >>sys.stderr, "Could not retrieve bibtex: %s" % e
             sys.exit(1)
 
         try:
             print Bibtex(bibtex)[0].as_string()
-        except Exception, e:
+        except BibtexError as e:
             print >>sys.stderr, "Error parsing bibtex: %s" % e
             print >>sys.stderr, "Outputting raw..."
             print bibtex

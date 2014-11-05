@@ -217,7 +217,7 @@ class UI():
                 print >>sys.stderr, "Retrieving bibtex...",
                 bibtex = source.fetch_bibtex()
                 print >>sys.stderr, "done."
-            except Exception, e:
+            except BibtexError as e:
                 print >>sys.stderr, "\n"
                 print >>sys.stderr, "Could not retrieve bibtex: %s" % e
                 sys.exit(1)
@@ -327,7 +327,8 @@ class UI():
                 doc.add_tags(tags)
 
                 doc.sync()
-            except Exception, e:
+
+            except BibtexError as e:
                 print >>sys.stderr, "  Error processing entry %s: %s" % (entry.key, e)
                 print >>sys.stderr
                 errors.append(entry.key)
