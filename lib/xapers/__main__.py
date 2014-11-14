@@ -383,8 +383,20 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['source2bib','s2b']:
+        outraw = False
+
+        argc = 2
+        for arg in sys.argv[argc:]:
+            if argc >= len(sys.argv):
+                break
+            elif sys.argv[argc] == '--raw':
+                outraw = True
+            else:
+                break
+            argc += 1
+
         try:
-            string = sys.argv[2]
+            string = sys.argv[argc]
         except IndexError:
             print >>sys.stderr, "Must specify source to retrieve."
             sys.exit(1)
@@ -401,13 +413,16 @@ if __name__ == '__main__':
             print >>sys.stderr, "Could not retrieve bibtex: %s" % e
             sys.exit(1)
 
-        try:
-            print Bibtex(bibtex)[0].as_string()
-        except BibtexError as e:
-            print >>sys.stderr, "Error parsing bibtex: %s" % e
-            print >>sys.stderr, "Outputting raw..."
+        if outraw:
             print bibtex
-            sys.exit(1)
+        else:
+            try:
+                print Bibtex(bibtex)[0].as_string()
+            except BibtexError as e:
+                print >>sys.stderr, "Error parsing bibtex: %s" % e
+                print >>sys.stderr, "Outputting raw..."
+                print bibtex
+                sys.exit(1)
 
     ########################################
     elif cmd in ['scandoc','sd']:
