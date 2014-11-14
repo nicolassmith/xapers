@@ -88,7 +88,7 @@ Commands:
                                       files named for document titles.
 
   sources                             List available sources.
-  source2bib <source>                 Retrieve bibtex for source and
+  source2bib <source> [...]           Retrieve bibtex for sources and
                                       print to stdout.
   scandoc <file>                      Scan PDF file for source IDs.
 
@@ -396,33 +396,34 @@ if __name__ == '__main__':
             argc += 1
 
         try:
-            string = sys.argv[argc]
+            sss = sys.argv[argc:]
         except IndexError:
             print >>sys.stderr, "Must specify source to retrieve."
             sys.exit(1)
 
-        try:
-            item = Sources().match_source(string)
-        except SourceError as e:
-            print >>sys.stderr, e
-            sys.exit(1)
-
-        try:
-            bibtex = item.fetch_bibtex()
-        except SourceError as e:
-            print >>sys.stderr, "Could not retrieve bibtex: %s" % e
-            sys.exit(1)
-
-        if outraw:
-            print bibtex
-        else:
+        for ss in sss:
             try:
-                print Bibtex(bibtex)[0].as_string()
-            except BibtexError as e:
-                print >>sys.stderr, "Error parsing bibtex: %s" % e
-                print >>sys.stderr, "Outputting raw..."
-                print bibtex
+                item = Sources().match_source(ss)
+            except SourceError as e:
+                print >>sys.stderr, e
                 sys.exit(1)
+
+            try:
+                bibtex = item.fetch_bibtex()
+            except SourceError as e:
+                print >>sys.stderr, "Could not retrieve bibtex: %s" % e
+                sys.exit(1)
+
+            if outraw:
+                print bibtex
+            else:
+                try:
+                    print Bibtex(bibtex)[0].as_string()
+                except BibtexError as e:
+                    print >>sys.stderr, "Error parsing bibtex: %s" % e
+                    print >>sys.stderr, "Outputting raw..."
+                    print bibtex
+                    sys.exit(1)
 
     ########################################
     elif cmd in ['scandoc','sd']:
