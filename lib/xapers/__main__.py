@@ -88,6 +88,7 @@ Commands:
                                       files named for document titles.
 
   sources                             List available sources.
+  source2url <source> [...]           Output URLs for sources.
   source2bib <source> [...]           Retrieve bibtex for sources and
                                       print to stdout.
   scandoc <file>                      Scan PDF file for source IDs.
@@ -382,7 +383,7 @@ if __name__ == '__main__':
             print format % (name, desc, path)
 
     ########################################
-    elif cmd in ['source2bib','s2b']:
+    elif cmd in ['source2bib', 's2b', 'source2url', 's2u']:
         outraw = False
 
         argc = 2
@@ -407,6 +408,10 @@ if __name__ == '__main__':
             except SourceError as e:
                 print >>sys.stderr, e
                 sys.exit(1)
+
+            if cmd in ['source2url', 's2u']:
+                print item.url()
+                continue
 
             try:
                 bibtex = item.fetch_bibtex()
