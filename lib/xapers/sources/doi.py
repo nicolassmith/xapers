@@ -22,9 +22,11 @@ scan_regex = '(?:doi|DOI)[\s\.\:]{0,2}' + id_regex
 def fetch_bibtex(id):
     # http://www.crossref.org/CrossTech/2011/11/turning_dois_into_formatted_ci.html
     url = url_format % id
-    headers = dict(Accept='text/bibliography; style=bibtex')
-    req = urllib2.Request(url, headers=headers)
+    req = urllib2.Request(url)
+    req.add_header('Accept', 'text/bibliography; style=bibtex')
+    req.add_header('Accept-Charset', 'utf-8')
     f = urllib2.urlopen(req)
-    bibtex = f.read()
+    # DECODE the returned byte string to get a unicode string
+    bibtex = f.read().decode('utf-8')
     f.close
     return bibtex
