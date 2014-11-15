@@ -417,13 +417,7 @@ if __name__ == '__main__':
             if outraw:
                 print bibtex
             else:
-                try:
-                    print Bibtex(bibtex)[0].as_string()
-                except BibtexError as e:
-                    print >>sys.stderr, "Error parsing bibtex: %s" % e
-                    print >>sys.stderr, "Outputting raw..."
-                    print bibtex
-                    sys.exit(1)
+                print Bibtex(bibtex)[0].as_string()
 
     ########################################
     elif cmd in ['scandoc','sd']:
