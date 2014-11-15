@@ -35,16 +35,13 @@ class Bibtex():
         parser = inparser.Parser(encoding='utf-8')
 
         if os.path.exists(bibtex):
-            try:
-                bibdata = parser.parse_file(bibtex)
-            except Exception, e:
-                raise BibtexError('Error loading bibtex from file: %s' % e )
+            bibdata = parser.parse_file(bibtex)
         else:
-            try:
-                with io.StringIO(bibtex.decode('utf-8')) as stream:
-                    bibdata = parser.parse_stream(stream)
-            except Exception, e:
-                raise BibtexError('Error loading bibtex string: %s' % e )
+            # StringIO requires unicode input
+            # http://nedbatchelder.com/text/unipain.html
+            assert type(bibtex) is unicode, "Bibtex strings must be unicode"
+            with io.StringIO(bibtex) as stream:
+                bibdata = parser.parse_stream(stream)
 
         self.keys = bibdata.entries.keys()
         self.entries = bibdata.entries.values()
