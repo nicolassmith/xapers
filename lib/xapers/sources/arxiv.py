@@ -62,12 +62,8 @@ def fetch_bibtex(id):
     html = f.read()
     f.close()
 
-    # instantiate the parser and fed it some HTML
-    try:
-        parser = MyHTMLParser()
-        parser.feed(html)
-    except:
-        return None
+    parser = MyHTMLParser()
+    parser.feed(html)
 
     data = {
         'arxiv':   id,
