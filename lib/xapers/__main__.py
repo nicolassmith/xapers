@@ -67,7 +67,7 @@ Commands:
     --tags=<tag>[,...]                  initial tags
     --prompt                            prompt for unspecified options
     --view                              view entry after adding
-  import <bibtex-file>                Import all entries from a bibtex database.
+  import <bibtex-file>                Import entries from a bibtex database.
   delete <search-terms>               Delete documents from database.
     --noprompt                          do not prompt to confirm deletion
   restore                             Restore database from xapers root.
