@@ -379,14 +379,14 @@ if __name__ == '__main__':
         format = '%'+str(w)+'s: %s[%s]'
         for source in Sources():
             name = source.name
-            if source.is_builtin():
-                path = 'builtin'
-            else:
-                path = source.path()
             try:
                 desc = '%s ' % source.description
             except AttributeError:
                 desc = ''
+            if source.is_builtin:
+                path = 'builtin'
+            else:
+                path = source.path
             print format % (name, desc, path)
 
     ########################################

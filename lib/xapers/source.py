@@ -33,12 +33,14 @@ class Source(object):
     def __getitem__(self, id):
         return SourceItem(self, id)
 
+    @property
     def path(self):
         return self.module.__file__
 
+    @property
     def is_builtin(self):
         bpath = os.path.dirname(sources.__file__)
-        spath = os.path.dirname(self.path())
+        spath = os.path.dirname(self.path)
         return os.path.commonprefix([bpath, spath]) == bpath
 
     @property
