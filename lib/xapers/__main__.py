@@ -61,12 +61,14 @@ Commands:
   add [options] [<search-terms>]      Add a new document or update existing.
                                       If provided, search should match a single
                                       document.
-    --source=<source>                   source, for retrieving bibtex
+    --source=[<sid>|<file>]             source id, for online retrieval, or
+                                        bibtex file path
     --file=<file>                       PDF file to index and archive
     --tags=<tag>[,...]                  initial tags
     --prompt                            prompt for unspecified options
     --view                              view entry after adding
   import <bibtex-file>                Import entries from a bibtex database.
+    --tags=<tag>[,...]                  tags to apply to all imported documents
   delete <search-terms>               Delete documents from database.
     --noprompt                          do not prompt to confirm deletion
   restore                             Restore database from xapers root.
@@ -87,40 +89,46 @@ Commands:
                                       files named for document titles.
 
   sources                             List available sources.
-  source2url <source> [...]           Output URLs for sources.
-  source2bib <source> [...]           Retrieve bibtex for sources and
+  source2url <sid> [...]              Output URLs for sources.
+  source2bib <sid> [...]              Retrieve bibtex for sources and
                                       print to stdout.
   scandoc <file>                      Scan PDF file for source IDs.
 
   version                             Print version number.
-  help                                This help.
+  help [search]                       This usage, or search term help.
 
 The xapers document store is specified by the XAPERS_ROOT environment
 variable, or defaults to '~/.xapers/docs' if not specified (the
 directory is allowed to be a symlink).
 
-Other definitions:
+See 'xapers help search' for more information on term definitions and
+search syntax."""
 
-  <docid>: Documents are assigned unique integer IDs.
+def usage_search():
+    print """Xapers supports a common syntax for search terms.
 
-  <source>: A source can be either a URL, a source ID string of the
-    form '<source>:<id>', or a bibtex file.  Currently recognized
-    sources:
-      doi:<Digital Object Id>
-      arxiv:<arXiv Article Id>
+Search can consist of free-form text and quoted phrases.  Terms can be
+combined with standard Boolean operators.  All terms are combined with
+a logical OR by default.  Parentheses can be used to group operators,
+but must be protect from shell interpretation.  The string '*' will
+match all documents.
 
-  <search-terms>: Free-form text to match against indexed document
-    text, or the following prefixes can be used to match against
-    specific document metadata:
-      id:<docid>               Xapers document id
-      author:<string>          string in authors (also a:)
-      title:<string>           string in title (also t:)
-      tag:<tag>                specific user tags
-      <source>:<id>            specific sid string
-      source:<lib>             specific source
-      key:<key>                specific bibtex citation key
+Additionally, the following prefixed terms are understood (where
+<brackets> indicate user-supplied values):
 
-  The string '*' will match all documents.
+  id:<docid>                   Xapers document id
+  author:<string>              string in authors (also a:)
+  title:<string>               string in title (also t:)
+  tag:<tag>                    specific user tag
+  <source>:<id>                specific source id (sid)
+  source:<source>              specific Xapers source
+  key:<key>                    specific bibtex citation key
+  year:<year>                  specific publication year (also y:)
+  year:<since>..<until>        publication year range (also y:)
+  year:..<until>
+  year:<since>..
+
+Publication years must be four-digit integers.
 
 See the following for more information on search terms:
 
@@ -448,8 +456,11 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['help','h','--help','-h']:
-        usage()
-        sys.exit(0)
+        if len(sys.argv) > 2:
+            if sys.argv[2] == 'search':
+                usage_search()
+        else:
+            usage()
 
     ########################################
     else:
