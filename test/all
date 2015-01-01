@@ -209,6 +209,44 @@ id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
+test_begin_subtest 'search year'
+xapers search y:1869 >OUTPUT
+cat <<EOF >EXPECTED
+id:4 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search year (none)'
+xapers search year:1868 >OUTPUT
+cat <<EOF >EXPECTED
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search year range'
+xapers search y:1980..2011 >OUTPUT
+cat <<EOF >EXPECTED
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search year open start'
+xapers search year:..1990 >OUTPUT
+cat <<EOF >EXPECTED
+id:4 [doi:10.9999/FOO.2] {30929234} (new) "The Circle and the Square: Forbidden Love"
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
+test_begin_subtest 'search year open end'
+xapers search year:1900.. >OUTPUT
+cat <<EOF >EXPECTED
+id:3 [] {fake:1234} (qux) "When the liver meats the pavement"
+id:2 [doi:10.9999/FOO.1] {Good_Bad_Up_Down_Left_Right_et_al._2012} (bar new) "Multicolor cavity sadness"
+id:1 [arxiv:1235] {arxiv:1235} (foo new) "Creation of the γ-verses"
+EOF
+test_expect_equal_file OUTPUT EXPECTED
+
 test_begin_subtest 'search prefix id:'
 xapers search id:3 >OUTPUT
 cat <<EOF >EXPECTED
@@ -315,7 +353,7 @@ cat <<EOF >EXPECTED
 @article{arxiv:1235,
     author = "Dole, Bob and Cruise, Tim",
     title = "Creation of the γ-verses",
-    year = "2012",
+    year = "2011",
     eprint = "1235",
     file = ":XAPERS_ROOT/0000000001/1.pdf:pdf"
 }
@@ -353,7 +391,7 @@ cat <<EOF >EXPECTED
 @article{arxiv:1235,
     author = "Dole, Bob and Cruise, Tim",
     title = "Creation of the γ-verses",
-    year = "2012",
+    year = "2011",
     eprint = "1235",
     file = ":XAPERS_ROOT/0000000001/1.pdf:pdf"
 }
