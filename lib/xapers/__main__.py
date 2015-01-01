@@ -374,15 +374,20 @@ if __name__ == '__main__':
     elif cmd in ['sources']:
         sources = Sources()
         w = 0
-        for source in Sources():
+        for source in sources:
             w = max(len(source.name), w)
         format = '%'+str(w)+'s: %s[%s]'
-        for source in Sources():
+        for source in sources:
             name = source.name
+            desc = ''
             try:
-                desc = '%s ' % source.description
+                desc += '%s ' % source.description
             except AttributeError:
-                desc = ''
+                pass
+            try:
+                desc += '(%s) ' % source.url
+            except AttributeError:
+                pass
             if source.is_builtin:
                 path = 'builtin'
             else:
