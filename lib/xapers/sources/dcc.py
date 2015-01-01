@@ -6,6 +6,8 @@ from xapers.bibtex import data2bib
 
 description = "LIGO Document Control Center"
 
+url = 'https://dcc.ligo.org/'
+
 url_format = 'https://dcc.ligo.org/%s'
 
 url_regex = 'https://dcc.ligo.org/(?:LIGO-)?([^/]*)'

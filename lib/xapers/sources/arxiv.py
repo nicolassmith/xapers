@@ -4,6 +4,8 @@ from xapers.bibtex import data2bib
 
 description = "Open access e-print service"
 
+url = 'http://arxiv.org/'
+
 url_format = 'http://arxiv.org/abs/%s'
 
 url_regex = 'http://arxiv.org/(?:abs|pdf|format)/([^/]*)'

@@ -2,6 +2,8 @@ import urllib2
 
 description = "Digital Object Identifier"
 
+url = 'http://dx.doi.org/'
+
 # produces URL string when supplied with valid source identifier
 url_format = 'http://dx.doi.org/%s'
 
