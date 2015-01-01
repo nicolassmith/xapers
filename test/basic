@@ -45,7 +45,7 @@ test_begin_subtest 'Ensure that all available tests will be run by xapers-test'
 eval $(sed -n -e '/^TESTS="$/,/^"$/p' $TEST_DIRECTORY/xapers-test)
 eval $(sed -n -e '/^TESTS_NET="$/,/^"$/p' $TEST_DIRECTORY/xapers-test)
 tests_in_suite=$(for i in $TESTS $TESTS_NET; do echo $i; done | sort)
-available=$(find "$TEST_DIRECTORY" -maxdepth 1 -type f -perm +111  \
+available=$(find "$TEST_DIRECTORY" -maxdepth 1 -type f -perm /111  \
     ! -name '*~'                        \
     ! -name test-aggregate-results      \
     ! -name test-verbose		\
