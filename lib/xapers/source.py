@@ -11,6 +11,13 @@ from parser import parse_file
 class SourceError(Exception):
     pass
 
+class SourceAttributeError(SourceError):
+    def __init__(self, source, msg):
+        self.source = source
+        self.msg = msg
+    def __str__(self):
+        return "Source '%s' does not include a %s." % (self.source.name, self.msg)
+
 ##################################################
 
 class Source(object):
@@ -45,21 +52,37 @@ class Source(object):
 
     @property
     def description(self):
-        return self.module.description
+        try:
+            return self.module.description
+        except AttributeError:
+            raise SourceAttributeError(self, "'description' property")
+
+    @property
+    def url(self):
+        try:
+            return self.module.url
+        except AttributeError:
+            raise SourceAttributeError(self, "'url' property")
 
     @property
     def url_regex(self):
-        return self.module.url_regex
+        try:
+            return self.module.url_regex
+        except AttributeError:
+            raise SourceAttributeError(self, "'url_regex' property")
 
     @property
     def scan_regex(self):
-        return self.module.scan_regex
-
-    def url(self, id):
-        return self.module.url_format % id
+        try:
+            return self.module.scan_regex
+        except AttributeError:
+            raise SourceAttributeError(self, "'scan_regex' property")
 
     def fetch_bibtex(self, id):
-        return self.module.fetch_bibtex(id)
+        try:
+            return self.module.fetch_bibtex(id)
+        except AttributeError:
+            raise SourceAttributeError(self, "fetch_bibtex() function")
 
 class SourceItem(Source):
     """Xapers class representing an item from an online source.
@@ -88,8 +111,12 @@ class SourceItem(Source):
     def __str__(self):
         return self.sid
 
+    @property
     def url(self):
-        return super(SourceItem, self).url(self.id)
+        try:
+            return self.module.url_format % self.id
+        except AttributeError:
+            raise SourceAttributeError(self, "'url_format' property")
 
     def fetch_bibtex(self):
         return super(SourceItem, self).fetch_bibtex(self.id)
@@ -177,7 +204,7 @@ class Sources(object):
         for source in self:
             try:
                 regex = re.compile(source.scan_regex)
-            except AttributeError:
+            except SourceAttributeError:
                 # FIXME: warning?
                 continue
             matches = regex.findall(text)
