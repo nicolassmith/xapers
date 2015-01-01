@@ -65,8 +65,8 @@ class Database():
         'key': 'XBIB|',
         'source': 'XSOURCE|',
         'tag': 'K',
-
         'year': 'Y',
+        'y': 'Y',
         }
 
     PROBABILISTIC_PREFIX = {
@@ -78,6 +78,8 @@ class Database():
 
     # http://xapian.org/docs/facets
     NUMBER_VALUE_FACET = {
+        'year': 0,
+        'y': 0,
         }
 
     # FIXME: need to set the following value fields:
