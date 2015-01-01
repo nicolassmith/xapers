@@ -76,6 +76,10 @@ class Database():
         'a': 'A',
         }
 
+    # http://xapian.org/docs/facets
+    NUMBER_VALUE_FACET = {
+        }
+
     # FIXME: need to set the following value fields:
     # publication date
     # added date
@@ -91,6 +95,10 @@ class Database():
         if name in self.PROBABILISTIC_PREFIX:
             return self.PROBABILISTIC_PREFIX[name]
         # FIXME: raise internal error for unknown name
+
+    def _find_facet(self, name):
+        if name in self.NUMBER_VALUE_FACET:
+            return self.NUMBER_VALUE_FACET[name]
 
     def _make_source_prefix(self, source):
         return 'X%s|' % (source.upper())
@@ -148,6 +156,12 @@ class Database():
         # add probabalistic prefixes
         for name, prefix in self.PROBABILISTIC_PREFIX.iteritems():
             self.query_parser.add_prefix(name, prefix)
+
+        # add value facets
+        for name, facet in self.NUMBER_VALUE_FACET.iteritems():
+            self.query_parser.add_valuerangeprocessor(
+                xapian.NumberValueRangeProcessor(facet, name+':')
+                )
 
         # register known source prefixes
         # FIXME: can we do this by just finding all XSOURCE terms in
