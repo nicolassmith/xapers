@@ -15,7 +15,9 @@ class Bibview(urwid.WidgetWrap):
 
         string = ''
         for doc in docs:
-            string = string + doc.get_bibtex() + '\n'
+            bibtex = doc.get_bibtex()
+            if bibtex:
+                string = string + bibtex + '\n'
 
         self.box = urwid.Filler(urwid.Text(string))
         w = self.box
