@@ -91,6 +91,4 @@ def fetch_bibtex(id):
     key = 'dcc:%s' % id
 
     btype = '@techreport'
-    bibentry = data2bib(data, key, type=btype)
-
-    return bibentry.as_string()
+    return data2bib(data, key, type=btype)

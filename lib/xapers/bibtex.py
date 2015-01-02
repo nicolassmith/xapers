@@ -153,7 +153,7 @@ def data2bib(data, key, type='article'):
         for p in authors:
             entry.add_person(Person(p), 'author')
 
-    return Bibentry(key, entry)
+    return Bibentry(key, entry).as_string()
 
 
 def json2bib(jsonstring, key, type='article'):
@@ -184,4 +184,4 @@ def json2bib(jsonstring, key, type='article'):
         for author in authors:
             entry.add_person(Person(first=author['given'], last=author['family']), 'author')
 
-    return Bibentry(key, entry)
+    return Bibentry(key, entry).as_string()
