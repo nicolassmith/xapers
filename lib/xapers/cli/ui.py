@@ -137,8 +137,9 @@ class UI():
 
         sources = Sources()
         doc_sid = sid
+        file_data = None
 
-        if infile:
+        if infile and infile is not True:
             infile = os.path.expanduser(infile)
 
         ##################################
@@ -160,14 +161,13 @@ class UI():
         # do fancy option prompting
 
         if prompt:
-            infile = self.prompt_for_file(infile)
-
-        if prompt:
             doc_sids = []
             if doc_sid:
                 doc_sids = [doc_sid]
             # scan the file for source info
-            if infile:
+            if infile is not True:
+                infile = self.prompt_for_file(infile)
+
                 print >>sys.stderr, "Scanning document for source identifiers..."
                 try:
                     ss = sources.scan_file(infile)
@@ -221,10 +221,29 @@ class UI():
                 print >>sys.stderr, "Retrieving bibtex...",
                 bibtex = source.fetch_bibtex()
                 print >>sys.stderr, "done."
-            except BibtexError as e:
+            except SourceError as e:
                 print >>sys.stderr, "\n"
                 print >>sys.stderr, "Could not retrieve bibtex: %s" % e
                 sys.exit(1)
+
+            if infile is True:
+                try:
+                    print >>sys.stderr, "Retrieving file...",
+                    file_name, file_data = source.fetch_file()
+                    print >>sys.stderr, "done."
+                except SourceError as e:
+                    print >>sys.stderr, "\n"
+                    print >>sys.stderr, "Could not retrieve file: %s" % e
+                    sys.exit(1)
+
+        elif infile is True:
+            print >>sys.stderr, "Must specify source with retrieve file option."
+            sys.exit(1)
+
+        if infile and not file_data:
+            with open(infile, 'r') as f:
+                file_data = f.read()
+            file_name = os.path.basename(infile)
 
         ##################################
 
@@ -250,10 +269,9 @@ class UI():
                 raise
 
         if infile:
-            path = os.path.abspath(infile)
             try:
-                print >>sys.stderr, "Adding file '%s'..." % (path),
-                doc.add_file(path)
+                print >>sys.stderr, "Adding file...",
+                doc.add_file_data(file_name, file_data)
                 print >>sys.stderr, "done."
             except ParseError as e:
                 print >>sys.stderr, "\n"

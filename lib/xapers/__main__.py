@@ -63,7 +63,7 @@ Commands:
                                       document.
     --source=[<sid>|<file>]             source id, for online retrieval, or
                                         bibtex file path
-    --file=<file>                       PDF file to index and archive
+    --file[=<file>]                     PDF file to index and archive
     --tags=<tag>[,...]                  initial tags
     --prompt                            prompt for unspecified options
     --view                              view entry after adding
@@ -165,8 +165,11 @@ if __name__ == '__main__':
                 break
             elif '--source=' in sys.argv[argc]:
                 sid = sys.argv[argc].split('=',1)[1]
-            elif '--file=' in sys.argv[argc]:
-                infile = sys.argv[argc].split('=',1)[1]
+            elif '--file' in sys.argv[argc]:
+                if '=' in sys.argv[argc]:
+                    infile = sys.argv[argc].split('=',1)[1]
+                else:
+                    infile = True
             elif '--tags=' in sys.argv[argc]:
                 tags = sys.argv[argc].split('=',1)[1].split(',')
             elif '--prompt' in sys.argv[argc]:

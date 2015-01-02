@@ -67,10 +67,11 @@ also be a path to a file that contains a single bibtex entry.
 .RE
 .RS 4
 .TP 4
-.BR \-\-file=<path>
-Document file (as PDF) to add.  Text of document will be extracted
-from PDF and indexed.  A copy of the file will be placed in the Xapers
-document store.
+.BR \-\-file[=<file>]
+Document file (as PDF) to add.  Text of document will be extracted and
+indexed.  A copy of the file will be placed in the Xapers document
+store.  If provided without path, xapers will attempt to download file
+from source, assuming source supports file downloads.
 .RE
 .RS 4
 .TP 4
