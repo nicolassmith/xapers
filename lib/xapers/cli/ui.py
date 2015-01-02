@@ -137,6 +137,7 @@ class UI():
 
         sources = Sources()
         doc_sid = sid
+        source = None
         file_data = None
 
         if infile and infile is not True:
@@ -267,6 +268,10 @@ class UI():
             except:
                 print >>sys.stderr, "\n"
                 raise
+
+        # add source sid if it hasn't been added yet
+        if source and not doc.get_sids():
+            doc.add_sid(source.sid)
 
         if infile:
             try:
