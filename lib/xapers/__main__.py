@@ -92,6 +92,8 @@ Commands:
   source2url <sid> [...]              Output URLs for sources.
   source2bib <sid> [...]              Retrieve bibtex for sources and print to
                                       stdout.
+  source2file <sid>                   Retrieve file for source and write to
+                                      stdout.
   scandoc <file>                      Scan PDF file for source ids.
 
   version                             Print version number.
@@ -395,7 +397,7 @@ if __name__ == '__main__':
             print format % (name, desc, path)
 
     ########################################
-    elif cmd in ['source2bib', 's2b', 'source2url', 's2u']:
+    elif cmd in ['source2bib', 's2b', 'source2url', 's2u', 'source2file', 's2f']:
         outraw = False
 
         argc = 2
@@ -413,6 +415,11 @@ if __name__ == '__main__':
         except IndexError:
             print >>sys.stderr, "Must specify source to retrieve."
             sys.exit(1)
+
+        if cmd in ['source2file', 's2f']:
+            if len(sss) > 1:
+                print >>sys.stderr, "source2file can only retrieve file for single source."
+                sys.exit(1)
 
         sources = Sources()
 
@@ -438,6 +445,13 @@ if __name__ == '__main__':
                     print bibtex
                 else:
                     print Bibtex(bibtex)[0].as_string()
+
+            elif cmd in ['source2file', 's2f']:
+                try:
+                    print item.fetch_file()
+                except SourceError as e:
+                    print >>sys.stderr, "Could not retrieve file: %s" % e
+                    sys.exit(1)
 
     ########################################
     elif cmd in ['scandoc','sd']:
