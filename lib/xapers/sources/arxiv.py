@@ -78,3 +78,10 @@ def fetch_bibtex(id):
 
     bibentry = data2bib(data, 'arxiv:%s' % id)
     return bibentry.as_string()
+
+def fetch_file(id):
+    url = 'http://arxiv.org/pdf/%s' % id
+    f = urllib.urlopen(url)
+    data = f.read()
+    f.close()
+    return data
