@@ -203,15 +203,15 @@ These commands provide access to some of the source module methods.  See
 
 List available sources.
 .
-.SS source2url <sid>
+.SS source2url <sid> [<sid>...]
 
 Parse a source identifier string and print the corresponding source
 URL.
 .
-.SS source2bib <sid>
+.SS source2bib <sid> [<sid>...]
 
 Retrieve bibtex from source for a specified URL or source id, and
-print to stdout.
+write to stdout.
 .
 .SS scandoc <file>
 
@@ -275,6 +275,10 @@ behavior of xapers:
 .SS XAPERS_ROOT
 Location of the Xapers document store.  Defaults to "~/.xapers/docs"
 if not specified.
+.
+.SS XAPERS_SOURCE_PATH
+Path specification for location of additional custom Xapers source
+modules.  Defaults to "~/.xapers/sources" if not specified.
 .
 .SH CONTACT
 Feel free to email the author:

@@ -85,14 +85,14 @@ Commands:
   view <search-terms>                 View search in curses UI.
   count <search-terms>                Count matches.
 
-  export <dir> <search-terms>         Export documents to a directory of
-                                      files named for document titles.
+  export <dir> <search-terms>         Export documents to a directory of files
+                                      named for document titles.
 
   sources                             List available sources.
   source2url <sid> [...]              Output URLs for sources.
-  source2bib <sid> [...]              Retrieve bibtex for sources and
-                                      print to stdout.
-  scandoc <file>                      Scan PDF file for source IDs.
+  source2bib <sid> [...]              Retrieve bibtex for sources and print to
+                                      stdout.
+  scandoc <file>                      Scan PDF file for source ids.
 
   version                             Print version number.
   help [search]                       This usage, or search term help.
