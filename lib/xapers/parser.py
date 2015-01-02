@@ -21,6 +21,19 @@ class ParserBase():
 
 ##################################################
 
+def parse_data(data):
+    # FIXME: determine mime type
+    mimetype = 'pdf'
+
+    from xapers.parsers.pdf import extract
+
+    try:
+        text = extract(data)
+    except Exception, e:
+        raise ParseError("Could not parse file: %s" % e)
+
+    return text
+
 def parse_file(path):
     # FIXME: determine mime type
     mimetype = 'pdf'
