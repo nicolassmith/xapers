@@ -414,27 +414,30 @@ if __name__ == '__main__':
             print >>sys.stderr, "Must specify source to retrieve."
             sys.exit(1)
 
+        sources = Sources()
+
         for ss in sss:
             try:
-                item = Sources().match_source(ss)
+                item = sources.match_source(ss)
             except SourceError as e:
                 print >>sys.stderr, e
                 sys.exit(1)
 
             if cmd in ['source2url', 's2u']:
-                print item.url()
+                print item.url
                 continue
 
-            try:
-                bibtex = item.fetch_bibtex()
-            except SourceError as e:
-                print >>sys.stderr, "Could not retrieve bibtex: %s" % e
-                sys.exit(1)
+            elif cmd in ['source2bib', 's2b']:
+                try:
+                    bibtex = item.fetch_bibtex()
+                except SourceError as e:
+                    print >>sys.stderr, "Could not retrieve bibtex: %s" % e
+                    sys.exit(1)
 
-            if outraw:
-                print bibtex
-            else:
-                print Bibtex(bibtex)[0].as_string()
+                if outraw:
+                    print bibtex
+                else:
+                    print Bibtex(bibtex)[0].as_string()
 
     ########################################
     elif cmd in ['scandoc','sd']:
