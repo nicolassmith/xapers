@@ -1,6 +1,3 @@
-db:
-* add values: publication date, entry creation time, mod time, etc.
-
 doc:
 * add ability to remove source sid
 * add ability to replace/remove file
@@ -29,19 +26,17 @@ nci:
 * customizable palette
 
 sources:
-* allow for user source modules (inherit Source)
 * add 'hdl': http://handle.net/proxy.html
 * add method to download document file
 
 parser:
-* extract any metadata from pdfs
+* extract metadata from pdfs
 * better handle parse errors
 * better pdf parser (native python: https://gist.github.com/pazz/5455090)
 * parsers for other document types
 
 bib:
 * test for compiling bibtex
-* do something about "container-title" from doi
 * provide bib output in other formats
 
 emacs UI
@@ -56,8 +51,6 @@ emacs UI
 
 BUGS
 ====
-
-* nci: 'b' on doc with no bib produces traceback
 
 * capitalized prefixed terms are not searchable
   - dcc:T00000
