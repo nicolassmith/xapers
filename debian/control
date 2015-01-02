@@ -19,10 +19,10 @@ Depends:
  ${python:Depends},
  python-pkg-resources,
  python-xapian,
- poppler-utils,
- python-pycurl,
  pybtex
 Recommends:
+ poppler-utils,
+ python-pycurl,
  python-urwid,
  xdg-utils,
  xclip
