@@ -14,9 +14,9 @@ export XAPERS_SOURCE_PATH=':'
 test_begin_subtest 'list sources'
 xapers sources | sort >OUTPUT
 cat <<EOF >EXPECTED
-  dcc: LIGO Document Control Center [builtin]
-  doi: Digital Object Identifier [builtin]
-arxiv: Open access e-print service [builtin]
+  dcc: LIGO Document Control Center (https://dcc.ligo.org/) [builtin]
+  doi: Digital Object Identifier (https://dx.doi.org/) [builtin]
+arxiv: Open access e-print service (http://arxiv.org/) [builtin]
 EOF
 test_expect_equal_file OUTPUT EXPECTED
 
