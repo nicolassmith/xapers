@@ -52,8 +52,9 @@ any are missing, some xapers functionality may be undefined.
   fetch_bibtex(id): a function that will return a bibtex string for a
     source document specified by id.
 
-  fetch_file(id): a function that will return file data (preferably in
-    PDF format) for a source document specified by id.
+  fetch_file(id): a function that will return a (file_name, file_data)
+    tuple for a source document specified by id.  File should be in
+    PDF format.
 
 If your source does not provide bibliographic data directly in bibtex
 format, the xapers.bibtex module has several helper functions for

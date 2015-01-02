@@ -448,7 +448,8 @@ if __name__ == '__main__':
 
             elif cmd in ['source2file', 's2f']:
                 try:
-                    print item.fetch_file()
+                    name, data = item.fetch_file()
+                    print data
                 except SourceError as e:
                     print >>sys.stderr, "Could not retrieve file: %s" % e
                     sys.exit(1)
