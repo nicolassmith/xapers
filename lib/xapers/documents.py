@@ -22,7 +22,7 @@ import os
 import shutil
 import xapian
 
-from parser import parse_file
+from parser import parse_data
 from source import Sources
 from bibtex import Bibtex
 
@@ -98,6 +98,8 @@ class Document():
         #
         self.bibentry = None
 
+        self._infiles = {}
+
     def get_docid(self):
         """Return document id of document."""
         return self.docid
@@ -110,12 +112,10 @@ class Document():
             os.makedirs(self.docdir)
 
     def _write_files(self):
-        if '_infiles' in dir(self):
-            for infile, outfile in self._infiles.iteritems():
-                try:
-                    shutil.copyfile(infile, outfile)
-                except shutil.Error:
-                    pass
+        for name, data in self._infiles.iteritems():
+            path = os.path.join(self.docdir, name)
+            with open(path, 'w') as f:
+                f.write(data)
 
     def _write_bibfile(self):
         bibpath = self.get_bibpath()
@@ -214,66 +214,59 @@ class Document():
     ########################################
     # files
 
-    # index file for the document
-    def _index_file(self, path):
-        text = parse_file(path)
+    def add_file_data(self, name, data):
+        """Add a file data to document.
 
+        'name' is the name of the file, 'data is the file data.
+
+        File will not copied in to docdir until sync().
+        """
+        # FIXME: set mime type term
+
+        # parse the file data into text
+        text = parse_data(data)
+
+        # generate terms from the text
         self._gen_terms(None, text)
 
+        # set data to be text sample
+        # FIXME: is this the right thing to put in the data?
         summary = text[0:997].translate(None, '\n') + '...'
+        self._set_data(summary)
 
-        return summary
-
-    def _add_path(self, path):
-        base, full = self.db._basename_for_path(path)
+        # FIXME: should files be renamed to something generic (0.pdf)?
         prefix = self.db._find_prefix('file')
-        self._add_term(prefix, base)
+        self._add_term(prefix, name)
 
-    def _get_paths(self):
-        return self._get_terms(self.db._find_prefix('file'))
-
-    def get_fullpaths(self):
-        """Return fullpaths associated with document."""
-        list = []
-        for path in self._get_paths():
-            # FIXME: this is a hack for old bad path specifications and should be removed
-            if path.find(self.root) == 0:
-                index = len(self.root) + 1
-                path = path[index:]
-            path = path.lstrip('/')
-            # FIXME
-            base, full = self.db._basename_for_path(path)
-            list.append(full)
-        return list
+        # add it to the cache to be written at sync()
+        self._infiles[name] = data
 
     def add_file(self, infile):
         """Add a file to document.
 
+        Added file will have the same name.
+
         File will not copied in to docdir until sync().
         """
+        with open(infile, 'r') as f:
+            data = f.read()
+        name = os.path.basename(infile)
+        self.add_file_data(name, data)
 
-        # FIXME: should load entire file into {name: file} to be
-        # written as file>docdir/name
+    def get_files(self):
+        """Return files associated with document."""
+        return self._get_terms(self.db._find_prefix('file'))
 
-        # FIXME: set mime type term
-
-        summary = self._index_file(infile)
-
-        # set data to be text sample
-        # FIXME: is this the right thing to put in the data?
-        self._set_data(summary)
-
-        # FIXME: should files be renamed to something generic (0.pdf)?
-        outfile = os.path.join(self.docdir, os.path.basename(infile))
-
-        base, full = self.db._basename_for_path(outfile)
-
-        self._add_path(base)
-
-        # add it to the cache to be written at sync()
-        if '_infiles' not in dir(self):
-            self._infiles = {}
-        self._infiles[infile] = outfile
+    def get_fullpaths(self):
+        """Return fullpaths of files associated with document."""
+        list = []
+        for path in self.get_files():
+            # FIXME: this is a hack for old bad path specifications and should be removed
+            if path.find(self.root) == 0:
+                index = len(self.root) + 1
+                path = path[index:]
+            list.append(os.path.join(self.docdir, path))
+        return list
 
 
     ########################################
