@@ -440,20 +440,25 @@ if __name__ == '__main__':
             elif cmd in ['source2bib', 's2b']:
                 try:
                     bibtex = item.fetch_bibtex()
-                except SourceError as e:
+                except Exception as e:
                     print >>sys.stderr, "Could not retrieve bibtex: %s" % e
                     sys.exit(1)
 
                 if outraw:
                     print bibtex
                 else:
-                    print Bibtex(bibtex)[0].as_string()
+                    try:
+                        print Bibtex(bibtex)[0].as_string()
+                    except:
+                        print >>sys.stderr, "Failed to parse retrieved bibtex data."
+                        print >>sys.stderr, "Use --raw option to view raw retrieved data."
+                        sys.exit(1)
 
             elif cmd in ['source2file', 's2f']:
                 try:
                     name, data = item.fetch_file()
                     print data
-                except SourceError as e:
+                except Exception as e:
                     print >>sys.stderr, "Could not retrieve file: %s" % e
                     sys.exit(1)
 
