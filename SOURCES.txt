@@ -1,0 +1,86 @@
+= SOURCES =
+
+A Xapers "source" is a python module that describes how to interact
+with a single online journal database, from which document files and
+bibliographic data can be retrieved.
+
+Sources are assigned unique prefixes (e.g. "doi").  Online libraries
+associate unique document identifiers to individual documents
+(e.g. "10.1364/JOSAA.29.002092").  A particular online document is
+therefore described by a unique "source identifier", or "sid", which
+can take two equivalent forms:
+
+  full URL            http://dx.doi.org/10.1364/JOSAA.29.002092
+  <source>:<id>       doi:10.1364/JOSAA.29.002092
+
+
+== CUSTOM SOURCE MODULES ==
+
+Custom source modules may be written to extend the base functionality
+of Xapers.  A source module is described by a single python module
+(although it may import arbitrary other modules).  The base name of
+the module file is interpreted as the nickname or 'prefix' for the
+source (e.g. if the module is named "doi.py" the source nickname will
+be "doi").
+
+The module should include the following properties and functions.  If
+any are missing, some xapers functionality may be undefined.
+
+  description: a brief string description of the source, e.g.:
+
+    description = "Digital Object Identifier"
+
+  url: base URL of source, e.g.:
+
+    url = 'http://dx.doi.org/'
+
+  url_format: a printf format string that produces a valid source URL
+    for a specified source identifier string, e.g.:
+
+    url_format = 'http://dx.doi.org/%s'
+
+  url_regex: a regular expression string that will match the source
+    identifier string from a given full URL, e.g.:
+
+    url_regex = 'http://dx.doi.org/(10\.\d{4,}[\w\d\:\.\-\/]+)'
+
+  scan_regex: a regular expression string that will match the source
+    identifier string in a scan of a documents plain text, e.g.:
+
+    scan_regex = '(?:doi|DOI)[\s\.\:]{0,2}' + id_regex
+
+  fetch_bibtex(id): a function that will return a bibtex string for a
+    source document specified by id.
+
+  fetch_file(id): a function that will return file data (preferably in
+    PDF format) for a source document specified by id.
+
+If your source does not provide bibliographic data directly in bibtex
+format, the xapers.bibtex module has several helper functions for
+creating bibtex strings from python dictionaries (data2bib) or json
+objects (json2bib).
+
+See existing source module contributed with the xapers source as
+examples (lib/xapers/sources/).
+
+== SOURCE MODULE PATH ==
+
+Once a custom source module has been created, place it
+~/.xapers/sources.  The module path can be overridden with the
+XAPERS_SOURCE_PATH environment variable, which can be a
+colon-separated list of directories to search for modules.
+
+
+== TESTING ==
+
+Once a module is in place, use the xapers source* commands (sources,
+source2url, source2bib, source2file) to test it's functionality.  Your
+new module should show up in the source listing with the "sources"
+command, and should be able to print the relevant data with the other
+commands.
+
+
+== CONTRIBUTING ==
+
+If you think your module is stable and of general usefulness to the
+community, please consider contributing it upstream.  Thanks!

@@ -2,6 +2,8 @@ import urllib2
 
 description = "Digital Object Identifier"
 
+url = 'http://dx.doi.org/'
+
 # produces URL string when supplied with valid source identifier
 url_format = 'http://dx.doi.org/%s'
 
@@ -20,11 +22,13 @@ scan_regex = '(?:doi|DOI)[\s\.\:]{0,2}' + id_regex
 
 # function to fetch a bibtex entry for a given source identifier
 def fetch_bibtex(id):
-    # http://www.crossref.org/CrossTech/2011/11/turning_dois_into_formatted_ci.html
+    # http://www.crosscite.org/cn/
     url = url_format % id
-    headers = dict(Accept='text/bibliography; style=bibtex')
-    req = urllib2.Request(url, headers=headers)
+    req = urllib2.Request(url)
+    req.add_header('Accept', 'application/x-bibtex')
+    req.add_header('Accept-Charset', 'utf-8')
     f = urllib2.urlopen(req)
-    bibtex = f.read()
+    # DECODE the returned byte string to get a unicode string
+    bibtex = f.read().decode('utf-8')
     f.close
     return bibtex

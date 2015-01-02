@@ -4,6 +4,8 @@ from xapers.bibtex import data2bib
 
 description = "Open access e-print service"
 
+url = 'http://arxiv.org/'
+
 url_format = 'http://arxiv.org/abs/%s'
 
 url_regex = 'http://arxiv.org/(?:abs|pdf|format)/([^/]*)'
@@ -62,12 +64,8 @@ def fetch_bibtex(id):
     html = f.read()
     f.close()
 
-    # instantiate the parser and fed it some HTML
-    try:
-        parser = MyHTMLParser()
-        parser.feed(html)
-    except:
-        return None
+    parser = MyHTMLParser()
+    parser.feed(html)
 
     data = {
         'arxiv':   id,
@@ -78,5 +76,11 @@ def fetch_bibtex(id):
         'url':     url_format % id,
         }
 
-    bibentry = data2bib(data, 'arxiv:%s' % id)
-    return bibentry.as_string()
+    return data2bib(data, 'arxiv:%s' % id)
+
+def fetch_file(id):
+    url = 'http://arxiv.org/pdf/%s' % id
+    f = urllib.urlopen(url)
+    data = f.read()
+    f.close()
+    return data

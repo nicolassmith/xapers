@@ -19,9 +19,11 @@
 .TH XAPERS 1
 .SH NAME
 xapers \- personal journal article indexing system
+.
 .SH SYNOPSIS
 .B xapers
 .IR command " [" args " ...]"
+.
 .SH DESCRIPTION
 Xapers is a personal document indexing system, geared towards academic
 journal articles.  It provides fast search of document text and
@@ -45,12 +47,12 @@ encouraged.
 
 Underlying Xapers is the wonderful Xapian database/search engine.  See
 http://xapian.org/ for more information.
-
+.
 .SH MAIN COMMANDS
 
 The following are the main xapers commands.  See \fBSEARCH TERMS\fR
 below for details of the supported syntax for <search-terms>.
- 
+.
 .SS add [options] [<search-terms>]
 
 Add a document, or update an existing document.  Must specify at least
@@ -59,7 +61,7 @@ match exactly one document and the matching document is updated with
 the newly provided information.  Available options:
 .RS 4
 .TP 4
-.BR \-\-source=<source>
+.BR \-\-source=[<sid>|<file>]
 Source identifier for document.  See \fBSOURCES\fR below.  This may
 also be a path to a file that contains a single bibtex entry.
 .RE
@@ -89,12 +91,12 @@ source IDs and found ids are displayed.
 View resulting entry in curses UI when done.  See the \fBviewP\fR
 command below for more info.
 .RE
-
+.
 .SS import [options] <bibtex>
 
 Import an existing bibtex database.  Each bibtex entry will be added
 as a new document.  If bibtex key, or any sources found in bibtex,
-match an existing document that document is instead updated (this
+match an existing document, that document is instead updated (this
 makes the command effectively idempotent).  Any "file" fields will be
 parsed for document files to add.  Files can be specified as a single
 path, or in Mendeley/Jabref format.  Available options:
@@ -104,12 +106,12 @@ path, or in Mendeley/Jabref format.  Available options:
 Tags to apply to all imported documents.  Multiple tags can be
 specified, comma separated.
 .RE
-
+.
 .SS tag +<tag>|-<tag> [...] [--] <search-terms>
 
 Add/remove tags from documents.  '--' can be used to separate tagging
 operations from search terms.
-
+.
 .SS search [options] <search-terms>
 
 Search for documents in the database.  Document information is printed
@@ -148,15 +150,15 @@ Default is
 Limit number of results returned.  Default is 20.  Use 0 to return all
 results.
 .RE
-
+.
 .SS bibtex <search-terms>
 
 Short for "search --output=bibtex <search-terms>".
-
+.
 .SS count <search-terms>
 
 Return a simple count of search results.
-
+.
 .SS view [<search-terms>]
 .SS show [<search-terms>]
 
@@ -172,12 +174,12 @@ searches can be performed from within the UI.  While in the UI type
 NOTE: At the moment only the top 20 search results are displayed, due
 to synchronous loading restrictions.  This obviously needs to be
 fixed.
-
+.
 .SS export <directory> <search-terms>
 
 Copy PDF files of resulting documents into <directory>, named with
 document titles when available.
-
+.
 .SS delete <search-terms>
 
 Delete documents from the database.  All document files will purged
@@ -187,75 +189,102 @@ from the document store.
 .BR \-\-noprompt
 Do not prompt to confirm deletion of documents.
 .RE
+.
+.SS restore
 
-
+Restore a database from existing xapers root.
+.
 .SH SOURCE COMMANDS
 
 These commands provide access to some of the source module methods.  See
 \fBSOURCES\fR below.
-
+.
 .SS sources
 
 List available sources.
+.
+.SS source2url <sid> [<sid>...]
 
-.SS source2bib <source>
+Parse a source identifier string and print the corresponding source
+URL.
+.
+.SS source2bib <sid> [<sid>...]
 
 Retrieve bibtex from source for a specified URL or source id, and
-print to stdout.
+write to stdout.
+.
+.SS source2file <sid>
 
+Retrieve file from source for a specified URL or source id, and write
+to stdout.
+.
 .SS scandoc <file>
 
-Scan a document file (PDF) for source IDs.
-
+Scan a document file (PDF) for source IDs, and print and recognized
+source ids to stdout.
+.
 .SH SOURCES
 
 Sources are online databases from which document bibliographic data
 can be retrieved.  In Xapers, online libraries are assigned unique
 prefixes.  The online libraries associate unique document identifiers
-to individual documents.  Xapers then recognizes document source
-information with \fBsid\fR of the form "<prefix>:<id>".  Xapers
-currently recognizes the following online sources:
+to individual documents.  See 'xapers sources' for a list of available
+online sources.
 
-    doi:   Digital Object Identifier (DOI) (http://www.doi.org/)
-    arxiv: arXiv (http://arxiv.org/)
+Xapers recognizes document a source identifier, or \fBsid\fR, in two
+forms:
 
-When adding documents into Xapers, sources may be specified as either
-full URLs (e.g. "http://dx.doi.org/10.1364/JOSAA.29.002092") or sid
-strings (e.g. "doi:10.1364/JOSAA.29.002092").  URLs are parsed into
-sources and source ids when recognized, and this information is used
-to retrieve bibtex from the online library databases.  The sources and
-sids for a given document are stored as prefixed terms in the Xapers
-database (see below).
+  full URL                      http://dx.doi.org/10.1364/JOSAA.29.002092
+  sid of form <source>:<id>     doi:10.1364/JOSAA.29.002092
 
-
+URLs are parsed into sources and source ids when recognized, and this
+information is used to retrieve bibtex from the online library
+databases.  The sources and sids for a given document are stored as
+prefixed terms in the Xapers database (see below).
+.
 .SH SEARCH TERMS
 
-Search terms consist of free-form text (and quoted phrases) which will
-match all documents that contain all of the given terms/phrases.
+Xapers supports a common syntax for search terms.
 
-As a special case, a search string consisting of a single asterisk
-('*') will match all documents in the database.
+Search can consist of free-form text and quoted phrases.  Terms can be
+combined with standard Boolean operators.  All terms are combined with
+a logical OR by default.  Parentheses can be used to group operators,
+but must be protect from shell interpretation.  The string '*' will
+match all documents in the database.
 
-In addition to free text, the following prefixes can be used to match
-text against specific document metadata:
+Additionally, the following prefixed terms are understood (where
+<brackets> indicate user-supplied values):
 
-    id:<docid>               Xapers document ID
-    author:<string>          string in authors (also a:)
-    title:<string>           string in title (also t:)
-    tag:<tag>                specific user tag
-    <source>:<id>            specific sid string
-    source:<source>          specific source
-    key:<key>                specific bibtex citation key
+    id:<docid>                   Xapers document ID
+    author:<string>              string in authors (also a:)
+    title:<string>               string in title (also t:)
+    tag:<tag>                    specific user tag
+    <source>:<id>                specific source id (sid)
+    source:<source>              specific source
+    key:<key>                    specific bibtex citation key
+    year:<year>                  specific publication year (also y:)
+    year:<since>..<until>        publication year range (also y:)
+    year:..<until>
+    year:<since>..
 
+Publication years must be four-digit integers.
+
+See the following for more information on search terms:
+
+  http://xapian.org/docs/queryparser.html
+.
 .SH ENVIRONMENT
 The following environment variables can be used to control the
 behavior of xapers:
-
+.
 .SS XAPERS_ROOT
 Location of the Xapers document store.  Defaults to "~/.xapers/docs"
 if not specified.
-
-
+.
+.SS XAPERS_SOURCE_PATH
+Path specification for location of additional custom Xapers source
+modules.  Defaults to "~/.xapers/sources" if not specified.
+.
 .SH CONTACT
 Feel free to email the author:
 

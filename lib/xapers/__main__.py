@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 This file is part of xapers.
 
@@ -21,7 +20,6 @@ Jameson Rollins <jrollins@finestructure.net>
 
 import os
 import sys
-import pkg_resources
 
 from cli import UI, initdb
 from source import Sources, SourceError
@@ -63,12 +61,14 @@ Commands:
   add [options] [<search-terms>]      Add a new document or update existing.
                                       If provided, search should match a single
                                       document.
-    --source=<source>                   source, for retrieving bibtex
+    --source=[<sid>|<file>]             source id, for online retrieval, or
+                                        bibtex file path
     --file=<file>                       PDF file to index and archive
     --tags=<tag>[,...]                  initial tags
     --prompt                            prompt for unspecified options
     --view                              view entry after adding
-  import <bibtex-file>                Import all entries from a bibtex database.
+  import <bibtex-file>                Import entries from a bibtex database.
+    --tags=<tag>[,...]                  tags to apply to all imported documents
   delete <search-terms>               Delete documents from database.
     --noprompt                          do not prompt to confirm deletion
   restore                             Restore database from xapers root.
@@ -85,43 +85,52 @@ Commands:
   view <search-terms>                 View search in curses UI.
   count <search-terms>                Count matches.
 
-  export <dir> <search-terms>         Export documents to a directory of
-                                      files named for document titles.
+  export <dir> <search-terms>         Export documents to a directory of files
+                                      named for document titles.
 
   sources                             List available sources.
-  source2bib <source>                 Retrieve bibtex for source and
-                                      print to stdout.
-  scandoc <file>                      Scan PDF file for source IDs.
+  source2url <sid> [...]              Output URLs for sources.
+  source2bib <sid> [...]              Retrieve bibtex for sources and print to
+                                      stdout.
+  source2file <sid>                   Retrieve file for source and write to
+                                      stdout.
+  scandoc <file>                      Scan PDF file for source ids.
 
   version                             Print version number.
-  help                                This help.
+  help [search]                       This usage, or search term help.
 
 The xapers document store is specified by the XAPERS_ROOT environment
 variable, or defaults to '~/.xapers/docs' if not specified (the
 directory is allowed to be a symlink).
 
-Other definitions:
+See 'xapers help search' for more information on term definitions and
+search syntax."""
 
-  <docid>: Documents are assigned unique integer IDs.
+def usage_search():
+    print """Xapers supports a common syntax for search terms.
 
-  <source>: A source can be either a URL, a source ID string of the
-    form '<source>:<id>', or a bibtex file.  Currently recognized
-    sources:
-      doi:<Digital Object Id>
-      arxiv:<arXiv Article Id>
+Search can consist of free-form text and quoted phrases.  Terms can be
+combined with standard Boolean operators.  All terms are combined with
+a logical OR by default.  Parentheses can be used to group operators,
+but must be protect from shell interpretation.  The string '*' will
+match all documents.
 
-  <search-terms>: Free-form text to match against indexed document
-    text, or the following prefixes can be used to match against
-    specific document metadata:
-      id:<docid>               Xapers document id
-      author:<string>          string in authors (also a:)
-      title:<string>           string in title (also t:)
-      tag:<tag>                specific user tags
-      <source>:<id>            specific sid string
-      source:<lib>             specific source
-      key:<key>                specific bibtex citation key
+Additionally, the following prefixed terms are understood (where
+<brackets> indicate user-supplied values):
 
-  The string '*' will match all documents.
+  id:<docid>                   Xapers document id
+  author:<string>              string in authors (also a:)
+  title:<string>               string in title (also t:)
+  tag:<tag>                    specific user tag
+  <source>:<id>                specific source id (sid)
+  source:<source>              specific Xapers source
+  key:<key>                    specific bibtex citation key
+  year:<year>                  specific publication year (also y:)
+  year:<since>..<until>        publication year range (also y:)
+  year:..<until>
+  year:<since>..
+
+Publication years must be four-digit integers.
 
 See the following for more information on search terms:
 
@@ -367,48 +376,82 @@ if __name__ == '__main__':
     elif cmd in ['sources']:
         sources = Sources()
         w = 0
-        for source in Sources():
+        for source in sources:
             w = max(len(source.name), w)
         format = '%'+str(w)+'s: %s[%s]'
-        for source in Sources():
+        for source in sources:
             name = source.name
-            if source.is_builtin():
+            desc = ''
+            try:
+                desc += '%s ' % source.description
+            except AttributeError:
+                pass
+            try:
+                desc += '(%s) ' % source.url
+            except AttributeError:
+                pass
+            if source.is_builtin:
                 path = 'builtin'
             else:
-                path = source.path()
-            try:
-                desc = '%s ' % source.description
-            except AttributeError:
-                desc = ''
+                path = source.path
             print format % (name, desc, path)
 
     ########################################
-    elif cmd in ['source2bib','s2b']:
+    elif cmd in ['source2bib', 's2b', 'source2url', 's2u', 'source2file', 's2f']:
+        outraw = False
+
+        argc = 2
+        for arg in sys.argv[argc:]:
+            if argc >= len(sys.argv):
+                break
+            elif sys.argv[argc] == '--raw':
+                outraw = True
+            else:
+                break
+            argc += 1
+
         try:
-            string = sys.argv[2]
+            sss = sys.argv[argc:]
         except IndexError:
             print >>sys.stderr, "Must specify source to retrieve."
             sys.exit(1)
 
-        try:
-            item = Sources().match_source(string)
-        except SourceError as e:
-            print >>sys.stderr, e
-            sys.exit(1)
+        if cmd in ['source2file', 's2f']:
+            if len(sss) > 1:
+                print >>sys.stderr, "source2file can only retrieve file for single source."
+                sys.exit(1)
 
-        try:
-            bibtex = item.fetch_bibtex()
-        except SourceError as e:
-            print >>sys.stderr, "Could not retrieve bibtex: %s" % e
-            sys.exit(1)
+        sources = Sources()
 
-        try:
-            print Bibtex(bibtex)[0].as_string()
-        except BibtexError as e:
-            print >>sys.stderr, "Error parsing bibtex: %s" % e
-            print >>sys.stderr, "Outputting raw..."
-            print bibtex
-            sys.exit(1)
+        for ss in sss:
+            try:
+                item = sources.match_source(ss)
+            except SourceError as e:
+                print >>sys.stderr, e
+                sys.exit(1)
+
+            if cmd in ['source2url', 's2u']:
+                print item.url
+                continue
+
+            elif cmd in ['source2bib', 's2b']:
+                try:
+                    bibtex = item.fetch_bibtex()
+                except SourceError as e:
+                    print >>sys.stderr, "Could not retrieve bibtex: %s" % e
+                    sys.exit(1)
+
+                if outraw:
+                    print bibtex
+                else:
+                    print Bibtex(bibtex)[0].as_string()
+
+            elif cmd in ['source2file', 's2f']:
+                try:
+                    print item.fetch_file()
+                except SourceError as e:
+                    print >>sys.stderr, "Could not retrieve file: %s" % e
+                    sys.exit(1)
 
     ########################################
     elif cmd in ['scandoc','sd']:
@@ -430,12 +473,16 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['version','--version','-v']:
-        print 'xapers', pkg_resources.get_distribution('xapers').version
+        import version
+        print 'xapers', version.__version__
 
     ########################################
     elif cmd in ['help','h','--help','-h']:
-        usage()
-        sys.exit(0)
+        if len(sys.argv) > 2:
+            if sys.argv[2] == 'search':
+                usage_search()
+        else:
+            usage()
 
     ########################################
     else:

@@ -11,6 +11,13 @@ from parser import parse_file
 class SourceError(Exception):
     pass
 
+class SourceAttributeError(SourceError):
+    def __init__(self, source, msg):
+        self.source = source
+        self.msg = msg
+    def __str__(self):
+        return "Source '%s' does not include a %s." % (self.source.name, self.msg)
+
 ##################################################
 
 class Source(object):
@@ -33,31 +40,55 @@ class Source(object):
     def __getitem__(self, id):
         return SourceItem(self, id)
 
+    @property
     def path(self):
         return self.module.__file__
 
+    @property
     def is_builtin(self):
         bpath = os.path.dirname(sources.__file__)
-        spath = os.path.dirname(self.path())
+        spath = os.path.dirname(self.path)
         return os.path.commonprefix([bpath, spath]) == bpath
 
     @property
     def description(self):
-        return self.module.description
+        try:
+            return self.module.description
+        except AttributeError:
+            raise SourceAttributeError(self, "'description' property")
+
+    @property
+    def url(self):
+        try:
+            return self.module.url
+        except AttributeError:
+            raise SourceAttributeError(self, "'url' property")
 
     @property
     def url_regex(self):
-        return self.module.url_regex
+        try:
+            return self.module.url_regex
+        except AttributeError:
+            raise SourceAttributeError(self, "'url_regex' property")
 
     @property
     def scan_regex(self):
-        return self.module.scan_regex
-
-    def url(self, id):
-        return self.module.url_format % id
+        try:
+            return self.module.scan_regex
+        except AttributeError:
+            raise SourceAttributeError(self, "'scan_regex' property")
 
     def fetch_bibtex(self, id):
-        return self.module.fetch_bibtex(id)
+        try:
+            return self.module.fetch_bibtex(id)
+        except AttributeError:
+            raise SourceAttributeError(self, "fetch_bibtex() function")
+
+    def fetch_file(self, id):
+        try:
+            return self.module.fetch_file(id)
+        except AttributeError:
+            raise SourceAttributeError(self, "fetch_file() function")
 
 class SourceItem(Source):
     """Xapers class representing an item from an online source.
@@ -86,11 +117,18 @@ class SourceItem(Source):
     def __str__(self):
         return self.sid
 
+    @property
     def url(self):
-        return super(SourceItem, self).url(self.id)
+        try:
+            return self.module.url_format % self.id
+        except AttributeError:
+            raise SourceAttributeError(self, "'url_format' property")
 
     def fetch_bibtex(self):
         return super(SourceItem, self).fetch_bibtex(self.id)
+
+    def fetch_file(self):
+        return super(SourceItem, self).fetch_file(self.id)
 
 ##################################################
 
@@ -133,9 +171,9 @@ class Sources(object):
             vals = sid.split(':')
         except ValueError:
             raise SourceError("could not parse sid string")
-        name = val[0]
-        if len(val) > 1:
-            id = ':'.join(val)
+        name = vals[0]
+        if len(vals) > 1:
+            id = ':'.join(vals)
         return self.get_source(name, id)
 
     def __iter__(self):
@@ -175,7 +213,7 @@ class Sources(object):
         for source in self:
             try:
                 regex = re.compile(source.scan_regex)
-            except AttributeError:
+            except SourceAttributeError:
                 # FIXME: warning?
                 continue
             matches = regex.findall(text)

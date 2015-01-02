@@ -6,6 +6,8 @@ from xapers.bibtex import data2bib
 
 description = "LIGO Document Control Center"
 
+url = 'https://dcc.ligo.org/'
+
 url_format = 'https://dcc.ligo.org/%s'
 
 url_regex = 'https://dcc.ligo.org/(?:LIGO-)?([^/]*)'
@@ -89,6 +91,4 @@ def fetch_bibtex(id):
     key = 'dcc:%s' % id
 
     btype = '@techreport'
-    bibentry = data2bib(data, key, type=btype)
-
-    return bibentry.as_string()
+    return data2bib(data, key, type=btype)
