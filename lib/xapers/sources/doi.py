@@ -2,10 +2,10 @@ import urllib2
 
 description = "Digital Object Identifier"
 
-url = 'http://dx.doi.org/'
+url = 'https://dx.doi.org/'
 
 # produces URL string when supplied with valid source identifier
-url_format = 'http://dx.doi.org/%s'
+url_format = 'https://dx.doi.org/%s'
 
 id_regex = '(10\.\d{4,}[\w\d\:\.\-\/]+)'
 
