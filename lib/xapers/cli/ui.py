@@ -212,10 +212,10 @@ class UI():
             sdoc = self.db.doc_for_source(source.sid)
             if sdoc:
                 if doc and sdoc != doc:
-                    print >>sys.stderr, "A different document already exists for source '%s'." % (sid)
+                    print >>sys.stderr, "A different document already exists for source '%s'." % (doc_sid)
                     print >>sys.stderr, "Aborting."
                     sys.exit(1)
-                print >>sys.stderr, "Source '%s' found in database.  Updating existing document..." % (sid)
+                print >>sys.stderr, "Source '%s' found in database.  Updating existing document..." % (doc_sid)
                 doc = sdoc
 
             try:
