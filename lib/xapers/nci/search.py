@@ -2,7 +2,8 @@ import os
 import subprocess
 import urwid
 
-from ..database import Database, DatabaseLockError
+from ..cli import initdb
+from ..database import DatabaseLockError
 
 ############################################################
 
@@ -131,13 +132,14 @@ class Search(urwid.WidgetWrap):
 
         self.ui.set_header("Search: " + query)
 
-        docs = self.ui.db.search(query, limit=20)
-        if len(docs) == 0:
-            self.ui.set_status('No documents found.')
-
         items = []
-        for doc in docs:
-            items.append(DocListItem(doc))
+
+        with initdb() as db:
+            if db.count(query) == 0:
+                self.ui.set_status('No documents found.')
+            else:
+                for doc in db.search(query, limit=20):
+                    items.append(DocListItem(doc))
 
         self.lenitems = len(items)
         self.listwalker = urwid.SimpleListWalker(items)
@@ -272,7 +274,7 @@ class Search(urwid.WidgetWrap):
             return
         entry = self.listbox.get_focus()[0]
         try:
-            with Database(self.ui.xroot, writable=True) as db:
+            with initdb(writable=True) as db:
                 doc = db[entry.docid]
                 tags = tag_string.split()
                 if sign is '+':

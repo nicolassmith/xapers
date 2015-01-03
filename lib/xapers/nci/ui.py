@@ -22,10 +22,6 @@ import os
 import sys
 import urwid
 
-import subprocess
-
-from ..cli.ui import initdb
-
 from search import Search
 from bibview import Bibview
 from help import Help
@@ -47,14 +43,7 @@ class UI():
         'Q': "quit",
         }
 
-    def __init__(self, xroot, db=None, cmd=None):
-        self.xroot = xroot
-        if db:
-            # reuse db if provided
-            self.db = db
-        else:
-            self.db = initdb(self.xroot)
-
+    def __init__(self, cmd=None):
         self.header_string = "Xapers"
         self.status_string = "q: quit buffer, Q: quit Xapers, ?: help"
 
@@ -112,7 +101,7 @@ class UI():
         self.view.set_footer(urwid.AttrMap(urwid.Text(self.status_string), 'footer'))
 
     def newbuffer(self, cmd):
-        UI(self.xroot, db=self.db, cmd=cmd)
+        UI(cmd=cmd)
         self.set_status()
 
     def prompt(self, string):
