@@ -72,7 +72,6 @@ class Document():
     def __init__(self, db, doc=None, docid=None):
         # Xapers db
         self.db = db
-        self.root = self.db.root
 
         # if Xapian doc provided, initiate for that document
         if doc:
@@ -93,9 +92,8 @@ class Document():
             self._add_term(self.db._find_prefix('id'), self.docid)
 
         # specify a directory in the Xapers root for document data
-        self.docdir = os.path.join(self.root, '%010d' % int(self.docid))
+        self.docdir = os.path.join(self.db.root, '%010d' % int(self.docid))
 
-        #
         self.bibentry = None
 
         self._infiles = {}
