@@ -444,7 +444,7 @@ class Document():
         urls = []
         # get urls associated with known sources
         for sid in self.get_sids():
-            urls.append(sources[sid].url())
+            urls.append(sources[sid].url)
         # get urls from bibtex
         self._load_bib()
         if self.bibentry:
