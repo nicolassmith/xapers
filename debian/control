@@ -26,7 +26,7 @@ Recommends:
  python-urwid,
  xdg-utils,
  xclip
-Description: Personal journal article management and indexing system.
+Description: Personal journal article management and indexing system
  Xapers is a personal document indexing system, geared towards
  academic journal articles.  Think of it as your own personal document
  search engine, or a local cache of online libraries.  It provides
