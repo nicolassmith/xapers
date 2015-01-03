@@ -261,10 +261,9 @@ class Document():
         """Return fullpaths of files associated with document."""
         list = []
         for path in self.get_files():
-            # FIXME: this is a hack for old bad path specifications and should be removed
-            if path.find(self.root) == 0:
-                index = len(self.root) + 1
-                path = path[index:]
+            # FIXME: this is a hack for old path specifications that
+            # included the docdir
+            path = os.path.basename(path)
             list.append(os.path.join(self.docdir, path))
         return list
 
