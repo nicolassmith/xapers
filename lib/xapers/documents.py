@@ -404,11 +404,11 @@ class Document():
 
     def get_bibtex(self):
         """Get the bib for document as a bibtex string."""
-        self._load_bib()
-        if self.bibentry:
-            return self.bibentry.as_string()
-        else:
-            return None
+        bibpath = self.get_bibpath()
+        if os.path.exists(bibpath):
+            with open(bibpath, 'r') as f:
+                bibtex = f.read().decode('utf-8')
+            return bibtex.strip()
 
     def get_bibdata(self):
         self._load_bib()
@@ -416,8 +416,6 @@ class Document():
             data = self.bibentry.get_fields()
             data['authors'] = self.bibentry.get_authors()
             return data
-        else:
-            return None
 
     def update_from_bibtex(self):
         """Update document metadata from document bibtex."""
