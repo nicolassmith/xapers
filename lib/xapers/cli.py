@@ -24,7 +24,7 @@ import sets
 import shutil
 import readline
 
-from database import Database, DatabaseUninitializedError, DatabaseError
+import database
 from documents import Document
 from source import Sources, SourceError
 from parser import ParseError
@@ -36,13 +36,17 @@ def initdb(writable=False, create=False, force=False):
     xroot = os.getenv('XAPERS_ROOT',
                       os.path.expanduser(os.path.join('~','.xapers','docs')))
     try:
-        return Database(xroot, writable=writable, create=create, force=force)
-    except DatabaseUninitializedError as e:
-        print >>sys.stderr, e.msg
+        return database.Database(xroot, writable=writable, create=create, force=force)
+    except database.DatabaseUninitializedError as e:
+        print >>sys.stderr, e
         print >>sys.stderr, "Import a document to initialize."
         sys.exit(1)
-    except DatabaseError as e:
-        print >>sys.stderr, e.msg
+    except database.DatabaseInitializationError as e:
+        print >>sys.stderr, e
+        print >>sys.stderr, "Either clear the directory and add new files, or use 'retore' to restore from existing data."
+        sys.exit(1)
+    except database.DatabaseError as e:
+        print >>sys.stderr, e
         sys.exit(1)
 
 ############################################################
