@@ -123,7 +123,7 @@ class Database():
                 os.makedirs(xapers_path)
             else:
                 if os.path.exists(self.root):
-                    raise DatabaseUninitializedError("Xapers directory '%s' does not contain database." % (self.root))
+                    raise DatabaseInitializationError("Xapers directory '%s' does not contain a database." % (self.root))
                 else:
                     raise DatabaseUninitializedError("Xapers directory '%s' not found." % (self.root))
 
