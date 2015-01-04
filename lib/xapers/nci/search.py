@@ -25,6 +25,15 @@ def xclip(text, isfile=False):
 
 class DocListItem(urwid.WidgetWrap):
 
+    FIELDS = ['tags',
+              'title',
+              'authors',
+              'journal',
+              'year',
+              'source',
+              'summary',
+              ]
+
     def __init__(self, doc):
         self.doc = doc
         self.matchp = doc.matchp
@@ -32,10 +41,9 @@ class DocListItem(urwid.WidgetWrap):
 
         # fill the default attributes for the fields
         self.fields = {}
-        for field in ['sources', 'tags', 'title', 'authors', 'year', 'summary']:
+        for field in self.FIELDS:
             self.fields[field] = urwid.Text('')
 
-        self.fields['sources'].set_text(' '.join(self.doc.get_sids()))
         self.fields['tags'].set_text(' '.join(self.doc.get_tags()))
 
         data = self.doc.get_bibdata()
@@ -43,14 +51,27 @@ class DocListItem(urwid.WidgetWrap):
             if 'title' in data:
                 self.fields['title'].set_text(data['title'])
             if 'authors' in data:
-                astring = ' and '.join(data['authors'][:10])
-                if len(data['authors']) > 10:
+                astring = ' and '.join(data['authors'][:4])
+                if len(data['authors']) > 4:
                     astring = astring + ' et al.'
                 self.fields['authors'].set_text(astring)
+            if 'journal' in data:
+                self.fields['journal'].set_text(data['journal'])
+            elif 'container-title' in data:
+                self.fields['journal'].set_text(data['container-title'])
+            elif 'arxiv' in data:
+                self.fields['journal'].set_text('arXiv.org')
             if 'year' in data:
                 self.fields['year'].set_text(data['year'])
 
-        self.fields['summary'].set_text(self.doc.get_data())
+        urls = self.doc.get_urls()
+        if urls:
+            self.fields['source'].set_text(urls[0])
+
+        summary = self.doc.get_data()
+        if not summary:
+            summary = 'NO FILE'
+        self.fields['summary'].set_text(summary)
 
         self.c1width = 10
 
@@ -60,32 +81,22 @@ class DocListItem(urwid.WidgetWrap):
 
         # FIXME: how do we hightlight everything in pile during focus?
         w = urwid.Pile(
-            [
-                urwid.Divider('-'),
-                self.rowHeader,
-                self.docfield('sources'),
-                self.docfield('tags'),
-                self.docfield('title'),
-                self.docfield('authors'),
-                self.docfield('year'),
-                self.docfield('summary'),
-                ]
-            ,
+            [urwid.Divider('-'), self.rowHeader] \
+            + [self.docfield(field) for field in self.FIELDS],
             focus_item=1)
         self.__super.__init__(w)
 
     def docfield(self, field):
         attr_map = field
         return urwid.Columns(
-            [
-                ('fixed', self.c1width,
-                 urwid.AttrMap(
-                     urwid.Text(field + ':'),
-                     'field', 'field_focus')),
-                urwid.AttrMap(
-                    self.fields[field],
-                    attr_map)
-                ]
+            [('fixed', self.c1width,
+              urwid.AttrMap(
+                  urwid.Text(field + ':'),
+                  'field', 'field_focus')),
+             urwid.AttrMap(
+                 self.fields[field],
+                 attr_map)
+             ]
             )
 
     def selectable(self):
@@ -103,11 +114,12 @@ class Search(urwid.WidgetWrap):
         ('head_focus', 'white, bold', 'dark blue'),
         ('field', 'light gray', ''),
         ('field_focus', '', 'light gray'),
-        ('sources', 'light magenta, bold', ''),
         ('tags', 'dark green, bold', ''),
         ('title', 'yellow', ''),
         ('authors', 'dark cyan, bold', ''),
-        ('year', 'dark red', '',),
+        ('journal', 'dark magenta', '',),
+        ('year', 'dark magenta', '',),
+        ('source', 'dark magenta', ''),
         ]
 
     keys = {
@@ -135,15 +147,16 @@ class Search(urwid.WidgetWrap):
         items = []
 
         with initdb() as db:
-            if db.count(query) == 0:
-                self.ui.set_status('No documents found.')
-            else:
-                for doc in db.search(query, limit=20):
-                    items.append(DocListItem(doc))
+            count = db.count(query)
+            for doc in db.search(query, limit=20):
+                items.append(DocListItem(doc))
 
-        self.lenitems = len(items)
-        self.listwalker = urwid.SimpleListWalker(items)
-        self.listbox = urwid.ListBox(self.listwalker)
+        if count == 0:
+            self.ui.set_status('No documents found.')
+
+        self.lenitems = count
+        self.docwalker = urwid.SimpleListWalker(items)
+        self.listbox = urwid.ListBox(self.docwalker)
         w = self.listbox
 
         self.__super.__init__(w)
