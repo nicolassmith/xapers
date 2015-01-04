@@ -173,7 +173,7 @@ class Sources(object):
             raise SourceError("could not parse sid string")
         name = vals[0]
         if len(vals) > 1:
-            id = ':'.join(vals)
+            id = vals[1]
         return self.get_source(name, id)
 
     def __iter__(self):
