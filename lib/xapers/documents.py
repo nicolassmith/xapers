@@ -430,11 +430,19 @@ class Document():
         """Get the title from document bibtex."""
         self._load_bib()
         if not self.bibentry:
-            return None
+            return
         fields = self.bibentry.get_fields()
         if 'title' in fields:
             return fields['title']
-        return None
+
+    def get_year(self):
+        """Get the title from document bibtex."""
+        self._load_bib()
+        if not self.bibentry:
+            return
+        fields = self.bibentry.get_fields()
+        if 'year' in fields:
+            return fields['year']
 
     def get_urls(self):
         """Get all URLs associated with document."""
