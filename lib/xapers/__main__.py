@@ -224,9 +224,11 @@ if __name__ == '__main__':
             cli.importbib(db, bibfile, tags=tags)
 
     ########################################
-    elif cmd in ['update-all']:
+    elif cmd in ['update']:
+        argc = 2
+        query = make_query_string(sys.argv[argc:])
         with cli.initdb(writable=True) as db:
-            for doc in db.search('*', limit=0):
+            for doc in db.search(query):
                 try:
                     print >>sys.stderr, "Updating %s..." % doc.docid,
                     doc.update_from_bibtex()
