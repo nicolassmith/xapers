@@ -229,7 +229,7 @@ class Document():
 
         # set data to be text sample
         # FIXME: is this the right thing to put in the data?
-        summary = text[0:997].translate(None, '\n') + '...'
+        summary = text[0:997] + '...'
         self._set_data(summary)
 
         # FIXME: should files be renamed to something generic (0.pdf)?
