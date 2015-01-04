@@ -69,19 +69,19 @@ class Documents():
 class Document():
     """Represents a single Xapers document."""
 
-    def __init__(self, db, doc=None, docid=None):
+    def __init__(self, db, xapian_doc=None, docid=None):
         # Xapers db
         self.db = db
 
         # if Xapian doc provided, initiate for that document
-        if doc:
-            self.doc = doc
-            self.docid = str(doc.get_docid())
+        if xapian_doc:
+            self.xapian_doc = xapian_doc
+            self.docid = str(xapian_doc.get_docid())
 
         # else, create a new empty document
         # document won't be added to database until sync is called
         else:
-            self.doc = xapian.Document()
+            self.xapian_doc = xapian.Document()
             # use specified docid if provided
             if docid:
                 if self.db[docid]:
@@ -147,7 +147,7 @@ class Document():
             self._write_files()
             self._write_bibfile()
             self._write_tagfile()
-            self.db.replace_document(self.docid, self.doc)
+            self.db.replace_document(self.docid, self.xapian_doc)
         except:
             self._rm_docdir()
             raise
@@ -168,13 +168,13 @@ class Document():
     # add an individual prefix'd term for the document
     def _add_term(self, prefix, value):
         term = '%s%s' % (prefix, value)
-        self.doc.add_term(term)
+        self.xapian_doc.add_term(term)
 
     # remove an individual prefix'd term for the document
     def _remove_term(self, prefix, value):
         term = '%s%s' % (prefix, value)
         try:
-            self.doc.remove_term(term)
+            self.xapian_doc.remove_term(term)
         except xapian.InvalidArgumentError:
             pass
 
@@ -186,7 +186,7 @@ class Document():
     # http://www.flax.co.uk/blog/2009/04/02/xapian-search-architecture/
     def _gen_terms(self, prefix, text):
         term_gen = self.db.term_gen
-        term_gen.set_document(self.doc)
+        term_gen.set_document(self.xapian_doc)
         if prefix:
             term_gen.index_text(text, 1, prefix)
         term_gen.index_text(text)
@@ -195,7 +195,7 @@ class Document():
     # FIXME: is this the fastest way to do this?
     def _get_terms(self, prefix):
         list = []
-        for term in self.doc:
+        for term in self.xapian_doc:
             if term.term.find(prefix.encode("utf-8")) == 0:
                 index = len(prefix)
                 list.append(term.term[index:])
@@ -203,11 +203,11 @@ class Document():
 
     # set the data object for the document
     def _set_data(self, text):
-        self.doc.set_data(text)
+        self.xapian_doc.set_data(text)
 
     def get_data(self):
         """Get data object for document."""
-        return self.doc.get_data()
+        return self.xapian_doc.get_data()
 
     ########################################
     # files
@@ -351,7 +351,7 @@ class Document():
             self._remove_term(prefix, year)
         self._add_term(prefix, year)
         facet = self.db._find_facet('year')
-        self.doc.add_value(facet, xapian.sortable_serialise(year))
+        self.xapian_doc.add_value(facet, xapian.sortable_serialise(year))
 
     ########################################
     # bibtex
