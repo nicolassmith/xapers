@@ -348,11 +348,12 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['dumpterms']:
+        prefix = None
         query = make_query_string(sys.argv[2:], require=False)
         with cli.initdb() as db:
             for doc in db.search(query):
-                for term in doc.doc:
-                    print term.term
+                for term in doc.term_iter(prefix):
+                    print term
 
     ########################################
     elif cmd in ['maxid']:
