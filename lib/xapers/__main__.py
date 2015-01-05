@@ -350,11 +350,24 @@ if __name__ == '__main__':
     ########################################
     elif cmd in ['dumpterms']:
         prefix = None
-        query = make_query_string(sys.argv[2:], require=False)
+        argc = 2
+        while True:
+            if argc >= len(sys.argv):
+                break
+            if '--prefix=' in sys.argv[argc]:
+                prefix = sys.argv[argc].split('=')[1]
+            else:
+                break
+            argc += 1
+        query = make_query_string(sys.argv[argc:], require=True)
         with cli.initdb() as db:
-            for doc in db.search(query):
-                for term in doc.term_iter(prefix):
+            if query == '*':
+                for term in db.term_iter(prefix):
                     print term
+            else:
+                for doc in db.search(query):
+                    for term in doc.term_iter(prefix):
+                        print term
 
     ########################################
     elif cmd in ['maxid']:
