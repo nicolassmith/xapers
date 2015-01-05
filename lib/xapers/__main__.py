@@ -149,6 +149,7 @@ def set_stdout_codec():
 if __name__ == '__main__':
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
     if len(sys.argv) > 1:
         cmd = sys.argv[1]
