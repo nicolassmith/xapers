@@ -179,8 +179,8 @@ class Document():
             pass
 
     # Parse 'text' and add a term to 'message' for each parsed
-    # word. Each term will be added both prefixed (if prefix_name is
-    # not NULL) and also non-prefixed).
+    # word. Each term will be added both prefixed (if prefix is not
+    # None) and non-prefixed.
     # http://xapian.org/docs/bindings/python/
     # http://xapian.org/docs/quickstart.html
     # http://www.flax.co.uk/blog/2009/04/02/xapian-search-architecture/
