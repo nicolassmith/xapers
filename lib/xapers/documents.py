@@ -295,12 +295,6 @@ class Document():
                 sids.append('%s:%s' % (source, oid))
         return sids
 
-    # BIBTEX KEYS
-    def get_keys(self):
-        """Return a list of bibtex citation keys associated with document."""
-        prefix = self.db._find_prefix('key')
-        return self._get_terms(prefix)
-
     # TAGS
     def add_tags(self, tags):
         """Add tags from list to document."""
@@ -423,6 +417,12 @@ class Document():
         self._index_bibentry(self.bibentry)
 
     ########################################
+
+    def get_key(self):
+        self._load_bib()
+        if not self.bibentry:
+            return
+        return self.bibentry.key
 
     def get_title(self):
         """Get the title from document bibtex."""

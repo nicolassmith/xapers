@@ -122,12 +122,14 @@ def print_doc_summary(doc):
         title = ''
     tags = doc.get_tags()
     sources = doc.get_sids()
-    keys = doc.get_keys()
+    key = doc.get_key()
+    if not key:
+        key = ''
 
     print "id:%s [%s] {%s} (%s) \"%s\"" % (
         docid,
         ' '.join(sources),
-        ' '.join(keys),
+        key,
         ' '.join(tags),
         title,
     )
@@ -416,7 +418,9 @@ def search(db, query_string, oformat='summary', limit=None):
         elif oformat == 'sources':
             osources = osources | set(doc.get_sids())
         elif oformat == 'keys':
-            okeys = okeys | set(doc.get_keys())
+            key = doc.get_key()
+            if key:
+                print key
 
     if oformat == 'tags':
         for tag in otags:
@@ -424,9 +428,6 @@ def search(db, query_string, oformat='summary', limit=None):
     elif oformat == 'sources':
         for source in osources:
             print source
-    elif oformat == 'keys':
-        for key in okeys:
-            print key
 
 ############################################
 
