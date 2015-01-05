@@ -50,7 +50,8 @@ Commands:
     --tags=<tag>[,...]                  tags to apply to all imported documents
   delete <search-terms>               Delete documents from database.
     --noprompt                          do not prompt to confirm deletion
-  restore                             Restore database from xapers root.
+  restore                             Restore database from an existing xapers
+                                      root directory.
 
   tag +<tag>|-<tag> [...] [--] <search-terms>
                                       Add/remove tags.
