@@ -179,12 +179,20 @@ class Database():
     def __exit__(self, exc_type, exc_value, traceback):
         pass
 
+    def __contains__(self, docid):
+        try:
+            self.xapian.get_document(int(docid))
+            return True
+        except xapian.DocNotFoundError:
+            return False
+
     def __getitem__(self, docid):
-        docid = str(docid)
-        if docid.find('id:') == 0:
-            docid = docid.split(':')[1]
-        term = self._find_prefix('id') + docid
-        return self._doc_for_term(term)
+        if type(docid) is str:
+            if docid.find('id:') == 0:
+                docid = docid.split(':')[1]
+            docid = int(docid)
+        xapian_doc = self.xapian.get_document(docid)
+        return Document(self, xapian_doc)
 
     ########################################
 
@@ -312,11 +320,6 @@ class Database():
             if log:
                 print >>sys.stderr, docdir
 
-            docfiles = os.listdir(docdir)
-            if not docfiles:
-                # skip empty directories
-                continue
-
             # if we can't convert the directory name into an integer,
             # assume it's not relevant to us and continue
             try:
@@ -324,11 +327,17 @@ class Database():
             except ValueError:
                 continue
 
+            docfiles = os.listdir(docdir)
+            if not docfiles:
+                # skip empty directories
+                continue
+
             if log:
                 print >>sys.stderr, '  docid:', docid
 
-            doc = self.__getitem__(docid)
-            if not doc:
+            try:
+                doc = self[docid]
+            except xapian.DocNotFoundError:
                 doc = Document(self, docid=docid)
 
             for dfile in docfiles:
