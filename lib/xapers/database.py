@@ -177,7 +177,7 @@ class Database():
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        pass
+        self.xapian.close()
 
     def __contains__(self, docid):
         try:
