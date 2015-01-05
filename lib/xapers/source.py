@@ -190,7 +190,7 @@ class Sources(object):
             for source in self:
                 try:
                     match = re.match(source.url_regex, string)
-                except AttributeError:
+                except SourceAttributeError:
                     # FIXME: warning?
                     continue
                 if match:
