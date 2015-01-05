@@ -193,13 +193,29 @@ class Document():
             
     # return a list of terms for prefix
     # FIXME: is this the fastest way to do this?
-    def _get_terms(self, prefix):
-        list = []
-        for term in self.xapian_doc:
-            if term.term.find(prefix.encode("utf-8")) == 0:
-                index = len(prefix)
-                list.append(term.term[index:])
-        return list
+    def term_iter(self, prefix=None):
+        """Iterator over all terms in the document.
+
+        If a prefix is provided, will iterate over only the prefixed
+        terms, and the prefix will be removed from the returned terms.
+
+        """
+        term_iter = iter(self.xapian_doc)
+        if prefix:
+            plen = len(prefix)
+        s = True
+        while True:
+            if prefix and s:
+                term = term_iter.skip_to(prefix)
+                s = False
+            else:
+                term = term_iter.next()
+            if prefix:
+                if not term.term.startswith(prefix):
+                    break
+                yield term.term[plen:]
+            else:
+                yield term.term
 
     # set the data object for the document
     def _set_data(self, text):
@@ -253,7 +269,7 @@ class Document():
 
     def get_files(self):
         """Return files associated with document."""
-        return self._get_terms(self.db._find_prefix('file'))
+        return list(self.term_iter(self.db._find_prefix('file')))
 
     def get_fullpaths(self):
         """Return fullpaths of files associated with document."""
@@ -272,7 +288,7 @@ class Document():
     def _purge_sources_prefix(self, source):
         # purge all terms for a given source prefix
         prefix = self.db._make_source_prefix(source)
-        for i in self._get_terms(prefix):
+        for i in self.term_iter(prefix):
             self._remove_term(prefix, i)
         self._remove_term(self.db._find_prefix('source'), source)
 
@@ -290,8 +306,8 @@ class Document():
     def get_sids(self):
         """Return a list of sids for document."""
         sids = []
-        for source in self._get_terms(self.db._find_prefix('source')):
-            for oid in self._get_terms(self.db._make_source_prefix(source)):
+        for source in self.term_iter(self.db._find_prefix('source')):
+            for oid in self.term_iter(self.db._make_source_prefix(source)):
                 sids.append('%s:%s' % (source, oid))
         return sids
 
@@ -305,7 +321,7 @@ class Document():
     def get_tags(self):
         """Return a list of tags associated with document."""
         prefix = self.db._find_prefix('tag')
-        return self._get_terms(prefix)
+        return list(self.term_iter(prefix))
 
     def remove_tags(self, tags):
         """Remove tags from a document."""
@@ -316,20 +332,20 @@ class Document():
     # TITLE
     def _set_title(self, title):
         pt = self.db._find_prefix('title')
-        for term in self._get_terms(pt):
+        for term in self.term_iter(pt):
             self._remove_term(pt, term)
         # FIXME: what's the clean way to get these prefixes?
-        for term in self._get_terms('ZS'):
+        for term in self.term_iter('ZS'):
             self._remove_term('ZS', term)
         self._gen_terms(pt, title)
 
     # AUTHOR
     def _set_authors(self, authors):
         pa = self.db._find_prefix('author')
-        for term in self._get_terms(pa):
+        for term in self.term_iter(pa):
             self._remove_term(pa, term)
         # FIXME: what's the clean way to get these prefixes?
-        for term in self._get_terms('ZA'):
+        for term in self.term_iter('ZA'):
             self._remove_term('ZA', term)
         self._gen_terms(pa, authors)
 
@@ -341,7 +357,7 @@ class Document():
         except ValueError:
             pass
         prefix = self.db._find_prefix('year')
-        for term in self._get_terms(prefix):
+        for term in self.term_iter(prefix):
             self._remove_term(prefix, year)
         self._add_term(prefix, year)
         facet = self.db._find_facet('year')
@@ -356,7 +372,7 @@ class Document():
 
     def _set_bibkey(self, key):
         prefix = self.db._find_prefix('key')
-        for term in self._get_terms(prefix):
+        for term in self.term_iter(prefix):
             self._remove_term(prefix, term)
         self._add_term(prefix, key)
 
