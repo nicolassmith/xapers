@@ -377,7 +377,8 @@ class Document():
         return os.path.join(self.docdir, 'bibtex')
 
     def _set_bibkey(self, key):
-        for term in self.term_iter('key'):
+        prefix = self.db._find_prefix('key')
+        for term in self._term_iter(prefix):
             self._remove_term(prefix, term)
         self._add_term(prefix, key)
 

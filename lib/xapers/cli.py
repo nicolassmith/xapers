@@ -80,7 +80,7 @@ def prompt_for_source(db, sources):
     if sources:
         readline.set_startup_hook(lambda: readline.insert_text(sources[0]))
     elif db:
-        sources = db.get_terms('source')
+        sources = list(db.term_iter('source'))
     readline.parse_and_bind("tab: complete")
     completer = Completer(sources)
     readline.set_completer(completer.terms)
@@ -97,7 +97,7 @@ def prompt_for_tags(db, tags):
     else:
         tags = []
     if db:
-        itags = db.get_terms('tag')
+        itags = list(db.term_iter('tag'))
     else:
         itags = None
     readline.set_startup_hook()
@@ -380,13 +380,13 @@ def importbib(db, bibfile, tags=[], overwrite=False):
 def search(db, query_string, oformat='summary', limit=None):
     if query_string == '*' and oformat in ['tags','sources','keys']:
         if oformat == 'tags':
-            for tag in db.get_terms('tag'):
+            for tag in db.term_iter('tag'):
                 print tag
         elif oformat == 'sources':
             for source in db.get_sids():
                 print source
         elif oformat == 'keys':
-            for key in db.get_terms('key'):
+            for key in db.term_iter('key'):
                 print key
         return
 

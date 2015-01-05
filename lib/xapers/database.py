@@ -96,7 +96,6 @@ class Database():
             return self.BOOLEAN_PREFIX_EXTERNAL[name]
         if name in self.PROBABILISTIC_PREFIX:
             return self.PROBABILISTIC_PREFIX[name]
-        # FIXME: raise internal error for unknown name
 
     def _find_facet(self, name):
         if name in self.NUMBER_VALUE_FACET:
@@ -201,25 +200,44 @@ class Database():
     ########################################
 
     # return a list of terms for prefix
-    # FIXME: is this the fastest way to do this?
-    def _get_terms(self, prefix):
-        terms = []
-        for term in self.xapian:
-            if term.term.find(prefix.encode("utf-8")) == 0:
-                index = len(prefix)
-                terms.append(term.term[index:])
-        return terms
+    def _term_iter(self, prefix=None):
+        term_iter = iter(self.xapian)
+        if prefix:
+            plen = len(prefix)
+        s = True
+        while True:
+            if prefix and s:
+                term = term_iter.skip_to(prefix)
+                s = False
+            else:
+                term = term_iter.next()
+            if prefix:
+                if not term.term.startswith(prefix):
+                    break
+                yield term.term[plen:]
+            else:
+                yield term.term
 
-    def get_terms(self, name):
-        """Get terms associate with name."""
-        prefix = self._find_prefix(name)
-        return self._get_terms(prefix)
+    def term_iter(self, name=None):
+        """Iterator over all terms in the database.
+
+        If a prefix is provided, will iterate over only the prefixed
+        terms, and the prefix will be removed from the returned terms.
+
+        """
+        prefix = None
+        if name:
+            prefix = self._find_prefix(name)
+            if not prefix:
+                prefix = name
+        return self._term_iter(prefix)
 
     def get_sids(self):
         """Get all sources in database."""
         sids = []
-        for source in self._get_terms(self._find_prefix('source')):
-            for oid in self._get_terms(self._make_source_prefix(source)):
+        # FIXME: do this more efficiently
+        for source in self.term_iter('source'):
+            for oid in self._term_iter(self._make_source_prefix(source)):
                 sids.append('%s:%s' % (source, oid))
         return sids
 
