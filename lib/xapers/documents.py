@@ -76,7 +76,7 @@ class Document():
         # if Xapian doc provided, initiate for that document
         if xapian_doc:
             self.xapian_doc = xapian_doc
-            self.docid = str(xapian_doc.get_docid())
+            self.docid = xapian_doc.get_docid()
 
         # else, create a new empty document
         # document won't be added to database until sync is called
@@ -85,14 +85,14 @@ class Document():
             # use specified docid if provided
             if docid:
                 if docid in self.db:
-                    raise DocumentError('Document already exists for id %s.' % docid)
+                    raise DocumentError('Document already exists for id %d.' % docid)
                 self.docid = docid
             else:
-                self.docid = str(self.db._generate_docid())
+                self.docid = self.db._generate_docid()
             self._add_term(self.db._find_prefix('id'), self.docid)
 
         # specify a directory in the Xapers root for document data
-        self.docdir = os.path.join(self.db.root, '%010d' % int(self.docid))
+        self.docdir = os.path.join(self.db.root, '%010d' % self.docid)
 
         self.bibentry = None
 

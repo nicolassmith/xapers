@@ -116,7 +116,7 @@ def prompt_for_tags(db, tags):
 ############################################################
 
 def print_doc_summary(doc):
-    docid = doc.get_docid()
+    docid = doc.docid
     title = doc.get_title()
     if not title:
         title = ''
@@ -126,7 +126,7 @@ def print_doc_summary(doc):
     if not key:
         key = ''
 
-    print "id:%s [%s] {%s} (%s) \"%s\"" % (
+    print "id:%d [%s] {%s} (%s) \"%s\"" % (
         docid,
         ' '.join(sources),
         key,
@@ -343,7 +343,7 @@ def importbib(db, bibfile, tags=[], overwrite=False):
                 if len(docs) > 1:
                     print >>sys.stderr, "  Multiple distinct docs found for entry.  Using first found."
                 doc = docs[0]
-                print >>sys.stderr, "  Updating id:%s..." % (doc.docid)
+                print >>sys.stderr, "  Updating id:%d..." % (doc.docid)
 
             doc.add_bibentry(entry)
 
@@ -407,7 +407,7 @@ def search(db, query_string, oformat='summary', limit=None):
         elif oformat == 'bibtex':
             bibtex = doc.get_bibtex()
             if not bibtex:
-                print >>sys.stderr, "No bibtex for doc id:%s." % doc.docid
+                print >>sys.stderr, "No bibtex for doc id:%d." % doc.docid
             else:
                 print bibtex
                 print

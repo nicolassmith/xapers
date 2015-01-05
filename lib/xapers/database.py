@@ -181,16 +181,14 @@ class Database():
 
     def __contains__(self, docid):
         try:
-            self.xapian.get_document(int(docid))
+            self.xapian.get_document(docid)
             return True
         except xapian.DocNotFoundError:
             return False
 
     def __getitem__(self, docid):
-        if type(docid) is str:
-            if docid.find('id:') == 0:
-                docid = docid.split(':')[1]
-            docid = int(docid)
+        if type(docid) is not int:
+            raise TypeError("docid must be an int")
         xapian_doc = self.xapian.get_document(docid)
         return Document(self, xapian_doc)
 
@@ -198,7 +196,7 @@ class Database():
 
     # generate a new doc id, based on the last availabe doc id
     def _generate_docid(self):
-        return str(self.xapian.get_lastdocid() + 1)
+        return self.xapian.get_lastdocid() + 1
 
     ########################################
 
@@ -295,12 +293,10 @@ class Database():
 
     def replace_document(self, docid, doc):
         """Replace (sync) document to database."""
-        docid = int(docid)
         self.xapian.replace_document(docid, doc)
 
     def delete_document(self, docid):
         """Delete document from database."""
-        docid = int(docid)
         self.xapian.delete_document(docid)
 
     ########################################
@@ -323,7 +319,7 @@ class Database():
             # if we can't convert the directory name into an integer,
             # assume it's not relevant to us and continue
             try:
-                docid = str(int(ddir))
+                docid = int(ddir)
             except ValueError:
                 continue
 

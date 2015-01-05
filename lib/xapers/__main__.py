@@ -193,7 +193,7 @@ if __name__ == '__main__':
 
         if view and docid:
             nci = import_nci()
-            nci.UI(cmd=['search', 'id:'+docid])
+            nci.UI(cmd=['search', 'id:'+str(docid)])
 
     ########################################
     elif cmd in ['import','i']:
@@ -359,7 +359,7 @@ if __name__ == '__main__':
         docid = 0
         with cli.initdb() as db:
             for doc in db.search('*'):
-                docid = max(docid, int(doc.docid))
+                docid = max(docid, doc.docid)
             print 'id:%d' % docid
 
     ########################################
