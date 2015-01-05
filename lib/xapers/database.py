@@ -204,13 +204,11 @@ class Database():
         term_iter = iter(self.xapian)
         if prefix:
             plen = len(prefix)
-        s = True
-        while True:
-            if prefix and s:
-                term = term_iter.skip_to(prefix)
-                s = False
-            else:
-                term = term_iter.next()
+            term = term_iter.skip_to(prefix)
+            if not term.term.startswith(prefix):
+                return
+            yield term.term[plen:]
+        for term in term_iter:
             if prefix:
                 if not term.term.startswith(prefix):
                     break
