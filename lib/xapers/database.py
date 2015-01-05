@@ -192,32 +192,6 @@ class Database():
     def _generate_docid(self):
         return str(self.xapian.get_lastdocid() + 1)
 
-    # Return the xapers-relative path for a path
-    # If the the specified path is not in the xapers root, return None.
-    def _basename_for_path(self, path):
-        if path.find('/') == 0:
-            if path.find(self.root) == 0:
-                index = len(self.root) + 1
-                base = path[index:]
-            else:
-                # FIXME: should this be an exception?
-                base = None
-        else:
-            base = path
-
-        full = None
-        if base:
-            full = os.path.join(self.root, base)
-
-        return base, full
-
-    def _path_in_db(self, path):
-        base, full = self._basename_for_path(path)
-        if not base:
-            return False
-        else:
-            return True
-
     ########################################
 
     # return a list of terms for prefix
