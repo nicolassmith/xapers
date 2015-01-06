@@ -22,6 +22,7 @@ import os
 import sys
 import urwid
 
+from ..cli import initdb
 from search import Search
 from bibview import Bibview
 from help import Help
@@ -44,6 +45,8 @@ class UI():
         }
 
     def __init__(self, cmd=None):
+        self.db = initdb()
+
         self.header_string = "Xapers"
         self.status_string = "q: quit buffer, Q: quit Xapers, ?: help"
 

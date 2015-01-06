@@ -146,10 +146,9 @@ class Search(urwid.WidgetWrap):
 
         items = []
 
-        with initdb() as db:
-            count = db.count(query)
-            for doc in db.search(query, limit=20):
-                items.append(DocListItem(doc))
+        count = self.ui.db.count(query)
+        for doc in self.ui.db.search(query, limit=20):
+            items.append(DocListItem(doc))
 
         if count == 0:
             self.ui.set_status('No documents found.')
