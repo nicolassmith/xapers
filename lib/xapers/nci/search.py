@@ -82,8 +82,11 @@ class DocListItem(urwid.WidgetWrap):
 
         self.c1width = 10
 
-        header = urwid.AttrMap(
-            urwid.Text(['id:%d (%s) ' % (self.docid, self.matchp), ('tags', self.fields['tags'])]),
+        header = urwid.AttrMap(urwid.Columns([
+            ('fixed', self.c1width, urwid.Text('id:%d' % (self.docid))),
+            urwid.Text(('tags', self.fields['tags'])),
+            urwid.Text('(%s)' % (self.matchp), align='right'),
+            ]),
             'head')
         pile = [urwid.AttrMap(urwid.Divider(' '), '', ''),
                 header
@@ -108,11 +111,10 @@ class DocListItem(urwid.WidgetWrap):
             color = 'field'
         else:
             color = field
-        return urwid.Columns(
-            [('fixed', self.c1width, urwid.Text(('field', field + ':'))),
-             urwid.Text((color, self.fields[field])),
-             ]
-            )
+        return urwid.Columns([
+            ('fixed', self.c1width, urwid.Text(('field', field + ':'))),
+            urwid.Text((color, self.fields[field])),
+            ])
 
     def selectable(self):
         return True
@@ -120,6 +122,13 @@ class DocListItem(urwid.WidgetWrap):
     def keypress(self, size, key):
         return key
 
+############################################################
+
+class DocListWalker(urwid.ListWalker):
+    def __init__(self, db, query):
+        self.db = db
+        self.query = query
+        
 ############################################################
 
 class Search(urwid.WidgetWrap):
@@ -176,7 +185,10 @@ class Search(urwid.WidgetWrap):
             shown = limit
         else:
             shown = count
-        self.ui.set_header("search: \"%s\" (%d/%d shown)" % (query, shown, count))
+        self.ui.set_header([urwid.Columns([
+            urwid.Text("search: \"%s\"" % (query)),
+            urwid.Text("(%d/%d shown)" % (shown, count), align='right'),
+            ])])
 
         self.lenitems = limit
         self.docwalker = urwid.SimpleListWalker(items)

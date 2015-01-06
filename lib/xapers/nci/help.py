@@ -10,9 +10,9 @@ class Help(urwid.WidgetWrap):
 
         if self.target:
             tname = self.target.__class__.__name__
-            self.ui.set_header("Help: " + tname)
+            self.ui.set_header([urwid.Text("help: " + tname)])
         else:
-            self.ui.set_header("Help")
+            self.ui.set_header([urwid.Text("help")])
 
         pile = []
 

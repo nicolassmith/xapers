@@ -48,7 +48,7 @@ class UI():
         self.db = initdb()
 
         self.header_string = "Xapers"
-        self.status_string = "q: kill buffer, Q: quit Xapers, ?: help"
+        self.status_string = "s: search, q: kill buffer, Q: quit Xapers, ?: help and additional commands"
 
         self.view = urwid.Frame(urwid.SolidFill())
         self.set_header()
@@ -94,10 +94,9 @@ class UI():
         if hasattr(buffer, 'palette'):
             self.palette = list(set(self.palette) | set(buffer.palette))
 
-    def set_header(self, text=None):
-        if text:
-            self.header_string = 'Xapers %s' % (text)
-        self.view.set_header(urwid.AttrMap(urwid.Text(self.header_string), 'header'))
+    def set_header(self, widget=[]):
+        header = urwid.Columns([('pack', urwid.Text('Xapers '))] + widget)
+        self.view.set_header(urwid.AttrMap(header, 'header'))
 
     def set_status(self, text=None):
         if text:

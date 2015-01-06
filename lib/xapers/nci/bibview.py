@@ -9,7 +9,7 @@ class Bibview(urwid.WidgetWrap):
     def __init__(self, ui, query):
         self.ui = ui
 
-        self.ui.set_header("Bibtex: " + query)
+        self.ui.set_header([urwid.Text("bibtex: " + query)])
 
         string = ''
 
