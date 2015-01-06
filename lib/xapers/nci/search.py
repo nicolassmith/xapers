@@ -23,7 +23,7 @@ def xclip(text, isfile=False):
 
 ############################################################
 
-class DocListItem(urwid.WidgetWrap):
+class DocItem(urwid.WidgetWrap):
 
     FIELDS = ['title',
               'authors',
@@ -35,62 +35,73 @@ class DocListItem(urwid.WidgetWrap):
               #'summary',
               ]
 
-    def __init__(self, doc):
+    def __init__(self, doc, doc_ind, total_docs):
         self.doc = doc
         self.docid = self.doc.docid
 
-        self.fields = dict.fromkeys(self.FIELDS, '')
+        c1width = 10
 
-        self.fields['tags'] = ' '.join(self.doc.get_tags())
+        field_data = dict.fromkeys(self.FIELDS, '')
+
+        field_data['tags'] = ' '.join(self.doc.get_tags())
 
         bibdata = self.doc.get_bibdata()
         if bibdata:
             for field, value in bibdata.iteritems():
                 if 'title' == field:
-                    self.fields[field] = value
+                    field_data[field] = value
                 elif 'authors' == field:
-                    astring = ' and '.join(value[:4])
+                    field_data[field] = ' and '.join(value[:4])
                     if len(value) > 4:
-                        astring = astring + ' et al.'
-                    self.fields[field] = astring
+                        field_data[field] += ' et al.'
                 elif 'year' == field:
-                    self.fields[field] = value
+                    field_data[field] = value
 
-                if self.fields['journal'] == '':
+                if field_data['journal'] == '':
                     if 'journal' == field:
-                        self.fields['journal'] = value
+                        field_data['journal'] = value
                     elif 'container-title' == field:
-                        self.fields['journal'] = value
+                        field_data['journal'] = value
                     elif 'arxiv' == field:
-                        self.fields['journal'] = 'arXiv.org'
+                        field_data['journal'] = 'arXiv.org'
                     elif 'dcc' == field:
-                        self.fields['journal'] = 'LIGO DCC'
+                        field_data['journal'] = 'LIGO DCC'
 
         urls = self.doc.get_urls()
         if urls:
-            self.fields['source'] = urls[0]
+            field_data['source'] = urls[0]
 
         summary = self.doc.get_data()
         if not summary:
             summary = 'NO FILE'
-        self.fields['summary'] = summary
+        field_data['summary'] = summary
 
         files = self.doc.get_files()
         if files:
-            self.fields['file'] = os.path.basename(files[0])
+            field_data['file'] = os.path.basename(files[0])
 
-        self.c1width = 10
+        def gen_field_row(field, value):
+            if field in ['journal', 'year', 'source']:
+                color = 'journal'
+            elif field in ['file']:
+                color = 'field'
+            else:
+                color = field
+            return urwid.Columns([
+                ('fixed', c1width, urwid.Text(('field', field + ':'))),
+                urwid.Text((color, value)),
+                ])
 
-        self.tag_field = urwid.Text(self.fields['tags'])
+        self.tag_field = urwid.Text(field_data['tags'])
         header = urwid.AttrMap(urwid.Columns([
-            ('fixed', self.c1width, urwid.Text('id:%d' % (self.docid))),
+            ('fixed', c1width, urwid.Text('id:%d' % (self.docid))),
             urwid.AttrMap(self.tag_field, 'tags'),
-            urwid.Text('%s%% match' % (doc.matchp), align='right'),
+            urwid.Text('%s%% match (%s/%s)' % (doc.matchp, doc_ind, total_docs), align='right'),
             ]),
             'head')
         pile = [urwid.AttrMap(urwid.Divider(' '), '', ''),
                 header
-                ] + [self.docfield(field) for field in self.FIELDS]
+                ] + [gen_field_row(field, field_data[field]) for field in self.FIELDS]
         w = urwid.AttrMap(urwid.AttrMap(urwid.Pile(pile), 'field'),
                           '',
                           {'head': 'head focus',
@@ -104,18 +115,6 @@ class DocListItem(urwid.WidgetWrap):
 
         self.__super.__init__(w)
 
-    def docfield(self, field):
-        if field in ['journal', 'year', 'source']:
-            color = 'journal'
-        elif field in ['file']:
-            color = 'field'
-        else:
-            color = field
-        return urwid.Columns([
-            ('fixed', self.c1width, urwid.Text(('field', field + ':'))),
-            urwid.Text((color, self.fields[field])),
-            ])
-
     def selectable(self):
         return True
 
@@ -124,10 +123,31 @@ class DocListItem(urwid.WidgetWrap):
 
 ############################################################
 
-class DocListWalker(urwid.ListWalker):
-    def __init__(self, db, query):
-        self.db = db
-        self.query = query
+class DocWalker(urwid.ListWalker):
+    def __init__(self, docs):
+        self.docs = docs
+        self.ndocs = len(docs)
+        self.focus = 0
+        self.items = {}
+
+    def __getitem__(self, pos):
+        if pos < 0:
+            raise IndexError
+        if pos not in self.items:
+            self.items[pos] = DocItem(self.docs[pos], pos+1, self.ndocs)
+        return self.items[pos]
+
+    def set_focus(self, focus):
+        if focus == -1:
+            focus = self.ndocs - 1
+        self.focus = focus
+        self._modified()
+
+    def next_position(self, pos):
+        return pos + 1
+
+    def prev_position(self, pos):
+        return pos - 1
         
 ############################################################
 
@@ -139,7 +159,6 @@ class Search(urwid.WidgetWrap):
         ('field', 'light gray', ''),
         ('field focus', '', 'dark gray', '', '', 'g19'),
         ('tags', 'dark green', ''),
-        #('tags focus', 'dark green', 'dark gray', '', 'dark green', 'g19'),
         ('tags focus', 'light green', 'dark blue'),
         ('title', 'yellow', ''),
         ('title focus', 'yellow', 'dark gray', '', 'yellow', 'g19'),
@@ -154,6 +173,8 @@ class Search(urwid.WidgetWrap):
         'l': "filterSearch",
         'n': "nextEntry",
         'p': "prevEntry",
+        '>': "lastEntry",
+        '<': "firstEntry",
         'down': "nextEntry",
         'up': "prevEntry",
         'enter': "viewFile",
@@ -172,35 +193,41 @@ class Search(urwid.WidgetWrap):
         self.ui = ui
         self.query = query
 
-        limit = 20
-        items = []
-
         count = self.ui.db.count(query)
-        for doc in self.ui.db.search(query, limit=limit):
-            items.append(DocListItem(doc))
-
         if count == 0:
             self.ui.set_status('No documents found.')
-        if count > limit:
-            shown = limit
+            docs = []
         else:
-            shown = count
+            docs = [doc for doc in self.ui.db.search(query)]
+        if count == 1:
+            cstring = "%d result" % (count)
+        else:
+            cstring = "%d results" % (count)
+
         self.ui.set_header([urwid.Columns([
-            urwid.Text("search: \"%s\"" % (query)),
-            urwid.Text("(%d/%d shown)" % (shown, count), align='right'),
+            urwid.Text("search: \"%s\"" % (self.query)),
+            urwid.Text(cstring, align='right'),
             ])])
 
-        self.lenitems = limit
-        self.docwalker = urwid.SimpleListWalker(items)
+        self.lenitems = count
+        self.docwalker = DocWalker(docs)
         self.listbox = urwid.ListBox(self.docwalker)
         w = self.listbox
 
         self.__super.__init__(w)
 
+    def keypress(self, size, key):
+        if key in self.keys:
+            cmd = "self.%s()" % (self.keys[key])
+            eval(cmd)
+        else:
+            self.ui.keypress(key)
+
     ##########
 
     def refresh(self):
         """refresh search results"""
+        entry, pos = self.listbox.get_focus()
         self.ui.newbuffer(['search', self.query])
         self.ui.killBuffer()
 
@@ -230,6 +257,14 @@ class Search(urwid.WidgetWrap):
         if not entry: return
         if pos == 0: return
         self.listbox.set_focus(pos - 1)
+
+    def lastEntry(self):
+        """last entry"""
+        self.listbox.set_focus(-1)
+
+    def firstEntry(self):
+        """first entry"""
+        self.listbox.set_focus(0)
 
     def viewFile(self):
         """open document file"""
@@ -362,10 +397,3 @@ class Search(urwid.WidgetWrap):
         """archive document (remove 'new' tag) and advance"""
         self._promptTag_done('new', '-')
         self.nextEntry()
-
-    def keypress(self, size, key):
-        if key in self.keys:
-            cmd = "self.%s()" % (self.keys[key])
-            eval(cmd)
-        else:
-            self.ui.keypress(key)
