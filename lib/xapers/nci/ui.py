@@ -21,6 +21,7 @@ Jameson Rollins <jrollins@finestructure.net>
 import os
 import sys
 import urwid
+import collections
 
 from ..cli import initdb
 from search import Search
@@ -37,12 +38,12 @@ class UI():
         ('prompt', 'black', 'light green'),
         ]
 
-    keys = {
-        '?': "help",
-        's': "promptSearch",
-        'q': "killBuffer",
-        'Q': "quit",
-        }
+    keys = collections.OrderedDict([
+        ('s', "promptSearch"),
+        ('q', "killBuffer"),
+        ('Q', "quit"),
+        ('?', "help"),
+        ])
 
     def __init__(self, cmd=None):
         self.db = initdb()

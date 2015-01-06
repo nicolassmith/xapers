@@ -1,6 +1,7 @@
 import os
-import subprocess
 import urwid
+import subprocess
+import collections
 
 from ..cli import initdb
 from ..database import DatabaseLockError
@@ -168,26 +169,26 @@ class Search(urwid.WidgetWrap):
         ('journal focus', 'dark magenta', 'dark gray', '', 'dark magenta', 'g19'),
         ]
 
-    keys = {
-        '=': "refresh",
-        'l': "filterSearch",
-        'n': "nextEntry",
-        'p': "prevEntry",
-        '>': "lastEntry",
-        '<': "firstEntry",
-        'down': "nextEntry",
-        'up': "prevEntry",
-        'enter': "viewFile",
-        'u': "viewURL",
-        'b': "viewBibtex",
-        '+': "addTags",
-        '-': "removeTags",
-        'a': "archive",
-        'meta i': "copyID",
-        'meta f': "copyPath",
-        'meta u': "copyURL",
-        'meta b': "copyBibtex",
-        }
+    keys = collections.OrderedDict([
+        ('n', "nextEntry"),
+        ('down', "nextEntry"),
+        ('p', "prevEntry"),
+        ('up', "prevEntry"),
+        ('<', "firstEntry"),
+        ('>', "lastEntry"),
+        ('=', "refresh"),
+        ('l', "filterSearch"),
+        ('enter', "viewFile"),
+        ('u', "viewURL"),
+        ('b', "viewBibtex"),
+        ('+', "addTags"),
+        ('-', "removeTags"),
+        ('a', "archive"),
+        ('meta i', "copyID"),
+        ('meta f', "copyPath"),
+        ('meta u', "copyURL"),
+        ('meta b', "copyBibtex"),
+        ])
 
     def __init__(self, ui, query=None):
         self.ui = ui
@@ -226,7 +227,7 @@ class Search(urwid.WidgetWrap):
     ##########
 
     def refresh(self):
-        """refresh search results"""
+        """refresh current search results"""
         entry, pos = self.listbox.get_focus()
         self.ui.newbuffer(['search', self.query])
         self.ui.killBuffer()
@@ -312,7 +313,7 @@ class Search(urwid.WidgetWrap):
         if not entry: return
         docid = "id:%d" % entry.docid
         xclip(docid)
-        self.ui.set_status('docid yanked: %s' % docid)
+        self.ui.set_status('yanked docid: %s' % docid)
 
     def copyPath(self):
         """copy document file path to clipboard"""
@@ -323,7 +324,7 @@ class Search(urwid.WidgetWrap):
             self.ui.set_status('ERROR: id:%d: file path not found.' % entry.docid)
             return
         xclip(path)
-        self.ui.set_status('path yanked: %s' % path)
+        self.ui.set_status('yanked path: %s' % path)
 
     def copyURL(self):
         """copy document URL to clipboard"""
@@ -336,7 +337,7 @@ class Search(urwid.WidgetWrap):
         # FIXME: copy all instead of just first?
         url = urls[0]
         xclip(url)
-        self.ui.set_status('url yanked: %s' % url)
+        self.ui.set_status('yanked url: %s' % url)
 
     def copyBibtex(self):
         """copy document bibtex to clipboard"""
@@ -347,7 +348,7 @@ class Search(urwid.WidgetWrap):
             self.ui.set_status('ERROR: id:%d: bibtex not found.' % entry.docid)
             return
         xclip(bibtex, isfile=True)
-        self.ui.set_status('bibtex yanked: %s' % bibtex)
+        self.ui.set_status('yanked bibtex: %s' % bibtex)
 
     def addTags(self):
         """add tags to document (space separated)"""
