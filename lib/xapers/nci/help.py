@@ -16,7 +16,6 @@ class Help(urwid.WidgetWrap):
 
         pile = []
 
-
         if self.target and hasattr(self.target, 'keys'):
             pile.append(urwid.Text('%s commands:' % (tname)))
             pile.append(urwid.Text(''))
@@ -35,13 +34,9 @@ class Help(urwid.WidgetWrap):
 
     def row(self, c, cmd, key):
         hstring = eval('str(self.%s.%s.__doc__)' % (c, cmd))
-        return urwid.Columns(
-            [
-                ('fixed', 8,
-                 urwid.Text(key)),
-                urwid.Text(hstring),
-                 ]
-                )
+        return urwid.Columns([('fixed', 8, urwid.Text(key)),
+                              urwid.Text(hstring),
+                              ])
 
     def keypress(self, size, key):
         self.ui.keypress(key)

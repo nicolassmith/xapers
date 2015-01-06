@@ -25,13 +25,14 @@ def xclip(text, isfile=False):
 
 class DocListItem(urwid.WidgetWrap):
 
-    FIELDS = ['tags',
-              'title',
+    FIELDS = ['title',
               'authors',
               'journal',
               'year',
               'source',
-              'summary',
+              #'tags',
+              'file',
+              #'summary',
               ]
 
     def __init__(self, doc):
@@ -39,63 +40,77 @@ class DocListItem(urwid.WidgetWrap):
         self.matchp = doc.matchp
         self.docid = self.doc.docid
 
-        # fill the default attributes for the fields
-        self.fields = {}
-        for field in self.FIELDS:
-            self.fields[field] = urwid.Text('')
+        self.fields = dict.fromkeys(self.FIELDS, '')
 
-        self.fields['tags'].set_text(' '.join(self.doc.get_tags()))
+        self.fields['tags'] = ' '.join(self.doc.get_tags())
 
-        data = self.doc.get_bibdata()
-        if data:
-            if 'title' in data:
-                self.fields['title'].set_text(data['title'])
-            if 'authors' in data:
-                astring = ' and '.join(data['authors'][:4])
-                if len(data['authors']) > 4:
-                    astring = astring + ' et al.'
-                self.fields['authors'].set_text(astring)
-            if 'journal' in data:
-                self.fields['journal'].set_text(data['journal'])
-            elif 'container-title' in data:
-                self.fields['journal'].set_text(data['container-title'])
-            elif 'arxiv' in data:
-                self.fields['journal'].set_text('arXiv.org')
-            if 'year' in data:
-                self.fields['year'].set_text(data['year'])
+        bibdata = self.doc.get_bibdata()
+        if bibdata:
+            for field, value in bibdata.iteritems():
+                if 'title' == field:
+                    self.fields[field] = value
+                elif 'authors' == field:
+                    astring = ' and '.join(value[:4])
+                    if len(value) > 4:
+                        astring = astring + ' et al.'
+                    self.fields[field] = astring
+                elif 'year' == field:
+                    self.fields[field] = value
+
+                if self.fields['journal'] == '':
+                    if 'journal' == field:
+                        self.fields['journal'] = value
+                    elif 'container-title' == field:
+                        self.fields['journal'] = value
+                    elif 'arxiv' == field:
+                        self.fields['journal'] = 'arXiv.org'
+                    elif 'dcc' == field:
+                        self.fields['journal'] = 'LIGO DCC'
 
         urls = self.doc.get_urls()
         if urls:
-            self.fields['source'].set_text(urls[0])
+            self.fields['source'] = urls[0]
 
         summary = self.doc.get_data()
         if not summary:
             summary = 'NO FILE'
-        self.fields['summary'].set_text(summary)
+        self.fields['summary'] = summary
+
+        files = self.doc.get_files()
+        if files:
+            self.fields['file'] = os.path.basename(files[0])
 
         self.c1width = 10
 
-        self.rowHeader = urwid.AttrMap(
-            urwid.Text('id:%s (%s)' % (self.docid, self.matchp)),
-            'head', 'head_focus')
+        header = urwid.AttrMap(
+            urwid.Text(['id:%d (%s) ' % (self.docid, self.matchp), ('tags', self.fields['tags'])]),
+            'head')
+        pile = [urwid.AttrMap(urwid.Divider(' '), '', ''),
+                header
+                ] + [self.docfield(field) for field in self.FIELDS]
+        w = urwid.AttrMap(urwid.AttrMap(urwid.Pile(pile), 'field'),
+                          '',
+                          {'head': 'head focus',
+                           'field': 'field focus',
+                           'tags': 'tags focus',
+                           'title': 'title focus',
+                           'authors': 'authors focus',
+                           'journal': 'journal focus',
+                           },
+                          )
 
-        # FIXME: how do we hightlight everything in pile during focus?
-        w = urwid.Pile(
-            [urwid.Divider('-'), self.rowHeader] \
-            + [self.docfield(field) for field in self.FIELDS],
-            focus_item=1)
         self.__super.__init__(w)
 
     def docfield(self, field):
-        attr_map = field
+        if field in ['journal', 'year', 'source']:
+            color = 'journal'
+        elif field in ['file']:
+            color = 'field'
+        else:
+            color = field
         return urwid.Columns(
-            [('fixed', self.c1width,
-              urwid.AttrMap(
-                  urwid.Text(field + ':'),
-                  'field', 'field_focus')),
-             urwid.AttrMap(
-                 self.fields[field],
-                 attr_map)
+            [('fixed', self.c1width, urwid.Text(('field', field + ':'))),
+             urwid.Text((color, self.fields[field])),
              ]
             )
 
@@ -111,18 +126,23 @@ class Search(urwid.WidgetWrap):
 
     palette = [
         ('head', 'dark blue, bold', ''),
-        ('head_focus', 'white, bold', 'dark blue'),
+        ('head focus', 'white, bold', 'dark blue'),
         ('field', 'light gray', ''),
-        ('field_focus', '', 'light gray'),
-        ('tags', 'dark green, bold', ''),
+        ('field focus', '', 'dark gray', '', '', 'g19'),
+        ('tags', 'dark green', ''),
+        #('tags focus', 'dark green', 'dark gray', '', 'dark green', 'g19'),
+        ('tags focus', 'light green', 'dark blue'),
         ('title', 'yellow', ''),
-        ('authors', 'dark cyan, bold', ''),
+        ('title focus', 'yellow', 'dark gray', '', 'yellow', 'g19'),
+        ('authors', 'light cyan', ''),
+        ('authors focus', 'light cyan', 'dark gray', '', 'light cyan', 'g19'),
         ('journal', 'dark magenta', '',),
-        ('year', 'dark magenta', '',),
-        ('source', 'dark magenta', ''),
+        ('journal focus', 'dark magenta', 'dark gray', '', 'dark magenta', 'g19'),
         ]
 
     keys = {
+        '=': "refresh",
+        'l': "filterSearch",
         'n': "nextEntry",
         'p': "prevEntry",
         'down': "nextEntry",
@@ -141,19 +161,24 @@ class Search(urwid.WidgetWrap):
 
     def __init__(self, ui, query=None):
         self.ui = ui
+        self.query = query
 
-        self.ui.set_header("Search: " + query)
-
+        limit = 20
         items = []
 
         count = self.ui.db.count(query)
-        for doc in self.ui.db.search(query, limit=20):
+        for doc in self.ui.db.search(query, limit=limit):
             items.append(DocListItem(doc))
 
         if count == 0:
             self.ui.set_status('No documents found.')
+        if count > limit:
+            shown = limit
+        else:
+            shown = count
+        self.ui.set_header("search: \"%s\" (%d/%d shown)" % (query, shown, count))
 
-        self.lenitems = count
+        self.lenitems = limit
         self.docwalker = urwid.SimpleListWalker(items)
         self.listbox = urwid.ListBox(self.docwalker)
         w = self.listbox
@@ -161,6 +186,24 @@ class Search(urwid.WidgetWrap):
         self.__super.__init__(w)
 
     ##########
+
+    def refresh(self):
+        """refresh search results"""
+        self.ui.newbuffer(['search', self.query])
+        self.ui.killBuffer()
+
+    def filterSearch(self):
+        """filter current search with additional terms"""
+        prompt = 'filter search: '
+        urwid.connect_signal(self.ui.prompt(prompt), 'done', self._filterSearch_done)
+
+    def _filterSearch_done(self, newquery):
+        self.ui.view.set_focus('body')
+        urwid.disconnect_signal(self.ui, self.ui.prompt, 'done', self._filterSearch_done)
+        if not newquery:
+            self.ui.set_status()
+            return
+        self.ui.newbuffer(['search', self.query, newquery])
 
     def nextEntry(self):
         """next entry"""
@@ -182,11 +225,11 @@ class Search(urwid.WidgetWrap):
         if not entry: return
         path = entry.doc.get_fullpaths()
         if not path:
-            self.ui.set_status('No file for document id:%s.' % entry.docid)
+            self.ui.set_status('No file for document id:%d.' % entry.docid)
             return
         path = path[0]
         if not os.path.exists(path):
-            self.ui.set_status('ERROR: id:%s: file not found.' % entry.docid)
+            self.ui.set_status('ERROR: id:%d: file not found.' % entry.docid)
             return
         self.ui.set_status('opening file: %s...' % path)
         subprocess.Popen(['xdg-open', path],
@@ -200,7 +243,7 @@ class Search(urwid.WidgetWrap):
         if not entry: return
         urls = entry.doc.get_urls()
         if not urls:
-            self.ui.set_status('ERROR: id:%s: no URLs found.' % entry.docid)
+            self.ui.set_status('ERROR: id:%d: no URLs found.' % entry.docid)
             return
         # FIXME: open all instead of just first?
         url = urls[0]
@@ -214,13 +257,13 @@ class Search(urwid.WidgetWrap):
         """view document bibtex"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        self.ui.newbuffer(['bibview', 'id:' + entry.docid])
+        self.ui.newbuffer(['bibview', 'id:' + str(entry.docid)])
 
     def copyID(self):
         """copy document ID to clipboard"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        docid = "id:%s" % entry.docid
+        docid = "id:%d" % entry.docid
         xclip(docid)
         self.ui.set_status('docid yanked: %s' % docid)
 
@@ -230,7 +273,7 @@ class Search(urwid.WidgetWrap):
         if not entry: return
         path = entry.doc.get_fullpaths()[0]
         if not path:
-            self.ui.set_status('ERROR: id:%s: file path not found.' % entry.docid)
+            self.ui.set_status('ERROR: id:%d: file path not found.' % entry.docid)
             return
         xclip(path)
         self.ui.set_status('path yanked: %s' % path)
@@ -241,7 +284,7 @@ class Search(urwid.WidgetWrap):
         if not entry: return
         urls = entry.doc.get_urls()
         if not urls:
-            self.ui.set_status('ERROR: id:%s: URL not found.' % entry.docid)
+            self.ui.set_status('ERROR: id:%d: URL not found.' % entry.docid)
             return
         # FIXME: copy all instead of just first?
         url = urls[0]
@@ -254,13 +297,13 @@ class Search(urwid.WidgetWrap):
         if not entry: return
         bibtex = entry.doc.get_bibpath()
         if not bibtex:
-            self.ui.set_status('ERROR: id:%s: bibtex not found.' % entry.docid)
+            self.ui.set_status('ERROR: id:%d: bibtex not found.' % entry.docid)
             return
         xclip(bibtex, isfile=True)
         self.ui.set_status('bibtex yanked: %s' % bibtex)
 
     def addTags(self):
-        """add tags from document (space separated)"""
+        """add tags to document (space separated)"""
         self.promptTag('+')
 
     def removeTags(self):
@@ -303,8 +346,9 @@ class Search(urwid.WidgetWrap):
         self.ui.set_status(msg)
 
     def archive(self):
-        """archive document (remove 'new' tag)"""
+        """archive document (remove 'new' tag) and advance"""
         self._promptTag_done('new', '-')
+        self.nextEntry()
 
     def keypress(self, size, key):
         if key in self.keys:

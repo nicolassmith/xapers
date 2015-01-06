@@ -48,7 +48,7 @@ class UI():
         self.db = initdb()
 
         self.header_string = "Xapers"
-        self.status_string = "q: quit buffer, Q: quit Xapers, ?: help"
+        self.status_string = "q: kill buffer, Q: quit Xapers, ?: help"
 
         self.view = urwid.Frame(urwid.SolidFill())
         self.set_header()
@@ -85,6 +85,7 @@ class UI():
             unhandled_input=self.keypress,
             handle_mouse=False,
             )
+        self.mainloop.screen.set_terminal_properties(colors=88)
         self.mainloop.run()
 
     ##########
@@ -129,7 +130,7 @@ class UI():
         self.newbuffer(['search', query])
 
     def killBuffer(self):
-        """kill current buffer"""
+        """kill current buffer (quit if last buffer)"""
         raise urwid.ExitMainLoop()
 
     def quit(self):
