@@ -60,7 +60,6 @@ Commands:
     --output=[summary|bibtex|tags|sources|keys|files]
                                         output format (default is 'summary')
     --limit=N                           limit number of results returned
-                                        (default is 20, use 0 for all)
   bibtex <search-terms>               Short for \"search --output=bibtex\".
   view <search-terms>                 View search in curses UI.
   count <search-terms>                Count matches.
@@ -271,7 +270,7 @@ if __name__ == '__main__':
     ########################################
     elif cmd in ['search','s']:
         oformat = 'summary'
-        limit = 20
+        limit = 0
 
         argc = 2
         while True:
