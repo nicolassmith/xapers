@@ -37,7 +37,6 @@ class DocListItem(urwid.WidgetWrap):
 
     def __init__(self, doc):
         self.doc = doc
-        self.matchp = doc.matchp
         self.docid = self.doc.docid
 
         self.fields = dict.fromkeys(self.FIELDS, '')
@@ -82,10 +81,11 @@ class DocListItem(urwid.WidgetWrap):
 
         self.c1width = 10
 
+        self.tag_field = urwid.Text(self.fields['tags'])
         header = urwid.AttrMap(urwid.Columns([
             ('fixed', self.c1width, urwid.Text('id:%d' % (self.docid))),
-            urwid.Text(('tags', self.fields['tags'])),
-            urwid.Text('(%s)' % (self.matchp), align='right'),
+            urwid.AttrMap(self.tag_field, 'tags'),
+            urwid.Text('%s%% match' % (doc.matchp), align='right'),
             ]),
             'head')
         pile = [urwid.AttrMap(urwid.Divider(' '), '', ''),
@@ -352,7 +352,7 @@ class Search(urwid.WidgetWrap):
                     msg = "Removed tags: %s" % (tag_string)
                 doc.sync()
             tags = doc.get_tags()
-            entry.fields['tags'].set_text(' '.join(tags))
+            entry.tag_field.set_text(' '.join(tags))
         except DatabaseLockError as e:
             msg = e.msg
         self.ui.set_status(msg)
