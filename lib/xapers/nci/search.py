@@ -355,6 +355,7 @@ class Search(urwid.WidgetWrap):
             entry.tag_field.set_text(' '.join(tags))
         except DatabaseLockError as e:
             msg = e.msg
+        self.ui.db.reopen()
         self.ui.set_status(msg)
 
     def archive(self):
