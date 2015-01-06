@@ -186,7 +186,7 @@ class Database():
             return False
 
     def __getitem__(self, docid):
-        if type(docid) is not int:
+        if type(docid) not in [int, long]:
             raise TypeError("docid must be an int")
         xapian_doc = self.xapian.get_document(docid)
         return Document(self, xapian_doc)
