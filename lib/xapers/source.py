@@ -164,6 +164,9 @@ class Sources(object):
         else:
             return source
 
+    def __contains__(self, source):
+        return source in self._sources
+
     def __getitem__(self, sid):
         name = None
         id = None
@@ -234,10 +237,9 @@ class Sources(object):
         fields = bibentry.get_fields()
         items = set()
         for field, value in fields.iteritems():
-            for source in self:
-                # FIXME: should we be case sensitive?
-                if source.name.lower() == field.lower():
-                    items.add(source[value])
+            field = field.lower()
+            if field in self:
+                items.add(self.get_source(field, value))
         # FIXME: how do we get around special exception for this?
         if 'eprint' in fields:
             items.add(self.get_source('arxiv', fields['eprint']))
