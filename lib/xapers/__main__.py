@@ -259,13 +259,14 @@ if __name__ == '__main__':
             if count == 0:
                 print >>sys.stderr, "No documents found for query."
                 sys.exit(1)
-            if prompt:
-                resp = raw_input("Type 'yes' to delete %d documents: " % count)
-                if resp != 'yes':
-                    print >>sys.stderr, "Aborting."
-                    sys.exit(1)
             for doc in db.search(query):
+                if prompt:
+                    resp = raw_input("Type 'yes' to delete document id:%d: " % doc.docid)
+                    if resp != 'yes':
+                        continue
+                print >>sys.stderr, "deleting id:%d..." % doc.docid,
                 doc.purge()
+                print >>sys.stderr, "done."
 
     ########################################
     elif cmd in ['search','s']:
