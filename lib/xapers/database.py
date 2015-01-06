@@ -178,6 +178,9 @@ class Database():
     def __exit__(self, exc_type, exc_value, traceback):
         self.xapian.close()
 
+    def reopen(self):
+        self.xapian.reopen()
+
     def __contains__(self, docid):
         try:
             self.xapian.get_document(docid)
