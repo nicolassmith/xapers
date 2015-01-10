@@ -1,4 +1,5 @@
-* add DB VERSION
+* DB VERSION
+* add only opens writable db on doc.sync()
 * set/get title, author, tags as data or values (is this faster?)
 * pdf thumbnails:
    "convert -thumbnail 500x -background white -alpha remove file.pdf[0] thumb.png"
@@ -24,11 +25,10 @@ cli:
 * export should produce full mirror of xapers document structure
 
 nci:
-* asyncronously load search results
+* custom keybindings
+* customize helper commands
 * how to test??
 * add update/add commands
-* fail gracefully if db has changed
-* customizable keybindings
 * customizable palette
 
 sources:
