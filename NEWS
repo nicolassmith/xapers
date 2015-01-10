@@ -1,0 +1,29 @@
+Xapers 0.6 (2015-01-10)
+=======================
+
+* lib: Document year is now indexed as a proper value, supporting both
+  'year:<year>' binary and 'year:<year>..<year>' range searches.  Will
+  require running 'restore' from the cli to re-index previously added
+  articles.  Thanks to Rafael Laboissière for the contribution.
+
+* lib: Much improved performance of Document prefixed term retrieval.
+
+* cli: Much improved search output performance.  Default output limit
+  of 20 has been removed.
+
+* nci: Curses interface now loads entries dynamically, so search
+  results are no longer limited.
+
+* nci: Cleaner results display.  Document 'summary' has been removed,
+  but other information has been added, such as journal article, year,
+  file info, and document match information.
+
+* nci: Extended navigation commands.
+
+* sources: Now support PDF download from sources, if the source
+  supports it.
+
+* sources: New IACR 'crytoeprint' source.  Thanks to Daniel Kahn
+  Gillmor for the contribution.
+
+* Other cleanup, bug fixes, and performance improvements.
