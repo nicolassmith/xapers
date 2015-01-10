@@ -38,3 +38,10 @@ deb-snapshot:
 	cd build/snapshot; dch -b -v $(VERSION) -D UNRELEASED 'test build, not for upload'
 	cd build/snapshot; echo '3.0 (native)' > debian/source/format
 	cd build/snapshot; debuild -us -uc
+
+.PHONY: clean
+clean:
+	rm -rf build
+	rm -rf test/test-results
+	rm -rf test/tmp.*
+	debuild clean 2>/dev/null || true
