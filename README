@@ -18,10 +18,12 @@ retrievable from a simple curses search UI.  The command line
 interface allows for exporting bibtex [1] from arbitrary searches,
 allowing seamless integration into LaTeX work flows.
 
-Xapers provides source modules for some common online libraries:
+Xapers provides source modules for some common online resources:
 
-  * DOI: http://www.doi.org/
-  * arXiv: http://arxiv.org/
+  * doi: Digital Object Identifier (https://dx.doi.org/)
+  * arxiv: Open access e-print service (http://arxiv.org/)
+  * dcc: LIGO Document Control Center (https://dcc.ligo.org/)
+  * cryptoeprint: Cryptology ePrint Archive (https://eprint.iacr.org/)
 
 Contributions of additional source interface modules is highly
 encouraged.  See the SOURCES file, included with the xapers source,
@@ -66,11 +68,11 @@ Clone the repo:
 Dependencies :
   * python (>= 2.6)
   * python-xapian - Python Xapian search engine bindings
+  * poppler-utils - PDF processing tools
   * pybtex - Python bibtex parser
+  * pycurl - Python bindings to libcurl
 
 Recommends (for curses UI) :
-  * poppler-utils - PDF processing tools
-  * pycurl - Python bindings to libcurl
   * python-urwid - Python Urwid curses library
   * xdg-utils - Desktop tools for opening files and URLs
   * xclip - X clipboard support for copying document fields
@@ -85,6 +87,10 @@ Run the tests:
 
 Debian
 ------
+
+Xapers is a part of Debian:
+
+    $ apt install xapers
 
 Debian/Ubuntu snapshot packages can be easily made from the git
 source.  You can build the package from any branch but it requires an
@@ -122,9 +128,9 @@ Curses interface
 
 The curses interface (accessed through 'xapers show ...') provides a
 simple way to search the database and retrieve files.  Documents
-matching searches are displayed with their bibliographic information
-and a short text summary.  Document tags can be manipulated, files can
-be viewed, and source URLs can be opened in a browser.
+matching searches are displayed with their bibliographic information.
+Document tags can be manipulated, files and bibtex can be viewed, and
+source URLs can be opened in a browser.
 
 xapers-adder
 ------------
