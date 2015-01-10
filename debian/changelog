@@ -1,3 +1,9 @@
+xapers (0.6-1) unstable; urgency=medium
+
+  * New release (Closes: #726638)
+
+ -- Jameson Graef Rollins <jrollins@finestructure.net>  Sat, 10 Jan 2015 11:07:12 -0800
+
 xapers (0.5.3-1) unstable; urgency=low
 
   * New release.
