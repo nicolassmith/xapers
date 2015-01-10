@@ -22,7 +22,7 @@ import os
 import shutil
 import xapian
 
-from parser import parse_file
+from parser import parse_data
 from source import Sources
 from bibtex import Bibtex
 
@@ -69,34 +69,34 @@ class Documents():
 class Document():
     """Represents a single Xapers document."""
 
-    def __init__(self, db, doc=None, docid=None):
+    def __init__(self, db, xapian_doc=None, docid=None):
         # Xapers db
         self.db = db
-        self.root = self.db.root
 
         # if Xapian doc provided, initiate for that document
-        if doc:
-            self.doc = doc
-            self.docid = str(doc.get_docid())
+        if xapian_doc:
+            self.xapian_doc = xapian_doc
+            self.docid = xapian_doc.get_docid()
 
         # else, create a new empty document
         # document won't be added to database until sync is called
         else:
-            self.doc = xapian.Document()
+            self.xapian_doc = xapian.Document()
             # use specified docid if provided
             if docid:
-                if self.db[docid]:
-                    raise DocumentError('Document already exists for id %s.' % docid)
+                if docid in self.db:
+                    raise DocumentError('Document already exists for id %d.' % docid)
                 self.docid = docid
             else:
-                self.docid = str(self.db._generate_docid())
+                self.docid = self.db._generate_docid()
             self._add_term(self.db._find_prefix('id'), self.docid)
 
         # specify a directory in the Xapers root for document data
-        self.docdir = os.path.join(self.root, '%010d' % int(self.docid))
+        self.docdir = os.path.join(self.db.root, '%010d' % self.docid)
 
-        #
         self.bibentry = None
+
+        self._infiles = {}
 
     def get_docid(self):
         """Return document id of document."""
@@ -110,12 +110,10 @@ class Document():
             os.makedirs(self.docdir)
 
     def _write_files(self):
-        if '_infiles' in dir(self):
-            for infile, outfile in self._infiles.iteritems():
-                try:
-                    shutil.copyfile(infile, outfile)
-                except shutil.Error:
-                    pass
+        for name, data in self._infiles.iteritems():
+            path = os.path.join(self.docdir, name)
+            with open(path, 'w') as f:
+                f.write(data)
 
     def _write_bibfile(self):
         bibpath = self.get_bibpath()
@@ -149,7 +147,7 @@ class Document():
             self._write_files()
             self._write_bibfile()
             self._write_tagfile()
-            self.db.replace_document(self.docid, self.doc)
+            self.db.replace_document(self.docid, self.xapian_doc)
         except:
             self._rm_docdir()
             raise
@@ -170,110 +168,123 @@ class Document():
     # add an individual prefix'd term for the document
     def _add_term(self, prefix, value):
         term = '%s%s' % (prefix, value)
-        self.doc.add_term(term)
+        self.xapian_doc.add_term(term)
 
     # remove an individual prefix'd term for the document
     def _remove_term(self, prefix, value):
         term = '%s%s' % (prefix, value)
         try:
-            self.doc.remove_term(term)
+            self.xapian_doc.remove_term(term)
         except xapian.InvalidArgumentError:
             pass
 
     # Parse 'text' and add a term to 'message' for each parsed
-    # word. Each term will be added both prefixed (if prefix_name is
-    # not NULL) and also non-prefixed).
+    # word. Each term will be added both prefixed (if prefix is not
+    # None) and non-prefixed.
     # http://xapian.org/docs/bindings/python/
     # http://xapian.org/docs/quickstart.html
     # http://www.flax.co.uk/blog/2009/04/02/xapian-search-architecture/
     def _gen_terms(self, prefix, text):
         term_gen = self.db.term_gen
-        term_gen.set_document(self.doc)
+        term_gen.set_document(self.xapian_doc)
         if prefix:
             term_gen.index_text(text, 1, prefix)
         term_gen.index_text(text)
             
     # return a list of terms for prefix
-    # FIXME: is this the fastest way to do this?
-    def _get_terms(self, prefix):
-        list = []
-        for term in self.doc:
-            if term.term.find(prefix.encode("utf-8")) == 0:
-                index = len(prefix)
-                list.append(term.term[index:])
-        return list
+    def _term_iter(self, prefix=None):
+        term_iter = iter(self.xapian_doc)
+        if prefix:
+            plen = len(prefix)
+            term = term_iter.skip_to(prefix)
+            if not term.term.startswith(prefix):
+                return
+            yield term.term[plen:]
+        for term in term_iter:
+            if prefix:
+                if not term.term.startswith(prefix):
+                    break
+                yield term.term[plen:]
+            else:
+                yield term.term
+
+    def term_iter(self, name=None):
+        """Iterator over all terms in the document.
+
+        If a prefix is provided, will iterate over only the prefixed
+        terms, and the prefix will be removed from the returned terms.
+
+        """
+        prefix = None
+        if name:
+            prefix = self.db._find_prefix(name)
+            if not prefix:
+                prefix = name
+        return self._term_iter(prefix)
 
     # set the data object for the document
     def _set_data(self, text):
-        self.doc.set_data(text)
+        self.xapian_doc.set_data(text)
 
     def get_data(self):
         """Get data object for document."""
-        return self.doc.get_data()
+        return self.xapian_doc.get_data()
 
     ########################################
     # files
 
-    # index file for the document
-    def _index_file(self, path):
-        text = parse_file(path)
+    def add_file_data(self, name, data):
+        """Add a file data to document.
 
+        'name' is the name of the file, 'data is the file data.
+
+        File will not copied in to docdir until sync().
+        """
+        # FIXME: set mime type term
+
+        # parse the file data into text
+        text = parse_data(data)
+
+        # generate terms from the text
         self._gen_terms(None, text)
 
-        summary = text[0:997].translate(None, '\n') + '...'
+        # set data to be text sample
+        # FIXME: is this the right thing to put in the data?
+        summary = text[0:997] + '...'
+        self._set_data(summary)
 
-        return summary
-
-    def _add_path(self, path):
-        base, full = self.db._basename_for_path(path)
+        # FIXME: should files be renamed to something generic (0.pdf)?
         prefix = self.db._find_prefix('file')
-        self._add_term(prefix, base)
+        self._add_term(prefix, name)
 
-    def _get_paths(self):
-        return self._get_terms(self.db._find_prefix('file'))
-
-    def get_fullpaths(self):
-        """Return fullpaths associated with document."""
-        list = []
-        for path in self._get_paths():
-            # FIXME: this is a hack for old bad path specifications and should be removed
-            if path.find(self.root) == 0:
-                index = len(self.root) + 1
-                path = path[index:]
-            path = path.lstrip('/')
-            # FIXME
-            base, full = self.db._basename_for_path(path)
-            list.append(full)
-        return list
+        # add it to the cache to be written at sync()
+        self._infiles[name] = data
 
     def add_file(self, infile):
         """Add a file to document.
 
+        Added file will have the same name.
+
         File will not copied in to docdir until sync().
         """
+        with open(infile, 'r') as f:
+            data = f.read()
+        name = os.path.basename(infile)
+        self.add_file_data(name, data)
 
-        # FIXME: should load entire file into {name: file} to be
-        # written as file>docdir/name
+    def get_files(self):
+        """Return files associated with document."""
+        return list(self.term_iter('file'))
 
-        # FIXME: set mime type term
-
-        summary = self._index_file(infile)
-
-        # set data to be text sample
-        # FIXME: is this the right thing to put in the data?
-        self._set_data(summary)
-
-        # FIXME: should files be renamed to something generic (0.pdf)?
-        outfile = os.path.join(self.docdir, os.path.basename(infile))
-
-        base, full = self.db._basename_for_path(outfile)
-
-        self._add_path(base)
-
-        # add it to the cache to be written at sync()
-        if '_infiles' not in dir(self):
-            self._infiles = {}
-        self._infiles[infile] = outfile
+    def get_fullpaths(self):
+        """Return fullpaths of files associated with document."""
+        list = []
+        for path in self.get_files():
+            # FIXME: this is a hack for old path specifications that
+            # included the docdir
+            path = os.path.basename(path)
+            list.append(os.path.join(self.docdir, path))
+        return list
 
 
     ########################################
@@ -282,7 +293,7 @@ class Document():
     def _purge_sources_prefix(self, source):
         # purge all terms for a given source prefix
         prefix = self.db._make_source_prefix(source)
-        for i in self._get_terms(prefix):
+        for i in self._term_iter(prefix):
             self._remove_term(prefix, i)
         self._remove_term(self.db._find_prefix('source'), source)
 
@@ -300,16 +311,10 @@ class Document():
     def get_sids(self):
         """Return a list of sids for document."""
         sids = []
-        for source in self._get_terms(self.db._find_prefix('source')):
-            for oid in self._get_terms(self.db._make_source_prefix(source)):
+        for source in self.term_iter('source'):
+            for oid in self._term_iter(self.db._make_source_prefix(source)):
                 sids.append('%s:%s' % (source, oid))
         return sids
-
-    # BIBTEX KEYS
-    def get_keys(self):
-        """Return a list of bibtex citation keys associated with document."""
-        prefix = self.db._find_prefix('key')
-        return self._get_terms(prefix)
 
     # TAGS
     def add_tags(self, tags):
@@ -320,8 +325,7 @@ class Document():
 
     def get_tags(self):
         """Return a list of tags associated with document."""
-        prefix = self.db._find_prefix('tag')
-        return self._get_terms(prefix)
+        return list(self.term_iter('tag'))
 
     def remove_tags(self, tags):
         """Remove tags from a document."""
@@ -332,20 +336,20 @@ class Document():
     # TITLE
     def _set_title(self, title):
         pt = self.db._find_prefix('title')
-        for term in self._get_terms(pt):
+        for term in self._term_iter(pt):
             self._remove_term(pt, term)
         # FIXME: what's the clean way to get these prefixes?
-        for term in self._get_terms('ZS'):
+        for term in self._term_iter('ZS'):
             self._remove_term('ZS', term)
         self._gen_terms(pt, title)
 
     # AUTHOR
     def _set_authors(self, authors):
         pa = self.db._find_prefix('author')
-        for term in self._get_terms(pa):
+        for term in self._term_iter(pa):
             self._remove_term(pa, term)
         # FIXME: what's the clean way to get these prefixes?
-        for term in self._get_terms('ZA'):
+        for term in self._term_iter('ZA'):
             self._remove_term('ZA', term)
         self._gen_terms(pa, authors)
 
@@ -357,11 +361,11 @@ class Document():
         except ValueError:
             pass
         prefix = self.db._find_prefix('year')
-        for term in self._get_terms(prefix):
+        for term in self._term_iter(prefix):
             self._remove_term(prefix, year)
         self._add_term(prefix, year)
         facet = self.db._find_facet('year')
-        self.doc.add_value(facet, xapian.sortable_serialise(year))
+        self.xapian_doc.add_value(facet, xapian.sortable_serialise(year))
 
     ########################################
     # bibtex
@@ -372,7 +376,7 @@ class Document():
 
     def _set_bibkey(self, key):
         prefix = self.db._find_prefix('key')
-        for term in self._get_terms(prefix):
+        for term in self._term_iter(prefix):
             self._remove_term(prefix, term)
         self._add_term(prefix, key)
 
@@ -414,11 +418,11 @@ class Document():
 
     def get_bibtex(self):
         """Get the bib for document as a bibtex string."""
-        self._load_bib()
-        if self.bibentry:
-            return self.bibentry.as_string()
-        else:
-            return None
+        bibpath = self.get_bibpath()
+        if os.path.exists(bibpath):
+            with open(bibpath, 'r') as f:
+                bibtex = f.read().decode('utf-8')
+            return bibtex.strip()
 
     def get_bibdata(self):
         self._load_bib()
@@ -426,8 +430,6 @@ class Document():
             data = self.bibentry.get_fields()
             data['authors'] = self.bibentry.get_authors()
             return data
-        else:
-            return None
 
     def update_from_bibtex(self):
         """Update document metadata from document bibtex."""
@@ -436,15 +438,29 @@ class Document():
 
     ########################################
 
+    def get_key(self):
+        self._load_bib()
+        if not self.bibentry:
+            return
+        return self.bibentry.key
+
     def get_title(self):
         """Get the title from document bibtex."""
         self._load_bib()
         if not self.bibentry:
-            return None
+            return
         fields = self.bibentry.get_fields()
         if 'title' in fields:
             return fields['title']
-        return None
+
+    def get_year(self):
+        """Get the title from document bibtex."""
+        self._load_bib()
+        if not self.bibentry:
+            return
+        fields = self.bibentry.get_fields()
+        if 'year' in fields:
+            return fields['year']
 
     def get_urls(self):
         """Get all URLs associated with document."""
@@ -452,7 +468,7 @@ class Document():
         urls = []
         # get urls associated with known sources
         for sid in self.get_sids():
-            urls.append(sources[sid].url())
+            urls.append(sources[sid].url)
         # get urls from bibtex
         self._load_bib()
         if self.bibentry:

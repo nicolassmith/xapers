@@ -17,7 +17,6 @@ setup(
         'xapers',
         'xapers.parsers',
         'xapers.sources',
-        'xapers.cli',
         'xapers.nci',
         ],
     scripts = ['bin/xapers'],

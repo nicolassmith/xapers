@@ -508,7 +508,7 @@ EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'delete single document noprompt'
-xapers delete --noprompt id:2
+echo 'yes' | xapers delete id:2
 xapers search '*' >OUTPUT
 cat <<EOF >EXPECTED
 id:5 [] {} (new) ""
@@ -519,7 +519,7 @@ EOF
 test_expect_equal_file OUTPUT EXPECTED
 
 test_begin_subtest 'delete document search w/ prompt'
-echo 'yes' | xapers delete lorem
+xapers delete --noprompt lorem
 xapers search lorem >OUTPUT
 cat <<EOF >EXPECTED
 EOF

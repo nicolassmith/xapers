@@ -20,34 +20,13 @@ Jameson Rollins <jrollins@finestructure.net>
 
 import os
 import sys
+import codecs
+import signal
 
-from cli import UI, initdb
+import cli
 from source import Sources, SourceError
 from bibtex import Bibtex, BibtexError
 from parser import ParseError
-
-########################################################################
-
-# combine a list of terms with spaces between, so that simple queries
-# don't have to be quoted at the shell level.
-def make_query_string(terms, require=True):
-    string = str.join(' ', terms)
-    if string == '':
-        if require:
-            print >>sys.stderr, "Must specify a search term."
-            sys.exit(1)
-        else:
-            string = '*'
-    return string
-
-def import_nci():
-    try:
-        import nci
-    except ImportError:
-        print >>sys.stderr, "The python-urwid package does not appear to be installed."
-        print >>sys.stderr, "Please install to be able to use the curses UI."
-        sys.exit(1)
-    return nci
 
 ########################################################################
 
@@ -63,7 +42,7 @@ Commands:
                                       document.
     --source=[<sid>|<file>]             source id, for online retrieval, or
                                         bibtex file path
-    --file=<file>                       PDF file to index and archive
+    --file[=<file>]                     PDF file to index and archive
     --tags=<tag>[,...]                  initial tags
     --prompt                            prompt for unspecified options
     --view                              view entry after adding
@@ -71,7 +50,8 @@ Commands:
     --tags=<tag>[,...]                  tags to apply to all imported documents
   delete <search-terms>               Delete documents from database.
     --noprompt                          do not prompt to confirm deletion
-  restore                             Restore database from xapers root.
+  restore                             Restore database from an existing xapers
+                                      root directory.
 
   tag +<tag>|-<tag> [...] [--] <search-terms>
                                       Add/remove tags.
@@ -80,7 +60,6 @@ Commands:
     --output=[summary|bibtex|tags|sources|keys|files]
                                         output format (default is 'summary')
     --limit=N                           limit number of results returned
-                                        (default is 20, use '0' for all)
   bibtex <search-terms>               Short for \"search --output=bibtex\".
   view <search-terms>                 View search in curses UI.
   count <search-terms>                Count matches.
@@ -138,26 +117,52 @@ See the following for more information on search terms:
 
 ########################################################################
 
+# combine a list of terms with spaces between, so that simple queries
+# don't have to be quoted at the shell level.
+def make_query_string(terms, require=True):
+    string = str.join(' ', terms)
+    if string == '':
+        if require:
+            print >>sys.stderr, "Must specify a search term."
+            sys.exit(1)
+        else:
+            string = '*'
+    return string
+
+def import_nci():
+    try:
+        import nci
+    except ImportError:
+        print >>sys.stderr, "The python-urwid package does not appear to be installed."
+        print >>sys.stderr, "Please install to be able to use the curses UI."
+        sys.exit(1)
+    return nci
+
+def set_stdout_codec():
+    # set the stdout codec to properly handle utf8 characters
+    SYS_STDOUT = sys.stdout
+    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+
+########################################################################
+
 if __name__ == '__main__':
+
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
     if len(sys.argv) > 1:
         cmd = sys.argv[1]
     else:
         cmd = []
 
-    xroot = os.getenv('XAPERS_ROOT',
-                      os.path.expanduser(os.path.join('~','.xapers','docs')))
-
     ########################################
     if cmd in ['add','a']:
-        cli = UI(xroot)
-
         tags = None
         infile = None
         sid = None
         prompt = False
         view = False
-        query_string = None
+        query = None
 
         argc = 2
         while True:
@@ -165,8 +170,11 @@ if __name__ == '__main__':
                 break
             elif '--source=' in sys.argv[argc]:
                 sid = sys.argv[argc].split('=',1)[1]
-            elif '--file=' in sys.argv[argc]:
-                infile = sys.argv[argc].split('=',1)[1]
+            elif '--file' in sys.argv[argc]:
+                if '=' in sys.argv[argc]:
+                    infile = sys.argv[argc].split('=',1)[1]
+                else:
+                    infile = True
             elif '--tags=' in sys.argv[argc]:
                 tags = sys.argv[argc].split('=',1)[1].split(',')
             elif '--prompt' in sys.argv[argc]:
@@ -178,26 +186,17 @@ if __name__ == '__main__':
             argc += 1
 
         if argc == (len(sys.argv) - 1):
-            query_string = make_query_string(sys.argv[argc:])
+            query = make_query_string(sys.argv[argc:])
 
-        try:
-            docid = cli.add(query_string, infile=infile, sid=sid, tags=tags, prompt=prompt)
-        except KeyboardInterrupt:
-            print >>sys.stderr, ''
-            sys.exit(1)
-
-        # dereference the cli object so that the database is flushed
-        # FIXME: is there a better way to handle this?
-        cli = None
+        with cli.initdb(writable=True, create=True) as db:
+            docid = cli.add(db, query, infile=infile, sid=sid, tags=tags, prompt=prompt)
 
         if view and docid:
             nci = import_nci()
-            nci.UI(xroot, cmd=['search', 'id:'+docid])
+            nci.UI(cmd=['search', 'id:'+str(docid)])
 
     ########################################
     elif cmd in ['import','i']:
-        cli = UI(xroot)
-
         tags = []
 
         argc = 2
@@ -222,16 +221,23 @@ if __name__ == '__main__':
             print >>sys.stderr, "File not found: %s" % bibfile
             sys.exit(1)
 
-        try:
-            cli.importbib(bibfile, tags=tags)
-        except KeyboardInterrupt:
-            print >>sys.stderr, ''
-            sys.exit(1)
+        with cli.initdb(writable=True, create=True) as db:
+            cli.importbib(db, bibfile, tags=tags)
 
     ########################################
-    elif cmd in ['update-all']:
-        cli = UI(xroot)
-        cli.update_all()
+    elif cmd in ['update']:
+        argc = 2
+        query = make_query_string(sys.argv[argc:])
+        with cli.initdb(writable=True) as db:
+            for doc in db.search(query):
+                try:
+                    print >>sys.stderr, "Updating %s..." % doc.docid,
+                    doc.update_from_bibtex()
+                    doc.sync()
+                    print >>sys.stderr, "done."
+                except:
+                    print >>sys.stderr, "\n"
+                    raise
 
     ########################################
     elif cmd in ['delete']:
@@ -247,19 +253,25 @@ if __name__ == '__main__':
                 break
             argc += 1
 
-        cli = UI(xroot)
-        try:
-            cli.delete(make_query_string(sys.argv[argc:]), prompt=prompt)
-        except KeyboardInterrupt:
-            print >>sys.stderr, ''
-            sys.exit(1)
+        query = make_query_string(sys.argv[argc:])
+        with cli.initdb(writable=True) as db:
+            count = db.count(query)
+            if count == 0:
+                print >>sys.stderr, "No documents found for query."
+                sys.exit(1)
+            for doc in db.search(query):
+                if prompt:
+                    resp = raw_input("Type 'yes' to delete document id:%d: " % doc.docid)
+                    if resp != 'yes':
+                        continue
+                print >>sys.stderr, "deleting id:%d..." % doc.docid,
+                doc.purge()
+                print >>sys.stderr, "done."
 
     ########################################
     elif cmd in ['search','s']:
-        cli = UI(xroot)
-
         oformat = 'summary'
-        limit = 20
+        limit = 0
 
         argc = 2
         while True:
@@ -273,44 +285,35 @@ if __name__ == '__main__':
                 break
             argc += 1
 
-        query = make_query_string(sys.argv[argc:])
-        try:
-            cli.search(query, oformat=oformat, limit=limit)
-        except KeyboardInterrupt:
-            print >>sys.stderr, ''
+        if oformat not in ['summary','bibtex','tags','sources','keys','files']:
+            print >>sys.stderr, "Unknown output format."
             sys.exit(1)
+
+        query = make_query_string(sys.argv[argc:])
+        set_stdout_codec()
+        with cli.initdb() as db:
+            cli.search(db, query, oformat=oformat, limit=limit)
 
     ########################################
     elif cmd in ['bibtex','bib','b']:
-        cli = UI(xroot)
         argc = 2
         query = make_query_string(sys.argv[argc:])
-        try:
-            cli.search(query, oformat='bibtex')
-        except KeyboardInterrupt:
-            print >>sys.stderr, ''
-            sys.exit(1)
+        set_stdout_codec()
+        with cli.initdb() as db:
+            cli.search(db, query, oformat='bibtex')
 
     ########################################
     elif cmd in ['nci','view','show','select']:
         nci = import_nci()
-
         if cmd == 'nci':
             args = sys.argv[2:]
         else:
             query = make_query_string(sys.argv[2:], require=False)
             args = ['search', query]
-
-        try:
-            nci.UI(xroot, cmd=args)
-        except KeyboardInterrupt:
-            print >>sys.stderr, ''
-            sys.exit(1)
+        nci.UI(cmd=args)
 
     ########################################
     elif cmd in ['tag','t']:
-        cli = UI(xroot)
-
         add_tags = []
         remove_tags = []
 
@@ -338,39 +341,60 @@ if __name__ == '__main__':
             sys.exit(1)
 
         query = make_query_string(sys.argv[argc:])
-        cli.tag(query, add_tags, remove_tags)
+        with cli.initdb(writable=True) as db:
+            for doc in db.search(query):
+                doc.add_tags(add_tags)
+                doc.remove_tags(remove_tags)
+                doc.sync()
 
     ########################################
     elif cmd in ['dumpterms']:
-        cli = UI(xroot)
-        query = make_query_string(sys.argv[2:], require=False)
-        cli.dumpterms(query)
+        prefix = None
+        argc = 2
+        while True:
+            if argc >= len(sys.argv):
+                break
+            if '--prefix=' in sys.argv[argc]:
+                prefix = sys.argv[argc].split('=')[1]
+            else:
+                break
+            argc += 1
+        query = make_query_string(sys.argv[argc:], require=True)
+        with cli.initdb() as db:
+            if query == '*':
+                for term in db.term_iter(prefix):
+                    print term
+            else:
+                for doc in db.search(query):
+                    for term in doc.term_iter(prefix):
+                        print term
 
     ########################################
     elif cmd in ['maxid']:
-        db = initdb(xroot)
         docid = 0
-        for doc in db.search('*'):
-            docid = max(docid, int(doc.docid))
-        print 'id:%d' % docid
+        with cli.initdb() as db:
+            for doc in db.search('*'):
+                docid = max(docid, doc.docid)
+            print 'id:%d' % docid
 
     ########################################
     elif cmd in ['count']:
-        cli = UI(xroot)
         query = make_query_string(sys.argv[2:], require=False)
-        cli.count(query)
+        with cli.initdb() as db:
+            print db.count(query)
 
     ########################################
     elif cmd in ['export']:
-        cli = UI(xroot)
         outdir = sys.argv[2]
         query = make_query_string(sys.argv[3:])
-        cli.export(outdir, query)
+        set_stdout_codec()
+        with cli.initdb() as db:
+            cli.export(db, outdir, query)
 
     ########################################
     elif cmd in ['restore']:
-        cli = UI(xroot)
-        cli.restore()
+        with cli.initdb(writable=True, create=True, force=True) as db:
+            db.restore(log=True)
 
     ########################################
     elif cmd in ['sources']:
@@ -437,19 +461,25 @@ if __name__ == '__main__':
             elif cmd in ['source2bib', 's2b']:
                 try:
                     bibtex = item.fetch_bibtex()
-                except SourceError as e:
+                except Exception as e:
                     print >>sys.stderr, "Could not retrieve bibtex: %s" % e
                     sys.exit(1)
 
                 if outraw:
                     print bibtex
                 else:
-                    print Bibtex(bibtex)[0].as_string()
+                    try:
+                        print Bibtex(bibtex)[0].as_string()
+                    except:
+                        print >>sys.stderr, "Failed to parse retrieved bibtex data."
+                        print >>sys.stderr, "Use --raw option to view raw retrieved data."
+                        sys.exit(1)
 
             elif cmd in ['source2file', 's2f']:
                 try:
-                    print item.fetch_file()
-                except SourceError as e:
+                    name, data = item.fetch_file()
+                    print data
+                except Exception as e:
                     print >>sys.stderr, "Could not retrieve file: %s" % e
                     sys.exit(1)
 

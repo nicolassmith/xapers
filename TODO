@@ -1,8 +1,20 @@
+* DB VERSION
+* add only opens writable db on doc.sync()
+* set/get title, author, tags as data or values (is this faster?)
+* pdf thumbnails:
+   "convert -thumbnail 500x -background white -alpha remove file.pdf[0] thumb.png"
+   ([0] == pdf page)
+* gtk gui, with pdf thumbs
+* rework db/doc interface
+   * doc is just directory and xapian_doc
+   * db does write/index on sync
+
 doc:
 * add ability to remove source sid
 * add ability to replace/remove file
 * what to do with doc 'data' field:
   * snippet/summary (current)
+  * data for fast retrieval?
   * bib abstract
   * custom annotations/notes
   * nothing
@@ -11,23 +23,16 @@ cli:
 * utilize meta-data pulled from parser
 * update should re-pull from existing source if available
 * export should produce full mirror of xapers document structure
-* needs simplification (script + module is clunky)
-* improve command line parsing
 
 nci:
+* custom keybindings
+* customize helper commands
 * how to test??
-* add indicator that file is available
-* display bib or summary, not both
-* asyncronously load search results
-* update/add in search
-* better entry highlighting (full entry)
-* fail gracefully if db has changed
-* customizable keybindings
+* add update/add commands
 * customizable palette
 
 sources:
 * add 'hdl': http://handle.net/proxy.html
-* add method to download document file
 
 parser:
 * extract metadata from pdfs
@@ -35,16 +40,10 @@ parser:
 * better pdf parser (native python: https://gist.github.com/pazz/5455090)
 * parsers for other document types
 
-bib:
-* test for compiling bibtex
-* provide bib output in other formats
-
-emacs UI
-* make emacs UI! (need json/sexp output)
-
 ?
+* emacs UI (need json/sexp output)
 * rename file when importing and copying into docdir?
-* store bib in different form (json instead of bibtex)?
+* store bib data in different format (json instead of bibtex)?
 * clear old indexed terms when importing new file/bib?
 * vcs integration (git of root)?
 

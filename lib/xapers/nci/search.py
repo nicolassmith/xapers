@@ -1,8 +1,10 @@
 import os
-import subprocess
 import urwid
+import subprocess
+import collections
 
-from ..database import Database, DatabaseLockError
+from ..cli import initdb
+from ..database import DatabaseLockError
 
 ############################################################
 
@@ -22,70 +24,97 @@ def xclip(text, isfile=False):
 
 ############################################################
 
-class DocListItem(urwid.WidgetWrap):
+class DocItem(urwid.WidgetWrap):
 
-    def __init__(self, doc):
+    FIELDS = ['title',
+              'authors',
+              'journal',
+              'year',
+              'source',
+              #'tags',
+              'file',
+              #'summary',
+              ]
+
+    def __init__(self, doc, doc_ind, total_docs):
         self.doc = doc
-        self.matchp = doc.matchp
         self.docid = self.doc.docid
 
-        # fill the default attributes for the fields
-        self.fields = {}
-        for field in ['sources', 'tags', 'title', 'authors', 'year', 'summary']:
-            self.fields[field] = urwid.Text('')
+        c1width = 10
 
-        self.fields['sources'].set_text(' '.join(self.doc.get_sids()))
-        self.fields['tags'].set_text(' '.join(self.doc.get_tags()))
+        field_data = dict.fromkeys(self.FIELDS, '')
 
-        data = self.doc.get_bibdata()
-        if data:
-            if 'title' in data:
-                self.fields['title'].set_text(data['title'])
-            if 'authors' in data:
-                astring = ' and '.join(data['authors'][:10])
-                if len(data['authors']) > 10:
-                    astring = astring + ' et al.'
-                self.fields['authors'].set_text(astring)
-            if 'year' in data:
-                self.fields['year'].set_text(data['year'])
+        field_data['tags'] = ' '.join(self.doc.get_tags())
 
-        self.fields['summary'].set_text(self.doc.get_data())
+        bibdata = self.doc.get_bibdata()
+        if bibdata:
+            for field, value in bibdata.iteritems():
+                if 'title' == field:
+                    field_data[field] = value
+                elif 'authors' == field:
+                    field_data[field] = ' and '.join(value[:4])
+                    if len(value) > 4:
+                        field_data[field] += ' et al.'
+                elif 'year' == field:
+                    field_data[field] = value
 
-        self.c1width = 10
+                if field_data['journal'] == '':
+                    if 'journal' == field:
+                        field_data['journal'] = value
+                    elif 'container-title' == field:
+                        field_data['journal'] = value
+                    elif 'arxiv' == field:
+                        field_data['journal'] = 'arXiv.org'
+                    elif 'dcc' == field:
+                        field_data['journal'] = 'LIGO DCC'
 
-        self.rowHeader = urwid.AttrMap(
-            urwid.Text('id:%s (%s)' % (self.docid, self.matchp)),
-            'head', 'head_focus')
+        urls = self.doc.get_urls()
+        if urls:
+            field_data['source'] = urls[0]
 
-        # FIXME: how do we hightlight everything in pile during focus?
-        w = urwid.Pile(
-            [
-                urwid.Divider('-'),
-                self.rowHeader,
-                self.docfield('sources'),
-                self.docfield('tags'),
-                self.docfield('title'),
-                self.docfield('authors'),
-                self.docfield('year'),
-                self.docfield('summary'),
-                ]
-            ,
-            focus_item=1)
+        summary = self.doc.get_data()
+        if not summary:
+            summary = 'NO FILE'
+        field_data['summary'] = summary
+
+        files = self.doc.get_files()
+        if files:
+            field_data['file'] = os.path.basename(files[0])
+
+        def gen_field_row(field, value):
+            if field in ['journal', 'year', 'source']:
+                color = 'journal'
+            elif field in ['file']:
+                color = 'field'
+            else:
+                color = field
+            return urwid.Columns([
+                ('fixed', c1width, urwid.Text(('field', field + ':'))),
+                urwid.Text((color, value)),
+                ])
+
+        self.tag_field = urwid.Text(field_data['tags'])
+        header = urwid.AttrMap(urwid.Columns([
+            ('fixed', c1width, urwid.Text('id:%d' % (self.docid))),
+            urwid.AttrMap(self.tag_field, 'tags'),
+            urwid.Text('%s%% match (%s/%s)' % (doc.matchp, doc_ind, total_docs), align='right'),
+            ]),
+            'head')
+        pile = [urwid.AttrMap(urwid.Divider(' '), '', ''),
+                header
+                ] + [gen_field_row(field, field_data[field]) for field in self.FIELDS]
+        w = urwid.AttrMap(urwid.AttrMap(urwid.Pile(pile), 'field'),
+                          '',
+                          {'head': 'head focus',
+                           'field': 'field focus',
+                           'tags': 'tags focus',
+                           'title': 'title focus',
+                           'authors': 'authors focus',
+                           'journal': 'journal focus',
+                           },
+                          )
+
         self.__super.__init__(w)
-
-    def docfield(self, field):
-        attr_map = field
-        return urwid.Columns(
-            [
-                ('fixed', self.c1width,
-                 urwid.AttrMap(
-                     urwid.Text(field + ':'),
-                     'field', 'field_focus')),
-                urwid.AttrMap(
-                    self.fields[field],
-                    attr_map)
-                ]
-            )
 
     def selectable(self):
         return True
@@ -95,58 +124,126 @@ class DocListItem(urwid.WidgetWrap):
 
 ############################################################
 
+class DocWalker(urwid.ListWalker):
+    def __init__(self, docs):
+        self.docs = docs
+        self.ndocs = len(docs)
+        self.focus = 0
+        self.items = {}
+
+    def __getitem__(self, pos):
+        if pos < 0:
+            raise IndexError
+        if pos not in self.items:
+            self.items[pos] = DocItem(self.docs[pos], pos+1, self.ndocs)
+        return self.items[pos]
+
+    def set_focus(self, focus):
+        if focus == -1:
+            focus = self.ndocs - 1
+        self.focus = focus
+        self._modified()
+
+    def next_position(self, pos):
+        return pos + 1
+
+    def prev_position(self, pos):
+        return pos - 1
+        
+############################################################
+
 class Search(urwid.WidgetWrap):
 
     palette = [
         ('head', 'dark blue, bold', ''),
-        ('head_focus', 'white, bold', 'dark blue'),
+        ('head focus', 'white, bold', 'dark blue'),
         ('field', 'light gray', ''),
-        ('field_focus', '', 'light gray'),
-        ('sources', 'light magenta, bold', ''),
-        ('tags', 'dark green, bold', ''),
+        ('field focus', '', 'dark gray', '', '', 'g19'),
+        ('tags', 'dark green', ''),
+        ('tags focus', 'light green', 'dark blue'),
         ('title', 'yellow', ''),
-        ('authors', 'dark cyan, bold', ''),
-        ('year', 'dark red', '',),
+        ('title focus', 'yellow', 'dark gray', '', 'yellow', 'g19'),
+        ('authors', 'light cyan', ''),
+        ('authors focus', 'light cyan', 'dark gray', '', 'light cyan', 'g19'),
+        ('journal', 'dark magenta', '',),
+        ('journal focus', 'dark magenta', 'dark gray', '', 'dark magenta', 'g19'),
         ]
 
-    keys = {
-        'n': "nextEntry",
-        'p': "prevEntry",
-        'down': "nextEntry",
-        'up': "prevEntry",
-        'enter': "viewFile",
-        'u': "viewURL",
-        'b': "viewBibtex",
-        '+': "addTags",
-        '-': "removeTags",
-        'a': "archive",
-        'meta i': "copyID",
-        'meta f': "copyPath",
-        'meta u': "copyURL",
-        'meta b': "copyBibtex",
-        }
+    keys = collections.OrderedDict([
+        ('n', "nextEntry"),
+        ('down', "nextEntry"),
+        ('p', "prevEntry"),
+        ('up', "prevEntry"),
+        ('<', "firstEntry"),
+        ('>', "lastEntry"),
+        ('=', "refresh"),
+        ('l', "filterSearch"),
+        ('enter', "viewFile"),
+        ('u', "viewURL"),
+        ('b', "viewBibtex"),
+        ('+', "addTags"),
+        ('-', "removeTags"),
+        ('a', "archive"),
+        ('meta i', "copyID"),
+        ('meta f', "copyPath"),
+        ('meta u', "copyURL"),
+        ('meta b', "copyBibtex"),
+        ])
 
     def __init__(self, ui, query=None):
         self.ui = ui
+        self.query = query
 
-        self.ui.set_header("Search: " + query)
-
-        docs = self.ui.db.search(query, limit=20)
-        if len(docs) == 0:
+        count = self.ui.db.count(query)
+        if count == 0:
             self.ui.set_status('No documents found.')
+            docs = []
+        else:
+            docs = [doc for doc in self.ui.db.search(query)]
+        if count == 1:
+            cstring = "%d result" % (count)
+        else:
+            cstring = "%d results" % (count)
 
-        items = []
-        for doc in docs:
-            items.append(DocListItem(doc))
+        self.ui.set_header([urwid.Columns([
+            urwid.Text("search: \"%s\"" % (self.query)),
+            urwid.Text(cstring, align='right'),
+            ])])
 
-        self.lenitems = len(items)
-        self.listwalker = urwid.SimpleListWalker(items)
-        self.listbox = urwid.ListBox(self.listwalker)
+        self.lenitems = count
+        self.docwalker = DocWalker(docs)
+        self.listbox = urwid.ListBox(self.docwalker)
         w = self.listbox
 
         self.__super.__init__(w)
 
+    def keypress(self, size, key):
+        if key in self.keys:
+            cmd = "self.%s()" % (self.keys[key])
+            eval(cmd)
+        else:
+            self.ui.keypress(key)
+
     ##########
+
+    def refresh(self):
+        """refresh current search results"""
+        entry, pos = self.listbox.get_focus()
+        self.ui.newbuffer(['search', self.query])
+        self.ui.killBuffer()
+
+    def filterSearch(self):
+        """filter current search with additional terms"""
+        prompt = 'filter search: '
+        urwid.connect_signal(self.ui.prompt(prompt), 'done', self._filterSearch_done)
+
+    def _filterSearch_done(self, newquery):
+        self.ui.view.set_focus('body')
+        urwid.disconnect_signal(self.ui, self.ui.prompt, 'done', self._filterSearch_done)
+        if not newquery:
+            self.ui.set_status()
+            return
+        self.ui.newbuffer(['search', self.query, newquery])
 
     def nextEntry(self):
         """next entry"""
@@ -162,17 +259,25 @@ class Search(urwid.WidgetWrap):
         if pos == 0: return
         self.listbox.set_focus(pos - 1)
 
+    def lastEntry(self):
+        """last entry"""
+        self.listbox.set_focus(-1)
+
+    def firstEntry(self):
+        """first entry"""
+        self.listbox.set_focus(0)
+
     def viewFile(self):
         """open document file"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
         path = entry.doc.get_fullpaths()
         if not path:
-            self.ui.set_status('No file for document id:%s.' % entry.docid)
+            self.ui.set_status('No file for document id:%d.' % entry.docid)
             return
         path = path[0]
         if not os.path.exists(path):
-            self.ui.set_status('ERROR: id:%s: file not found.' % entry.docid)
+            self.ui.set_status('ERROR: id:%d: file not found.' % entry.docid)
             return
         self.ui.set_status('opening file: %s...' % path)
         subprocess.Popen(['xdg-open', path],
@@ -186,7 +291,7 @@ class Search(urwid.WidgetWrap):
         if not entry: return
         urls = entry.doc.get_urls()
         if not urls:
-            self.ui.set_status('ERROR: id:%s: no URLs found.' % entry.docid)
+            self.ui.set_status('ERROR: id:%d: no URLs found.' % entry.docid)
             return
         # FIXME: open all instead of just first?
         url = urls[0]
@@ -200,15 +305,15 @@ class Search(urwid.WidgetWrap):
         """view document bibtex"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        self.ui.newbuffer(['bibview', 'id:' + entry.docid])
+        self.ui.newbuffer(['bibview', 'id:' + str(entry.docid)])
 
     def copyID(self):
         """copy document ID to clipboard"""
         entry = self.listbox.get_focus()[0]
         if not entry: return
-        docid = "id:%s" % entry.docid
+        docid = "id:%d" % entry.docid
         xclip(docid)
-        self.ui.set_status('docid yanked: %s' % docid)
+        self.ui.set_status('yanked docid: %s' % docid)
 
     def copyPath(self):
         """copy document file path to clipboard"""
@@ -216,10 +321,10 @@ class Search(urwid.WidgetWrap):
         if not entry: return
         path = entry.doc.get_fullpaths()[0]
         if not path:
-            self.ui.set_status('ERROR: id:%s: file path not found.' % entry.docid)
+            self.ui.set_status('ERROR: id:%d: file path not found.' % entry.docid)
             return
         xclip(path)
-        self.ui.set_status('path yanked: %s' % path)
+        self.ui.set_status('yanked path: %s' % path)
 
     def copyURL(self):
         """copy document URL to clipboard"""
@@ -227,12 +332,12 @@ class Search(urwid.WidgetWrap):
         if not entry: return
         urls = entry.doc.get_urls()
         if not urls:
-            self.ui.set_status('ERROR: id:%s: URL not found.' % entry.docid)
+            self.ui.set_status('ERROR: id:%d: URL not found.' % entry.docid)
             return
         # FIXME: copy all instead of just first?
         url = urls[0]
         xclip(url)
-        self.ui.set_status('url yanked: %s' % url)
+        self.ui.set_status('yanked url: %s' % url)
 
     def copyBibtex(self):
         """copy document bibtex to clipboard"""
@@ -240,13 +345,13 @@ class Search(urwid.WidgetWrap):
         if not entry: return
         bibtex = entry.doc.get_bibpath()
         if not bibtex:
-            self.ui.set_status('ERROR: id:%s: bibtex not found.' % entry.docid)
+            self.ui.set_status('ERROR: id:%d: bibtex not found.' % entry.docid)
             return
         xclip(bibtex, isfile=True)
-        self.ui.set_status('bibtex yanked: %s' % bibtex)
+        self.ui.set_status('yanked bibtex: %s' % bibtex)
 
     def addTags(self):
-        """add tags from document (space separated)"""
+        """add tags to document (space separated)"""
         self.promptTag('+')
 
     def removeTags(self):
@@ -272,7 +377,7 @@ class Search(urwid.WidgetWrap):
             return
         entry = self.listbox.get_focus()[0]
         try:
-            with Database(self.ui.xroot, writable=True) as db:
+            with initdb(writable=True) as db:
                 doc = db[entry.docid]
                 tags = tag_string.split()
                 if sign is '+':
@@ -283,18 +388,13 @@ class Search(urwid.WidgetWrap):
                     msg = "Removed tags: %s" % (tag_string)
                 doc.sync()
             tags = doc.get_tags()
-            entry.fields['tags'].set_text(' '.join(tags))
+            entry.tag_field.set_text(' '.join(tags))
         except DatabaseLockError as e:
             msg = e.msg
+        self.ui.db.reopen()
         self.ui.set_status(msg)
 
     def archive(self):
-        """archive document (remove 'new' tag)"""
+        """archive document (remove 'new' tag) and advance"""
         self._promptTag_done('new', '-')
-
-    def keypress(self, size, key):
-        if key in self.keys:
-            cmd = "self.%s()" % (self.keys[key])
-            eval(cmd)
-        else:
-            self.ui.keypress(key)
+        self.nextEntry()

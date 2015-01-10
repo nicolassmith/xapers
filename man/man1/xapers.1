@@ -56,7 +56,7 @@ below for details of the supported syntax for <search-terms>.
 .SS add [options] [<search-terms>]
 
 Add a document, or update an existing document.  Must specify at least
-one of --file or --source.  If search terms are provided they must
+one of \-\-file or \-\-source.  If search terms are provided they must
 match exactly one document and the matching document is updated with
 the newly provided information.  Available options:
 .RS 4
@@ -67,10 +67,11 @@ also be a path to a file that contains a single bibtex entry.
 .RE
 .RS 4
 .TP 4
-.BR \-\-file=<path>
-Document file (as PDF) to add.  Text of document will be extracted
-from PDF and indexed.  A copy of the file will be placed in the Xapers
-document store.
+.BR \-\-file[=<file>]
+Document file (as PDF) to add.  Text of document will be extracted and
+indexed.  A copy of the file will be placed in the Xapers document
+store.  If provided without path, xapers will attempt to download file
+from source, assuming source supports file downloads.
 .RE
 .RS 4
 .TP 4
@@ -147,13 +148,12 @@ Default is
 .TP 4
 .BR \-\-limit=N
 
-Limit number of results returned.  Default is 20.  Use 0 to return all
-results.
+Limit number of results returned to N.
 .RE
 .
 .SS bibtex <search-terms>
 
-Short for "search --output=bibtex <search-terms>".
+Short for "search \-\-output=bibtex <search-terms>".
 .
 .SS count <search-terms>
 

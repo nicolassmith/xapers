@@ -164,6 +164,9 @@ class Sources(object):
         else:
             return source
 
+    def __contains__(self, source):
+        return source in self._sources
+
     def __getitem__(self, sid):
         name = None
         id = None
@@ -173,7 +176,7 @@ class Sources(object):
             raise SourceError("could not parse sid string")
         name = vals[0]
         if len(vals) > 1:
-            id = ':'.join(vals)
+            id = vals[1]
         return self.get_source(name, id)
 
     def __iter__(self):
@@ -190,7 +193,7 @@ class Sources(object):
             for source in self:
                 try:
                     match = re.match(source.url_regex, string)
-                except AttributeError:
+                except SourceAttributeError:
                     # FIXME: warning?
                     continue
                 if match:
@@ -234,10 +237,9 @@ class Sources(object):
         fields = bibentry.get_fields()
         items = set()
         for field, value in fields.iteritems():
-            for source in self:
-                # FIXME: should we be case sensitive?
-                if source.name.lower() == field.lower():
-                    items.add(source[value])
+            field = field.lower()
+            if field in self:
+                items.add(self.get_source(field, value))
         # FIXME: how do we get around special exception for this?
         if 'eprint' in fields:
             items.add(self.get_source('arxiv', fields['eprint']))

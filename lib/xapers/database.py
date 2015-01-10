@@ -96,7 +96,6 @@ class Database():
             return self.BOOLEAN_PREFIX_EXTERNAL[name]
         if name in self.PROBABILISTIC_PREFIX:
             return self.PROBABILISTIC_PREFIX[name]
-        # FIXME: raise internal error for unknown name
 
     def _find_facet(self, name):
         if name in self.NUMBER_VALUE_FACET:
@@ -123,7 +122,7 @@ class Database():
                 os.makedirs(xapers_path)
             else:
                 if os.path.exists(self.root):
-                    raise DatabaseUninitializedError("Xapers directory '%s' does not contain database." % (self.root))
+                    raise DatabaseInitializationError("Xapers directory '%s' does not contain a database." % (self.root))
                 else:
                     raise DatabaseUninitializedError("Xapers directory '%s' not found." % (self.root))
 
@@ -177,69 +176,69 @@ class Database():
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        pass
+        self.xapian.close()
+
+    def reopen(self):
+        self.xapian.reopen()
+
+    def __contains__(self, docid):
+        try:
+            self.xapian.get_document(docid)
+            return True
+        except xapian.DocNotFoundError:
+            return False
 
     def __getitem__(self, docid):
-        docid = str(docid)
-        if docid.find('id:') == 0:
-            docid = docid.split(':')[1]
-        term = self._find_prefix('id') + docid
-        return self._doc_for_term(term)
+        if type(docid) not in [int, long]:
+            raise TypeError("docid must be an int")
+        xapian_doc = self.xapian.get_document(docid)
+        return Document(self, xapian_doc)
 
     ########################################
 
     # generate a new doc id, based on the last availabe doc id
     def _generate_docid(self):
-        return str(self.xapian.get_lastdocid() + 1)
-
-    # Return the xapers-relative path for a path
-    # If the the specified path is not in the xapers root, return None.
-    def _basename_for_path(self, path):
-        if path.find('/') == 0:
-            if path.find(self.root) == 0:
-                index = len(self.root) + 1
-                base = path[index:]
-            else:
-                # FIXME: should this be an exception?
-                base = None
-        else:
-            base = path
-
-        full = None
-        if base:
-            full = os.path.join(self.root, base)
-
-        return base, full
-
-    def _path_in_db(self, path):
-        base, full = self._basename_for_path(path)
-        if not base:
-            return False
-        else:
-            return True
+        return self.xapian.get_lastdocid() + 1
 
     ########################################
 
     # return a list of terms for prefix
-    # FIXME: is this the fastest way to do this?
-    def _get_terms(self, prefix):
-        terms = []
-        for term in self.xapian:
-            if term.term.find(prefix.encode("utf-8")) == 0:
-                index = len(prefix)
-                terms.append(term.term[index:])
-        return terms
+    def _term_iter(self, prefix=None):
+        term_iter = iter(self.xapian)
+        if prefix:
+            plen = len(prefix)
+            term = term_iter.skip_to(prefix)
+            if not term.term.startswith(prefix):
+                return
+            yield term.term[plen:]
+        for term in term_iter:
+            if prefix:
+                if not term.term.startswith(prefix):
+                    break
+                yield term.term[plen:]
+            else:
+                yield term.term
 
-    def get_terms(self, name):
-        """Get terms associate with name."""
-        prefix = self._find_prefix(name)
-        return self._get_terms(prefix)
+    def term_iter(self, name=None):
+        """Iterator over all terms in the database.
+
+        If a prefix is provided, will iterate over only the prefixed
+        terms, and the prefix will be removed from the returned terms.
+
+        """
+        prefix = None
+        if name:
+            prefix = self._find_prefix(name)
+            if not prefix:
+                prefix = name
+        return self._term_iter(prefix)
 
     def get_sids(self):
         """Get all sources in database."""
         sids = []
-        for source in self._get_terms(self._find_prefix('source')):
-            for oid in self._get_terms(self._make_source_prefix(source)):
+        # FIXME: do this more efficiently
+        for source in self.term_iter('source'):
+            for oid in self._term_iter(self._make_source_prefix(source)):
                 sids.append('%s:%s' % (source, oid))
         return sids
 
@@ -313,12 +312,10 @@ class Database():
 
     def replace_document(self, docid, doc):
         """Replace (sync) document to database."""
-        docid = int(docid)
         self.xapian.replace_document(docid, doc)
 
     def delete_document(self, docid):
         """Delete document from database."""
-        docid = int(docid)
         self.xapian.delete_document(docid)
 
     ########################################
@@ -338,23 +335,24 @@ class Database():
             if log:
                 print >>sys.stderr, docdir
 
+            # if we can't convert the directory name into an integer,
+            # assume it's not relevant to us and continue
+            try:
+                docid = int(ddir)
+            except ValueError:
+                continue
+
             docfiles = os.listdir(docdir)
             if not docfiles:
                 # skip empty directories
                 continue
 
-            # if we can't convert the directory name into an integer,
-            # assume it's not relevant to us and continue
-            try:
-                docid = str(int(ddir))
-            except ValueError:
-                continue
-
             if log:
                 print >>sys.stderr, '  docid:', docid
 
-            doc = self.__getitem__(docid)
-            if not doc:
+            try:
+                doc = self[docid]
+            except xapian.DocNotFoundError:
                 doc = Document(self, docid=docid)
 
             for dfile in docfiles:

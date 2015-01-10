@@ -21,11 +21,9 @@ Jameson Rollins <jrollins@finestructure.net>
 import os
 import sys
 import urwid
+import collections
 
-import subprocess
-
-from ..cli.ui import initdb
-
+from ..cli import initdb
 from search import Search
 from bibview import Bibview
 from help import Help
@@ -40,23 +38,18 @@ class UI():
         ('prompt', 'black', 'light green'),
         ]
 
-    keys = {
-        '?': "help",
-        's': "promptSearch",
-        'q': "killBuffer",
-        'Q': "quit",
-        }
+    keys = collections.OrderedDict([
+        ('s', "promptSearch"),
+        ('q', "killBuffer"),
+        ('Q', "quit"),
+        ('?', "help"),
+        ])
 
-    def __init__(self, xroot, db=None, cmd=None):
-        self.xroot = xroot
-        if db:
-            # reuse db if provided
-            self.db = db
-        else:
-            self.db = initdb(self.xroot)
+    def __init__(self, cmd=None):
+        self.db = initdb()
 
         self.header_string = "Xapers"
-        self.status_string = "q: quit buffer, Q: quit Xapers, ?: help"
+        self.status_string = "s: search, q: kill buffer, Q: quit Xapers, ?: help and additional commands"
 
         self.view = urwid.Frame(urwid.SolidFill())
         self.set_header()
@@ -93,6 +86,7 @@ class UI():
             unhandled_input=self.keypress,
             handle_mouse=False,
             )
+        self.mainloop.screen.set_terminal_properties(colors=88)
         self.mainloop.run()
 
     ##########
@@ -101,10 +95,9 @@ class UI():
         if hasattr(buffer, 'palette'):
             self.palette = list(set(self.palette) | set(buffer.palette))
 
-    def set_header(self, text=None):
-        if text:
-            self.header_string = 'Xapers %s' % (text)
-        self.view.set_header(urwid.AttrMap(urwid.Text(self.header_string), 'header'))
+    def set_header(self, widget=[]):
+        header = urwid.Columns([('pack', urwid.Text('Xapers '))] + widget)
+        self.view.set_header(urwid.AttrMap(header, 'header'))
 
     def set_status(self, text=None):
         if text:
@@ -112,7 +105,7 @@ class UI():
         self.view.set_footer(urwid.AttrMap(urwid.Text(self.status_string), 'footer'))
 
     def newbuffer(self, cmd):
-        UI(self.xroot, db=self.db, cmd=cmd)
+        UI(cmd=cmd)
         self.set_status()
 
     def prompt(self, string):
@@ -137,7 +130,7 @@ class UI():
         self.newbuffer(['search', query])
 
     def killBuffer(self):
-        """kill current buffer"""
+        """kill current buffer (quit if last buffer)"""
         raise urwid.ExitMainLoop()
 
     def quit(self):

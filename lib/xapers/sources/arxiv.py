@@ -83,4 +83,5 @@ def fetch_file(id):
     f = urllib.urlopen(url)
     data = f.read()
     f.close()
-    return data
+    name = '%s.pdf' % id
+    return name, data

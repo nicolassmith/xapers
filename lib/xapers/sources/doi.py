@@ -2,16 +2,16 @@ import urllib2
 
 description = "Digital Object Identifier"
 
-url = 'http://dx.doi.org/'
+url = 'https://dx.doi.org/'
 
 # produces URL string when supplied with valid source identifier
-url_format = 'http://dx.doi.org/%s'
+url_format = 'https://dx.doi.org/%s'
 
 id_regex = '(10\.\d{4,}[\w\d\:\.\-\/]+)'
 
 # for regex matching a supplied URL.  match group 1 should return the
 # source identifier string
-url_regex = url_format % id_regex
+url_regex = 'https?://dx.doi.org/(10\.\d{4,}[\w\d\:\.\-\/]+)'
 
 # for regex scanning of document text
 #scan_regex = '[doi|DOI][\s\.\:]{0,2}(10\.\d{4}[\d\:\.\-\/a-z]+)[A-Z\s]'
