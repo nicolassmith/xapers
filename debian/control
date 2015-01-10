@@ -19,9 +19,9 @@ Depends:
  ${python:Depends},
  python-pkg-resources,
  python-xapian,
+ poppler-utils,
  pybtex
 Recommends:
- poppler-utils,
  python-pycurl,
  python-urwid,
  xdg-utils,
