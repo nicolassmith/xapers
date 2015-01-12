@@ -53,6 +53,11 @@ We also hang out on IRC:
     channel: #xapers
     server:  irc.oftc.net
 
+Please submit all bug reports to the Debian bug tracking system (BTS):
+
+    https://bugs.debian.org/xapers
+    https://www.debian.org/Bugs/Reporting
+
 
 Getting Xapers
 ==============
@@ -102,7 +107,7 @@ Then:
 
     $ sudo apt-get install build-essential devscripts pkg-config python-all-dev python-setuptools debhelper dpkg-dev fakeroot
     $ make debian-snapshot
-    $ sudo dpkg -i build/xapers_0.1_amd64.deb
+    $ sudo dpkg -i build/xapers_0.6_amd64.deb
 
 
 Using Xapers
@@ -117,20 +122,20 @@ Command line interface
 The main interface to Xapers is the xapers command line utility.  From
 this interface you can import documents, search, tag, etc.
 
-The "add" command allows importing or updating single documents with
-sources.  The "import" command allows importing an entire bibtex
-databases (.bib file).  If the bibtex entries include "file" fields
-(ala. Mendeley or Jabref), then those files are retrieved, indexed,
-and imported as well.
+The "add" command allows importing or updating single documents.  The
+"import" command allows importing an entire bibtex databases (.bib
+file).  If the bibtex entries include "file" fields (ala. Mendeley or
+Jabref), then those files are retrieved, indexed, and imported as
+well.
 
 Curses interface
 ----------------
 
-The curses interface (accessed through 'xapers show ...') provides a
-simple way to search the database and retrieve files.  Documents
-matching searches are displayed with their bibliographic information.
-Document tags can be manipulated, files and bibtex can be viewed, and
-source URLs can be opened in a browser.
+The curses interface ("xapers show ...") provides a simple way to
+display search results and retrieve files.  Documents matching
+searches are displayed with their bibliographic information.  Document
+tags can be manipulated, files and bibtex can be viewed, and source
+URLs can be opened in a browser.
 
 xapers-adder
 ------------
@@ -148,7 +153,7 @@ Development of more clever import methods is highly encouraged.
 Python library
 --------------
 
-Xapers is really a python library interface under the hood:
+Xapers is a python library under the hood:
 
     >>> import xapers
     >>> db = xapers.Database('~/.xapers/docs')
